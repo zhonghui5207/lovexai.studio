@@ -45,6 +45,16 @@ export default async function RootLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        {process.env.NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED === "true" && 
+         process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID && (
+          <script 
+            src="https://accounts.google.com/gsi/client" 
+            async 
+            defer
+          ></script>
+        )}
+      </head>
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased overflow-x-hidden",

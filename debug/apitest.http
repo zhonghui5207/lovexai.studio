@@ -45,3 +45,72 @@ Authorization: Bearer {{apiKey}}
   "provider": "openrouter",
   "model": "deepseek/deepseek-r1"
 }
+
+### ===== DATABASE CONNECTION TEST =====
+
+### Test Database Connection
+GET {{baseUrl}}/api/test-db
+
+### ===== AUTHENTICATION TESTS =====
+
+### Test NextAuth API
+GET {{baseUrl}}/api/auth/providers
+
+### ===== CREDIT SYSTEM TESTS =====
+
+### Test user credit balance (requires authentication)
+GET {{baseUrl}}/api/credits/balance
+
+### Add credits to user (requires authentication)
+POST {{baseUrl}}/api/credits/add
+Content-Type: application/json
+
+{
+  "amount": 100,
+  "order_no": "test_order_001",
+  "expired_days": 365
+}
+
+### ===== IMAGE GENERATION TESTS WITH CREDITS =====
+
+### Test Tuzi AI Image Generation - Basic (with credit deduction)
+POST {{baseUrl}}/api/generate-image
+Content-Type: application/json
+
+{
+  "prompt": "a beautiful sunset landscape with mountains"
+}
+
+### Test Tuzi AI Image Generation - Complex prompt (with credit deduction)
+POST {{baseUrl}}/api/generate-image
+Content-Type: application/json
+
+{
+  "prompt": "A futuristic cityscape at sunset, with flying cars and neon lights, cyberpunk style, highly detailed"
+}
+
+### Test Tuzi AI Image Generation - With custom aspect ratio (with credit deduction)
+POST {{baseUrl}}/api/generate-image
+Content-Type: application/json
+
+{
+  "prompt": "a cute cat wearing sunglasses, studio photo",
+  "aspect_ratio": "1:1"
+}
+
+### Test Tuzi AI Image Generation - Portrait style (with credit deduction)
+POST {{baseUrl}}/api/generate-image
+Content-Type: application/json
+
+{
+  "prompt": "professional headshot of a young woman, business attire, clean background",
+  "aspect_ratio": "9:16"
+}
+
+### Test Image Generation - Without Authentication (should fail)
+POST {{baseUrl}}/api/generate-image
+Content-Type: application/json
+
+{
+  "prompt": "This should fail without authentication"
+}

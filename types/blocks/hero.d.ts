@@ -8,6 +8,12 @@ export interface Announcement {
   target?: string;
 }
 
+export interface PromptInput {
+  placeholder?: string;
+  generate_button?: string;
+  example_text?: string;
+}
+
 export interface Hero {
   name?: string;
   disabled?: boolean;
@@ -16,6 +22,7 @@ export interface Hero {
   highlight_text?: string;
   description?: string;
   buttons?: Button[];
+  prompt_input?: PromptInput;
   image?: Image;
   tip?: string;
   show_happy_users?: boolean;

@@ -1,12 +1,46 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import HappyUsers from "./happy-users";
 import HeroBg from "./bg";
 import { Hero as HeroType } from "@/types/blocks/hero";
 import Icon from "@/components/icon";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useAppContext } from "@/contexts/app";
 
 export default function Hero({ hero }: { hero: HeroType }) {
+  const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
+  
+  const { user, setShowSignModal } = useAppContext();
+
+  // 获取用户积分余额
+  useEffect(() => {
+    if (user) {
+      fetchCredits();
+    } else {
+      setCredits(null);
+    }
+  }, [user]);
+
+  const fetchCredits = async () => {
+    try {
+      const response = await fetch('/api/credits/balance');
+      if (response.ok) {
+        const data = await response.json();
+        setCredits(data.balance);
+      }
+    } catch (error) {
+      console.error('Error fetching credits:', error);
+    }
+  };
+
   if (hero.disabled) {
     return null;
   }
@@ -16,6 +50,55 @@ export default function Hero({ hero }: { hero: HeroType }) {
   if (highlightText) {
     texts = hero.title?.split(highlightText, 2);
   }
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return;
+
+    // 检查用户是否已登录
+    if (!user) {
+      setShowSignModal(true);
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
+    setGeneratedImage(null);
+
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt.trim(),
+          aspect_ratio: "16:9"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGeneratedImage(data.imageUrl);
+        setCredits(data.remaining_credits);
+        console.log("Image generated successfully:", data.imageUrl);
+      } else {
+        if (response.status === 402) {
+          // 积分不足的特殊处理
+          setError(`Insufficient credits. Need ${data.required} credits but only have ${data.current}.`);
+        } else {
+          setError(data.error || "Failed to generate image");
+        }
+        console.error("Generation failed:", data.error);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Network error";
+      setError(errorMessage);
+      console.error("Generation error:", err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <>
@@ -62,31 +145,117 @@ export default function Hero({ hero }: { hero: HeroType }) {
               className="m mx-auto max-w-3xl text-muted-foreground lg:text-xl"
               dangerouslySetInnerHTML={{ __html: hero.description || "" }}
             />
-            {hero.buttons && (
-              <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-                {hero.buttons.map((item, i) => {
-                  return (
-                    <Link
-                      key={i}
-                      href={item.url || ""}
-                      target={item.target || ""}
-                      className="flex items-center"
-                    >
-                      <Button
-                        className="w-full"
-                        size="lg"
-                        variant={item.variant || "default"}
-                      >
-                        {item.title}
-                        {item.icon && (
-                          <Icon name={item.icon} className="ml-1" />
-                        )}
-                      </Button>
-                    </Link>
-                  );
-                })}
+            
+            {/* Credits Display */}
+            {user && credits !== null && (
+              <div className="mt-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
+                  <Icon name="RiCopperCoinLine" className="text-primary" />
+                  <span className="text-sm font-medium">
+                    Credits: <span className="font-bold text-primary">{credits}</span>
+                  </span>
+                </div>
               </div>
             )}
+            
+            {/* Prompt Input Section */}
+            {hero.prompt_input && (
+              <div className="mt-8 mx-auto max-w-2xl">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Input
+                    type="text"
+                    placeholder={hero.prompt_input.placeholder}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    className="flex-1 h-12 text-lg px-4"
+                    onKeyPress={(e) => e.key === 'Enter' && !isGenerating && handleGenerate()}
+                    disabled={isGenerating}
+                  />
+                  <Button
+                    onClick={handleGenerate}
+                    size="lg"
+                    className="h-12 px-8 whitespace-nowrap"
+                    disabled={!prompt.trim() || isGenerating || (user && credits !== null && credits < 10)}
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Icon name="RiLoader4Line" className="mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : !user ? (
+                      <>
+                        Sign In to Generate
+                        <Icon name="RiLoginBoxLine" className="ml-2" />
+                      </>
+                    ) : user && credits !== null && credits < 10 ? (
+                      <>
+                        Insufficient Credits
+                        <Icon name="RiCopperCoinLine" className="ml-2" />
+                      </>
+                    ) : (
+                      <>
+                        {hero.prompt_input.generate_button} (10 Credits)
+                        <Icon name="RiSparklingFill" className="ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {hero.prompt_input.example_text && !generatedImage && !error && (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {hero.prompt_input.example_text}
+                  </p>
+                )}
+                
+                {/* Error Display */}
+                {error && (
+                  <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                    <p className="text-sm text-destructive flex items-center">
+                      <Icon name="RiErrorWarningLine" className="mr-2" />
+                      {error}
+                    </p>
+                    {error.includes('Insufficient credits') && (
+                      <div className="mt-2">
+                        <Button variant="outline" size="sm" onClick={() => window.open('/#pricing', '_blank')}>
+                          Buy Credits
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {/* Generated Image Display */}
+                {generatedImage && (
+                  <div className="mt-6">
+                    <div className="relative rounded-lg overflow-hidden border bg-muted/20">
+                      <img 
+                        src={generatedImage} 
+                        alt={`Generated: ${prompt}`}
+                        className="w-full h-auto max-h-96 object-contain"
+                        onError={(e) => {
+                          console.error("Image load error:", e);
+                          setError("Failed to load generated image");
+                          setGeneratedImage(null);
+                        }}
+                      />
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => window.open(generatedImage, '_blank')}
+                          className="bg-black/50 hover:bg-black/70 text-white"
+                        >
+                          <Icon name="RiExternalLinkLine" className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-sm text-muted-foreground text-center">
+                      Generated from: "{prompt}" • Cost: 10 credits
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {hero.tip && (
               <p className="mt-8 text-md text-muted-foreground">{hero.tip}</p>
             )}
