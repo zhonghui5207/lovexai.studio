@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:3000
-@apiKey = sk-xxx
+@apiKey = sk-Qc0Zn98UXokmsV0IjO98dAZwo354QtKy
 
 ### ping api
 POST {{baseUrl}}/api/ping
@@ -113,4 +113,36 @@ Content-Type: application/json
 
 {
   "prompt": "This should fail without authentication"
+}
+
+### ===== MANUAL CREDIT MANAGEMENT =====
+
+### Manual Add Credits (requires authentication)
+POST {{baseUrl}}/api/manual-add-credits
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "credits": 100,
+  "reason": "test_recharge"
+}
+
+### Manual Add Credits - Small Amount
+POST {{baseUrl}}/api/manual-add-credits  
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "credits": 50,
+  "reason": "customer_service"
+}
+
+### Manual Add Credits - Invalid Amount (should fail)
+POST {{baseUrl}}/api/manual-add-credits
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "credits": 15000,
+  "reason": "test_invalid"
 }

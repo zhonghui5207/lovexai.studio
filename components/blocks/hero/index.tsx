@@ -17,28 +17,62 @@ export default function Hero({ hero }: { hero: HeroType }) {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
+  const [isLoadingCredits, setIsLoadingCredits] = useState<boolean>(false);
+  const [lastCreditsFetch, setLastCreditsFetch] = useState<number>(0);
   
   const { user, setShowSignModal } = useAppContext();
 
   // 获取用户积分余额
   useEffect(() => {
-    if (user) {
+    if (user?.uuid && credits === null) {
+      // 只在用户存在且credits未初始化时获取
       fetchCredits();
-    } else {
+    } else if (!user) {
+      // 用户登出时清空积分
       setCredits(null);
     }
-  }, [user]);
+  }, [user?.uuid]); // 只监听用户UUID变化
 
   const fetchCredits = async () => {
+    // 防止重复请求 - 30秒内不重复获取
+    const now = Date.now();
+    if (now - lastCreditsFetch < 30 * 1000) {
+      console.log("积分获取过于频繁，跳过");
+      return;
+    }
+
+    if (isLoadingCredits) {
+      console.log("积分正在获取中，跳过");
+      return;
+    }
+
     try {
-      const response = await fetch('/api/credits/balance');
+      setIsLoadingCredits(true);
+      setLastCreditsFetch(now);
+      
+      const response = await fetch('/api/get-user-credits', {
+        method: 'POST'
+      });
       if (response.ok) {
         const data = await response.json();
-        setCredits(data.balance);
+        console.log("获取积分API响应:", data); // 添加调试日志
+        // API返回格式: { code: 0, data: { left_credits: number } }
+        setCredits(data.data?.left_credits || 0);
+      } else {
+        console.error("获取积分失败:", response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error fetching credits:', error);
+    } finally {
+      setIsLoadingCredits(false);
     }
+  };
+
+  // 提供手动刷新积分的方法
+  const refreshCredits = async () => {
+    if (!user) return;
+    setLastCreditsFetch(0); // 重置时间戳，强制刷新
+    await fetchCredits();
   };
 
   if (hero.disabled) {
@@ -77,19 +111,38 @@ export default function Hero({ hero }: { hero: HeroType }) {
       });
 
       const data = await response.json();
+      console.log("生图API完整响应:", data); // 添加调试日志
 
-      if (data.success) {
-        setGeneratedImage(data.imageUrl);
-        setCredits(data.remaining_credits);
-        console.log("Image generated successfully:", data.imageUrl);
-      } else {
-        if (response.status === 402) {
-          // 积分不足的特殊处理
-          setError(`Insufficient credits. Need ${data.required} credits but only have ${data.current}.`);
-        } else {
-          setError(data.error || "Failed to generate image");
+      // API返回格式: { code: 0, message: "ok", data: { success: true, imageUrl: "...", remaining_credits: 179 } }
+      if (response.ok && data.code === 0 && data.data?.success) {
+        setGeneratedImage(data.data.imageUrl);
+        // 直接使用API返回的剩余积分，避免重新请求
+        if (typeof data.data.remaining_credits === 'number') {
+          setCredits(data.data.remaining_credits);
         }
-        console.error("Generation failed:", data.error);
+        console.log("Image generated successfully:", data.data.imageUrl);
+      } else {
+        // 处理API错误响应
+        let errorMsg = "Failed to generate image";
+        
+        if (data.code !== 0) {
+          // API返回错误码
+          errorMsg = data.message || "API error";
+        } else if (data.data?.error) {
+          // 数据中包含错误信息
+          errorMsg = data.data.error;
+        } else if (!response.ok) {
+          // HTTP错误
+          errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        
+        if (errorMsg.includes('Insufficient credits')) {
+          // 积分不足的特殊处理
+          setError(`Insufficient credits. ${errorMsg}`);
+        } else {
+          setError(errorMsg);
+        }
+        console.error("Generation failed:", errorMsg, "Full response:", data);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Network error";
@@ -232,9 +285,15 @@ export default function Hero({ hero }: { hero: HeroType }) {
                         alt={`Generated: ${prompt}`}
                         className="w-full h-auto max-h-96 object-contain"
                         onError={(e) => {
-                          console.error("Image load error:", e);
-                          setError("Failed to load generated image");
+                          console.error("Image load error for URL:", generatedImage);
+                          console.error("Error details:", e);
+                          // 避免无限循环，先清除generatedImage再设置错误
+                          const imageUrl = generatedImage;
                           setGeneratedImage(null);
+                          setError(`Failed to load generated image: ${imageUrl}`);
+                        }}
+                        onLoad={() => {
+                          console.log("Image loaded successfully:", generatedImage);
                         }}
                       />
                       <div className="absolute top-2 right-2 flex gap-2">

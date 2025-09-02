@@ -38,9 +38,26 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
+  const [isLoadingUser, setIsLoadingUser] = useState<boolean>(false);
+  const [lastUserFetch, setLastUserFetch] = useState<number>(0);
 
   const fetchUserInfo = async function () {
+    // 防止重复请求 - 5分钟内不重复获取
+    const now = Date.now();
+    if (now - lastUserFetch < 5 * 60 * 1000) {
+      console.log("用户信息获取过于频繁，跳过");
+      return;
+    }
+
+    if (isLoadingUser) {
+      console.log("用户信息正在获取中，跳过");
+      return;
+    }
+
     try {
+      setIsLoadingUser(true);
+      setLastUserFetch(now);
+      
       const resp = await fetch("/api/get-user-info", {
         method: "POST",
       });
@@ -55,10 +72,11 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
       }
 
       setUser(data);
-
       updateInvite(data);
     } catch (e) {
       console.log("fetch user info failed");
+    } finally {
+      setIsLoadingUser(false);
     }
   };
 
@@ -115,10 +133,16 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    if (session && session.user) {
+    // 只在session从无到有时才获取用户信息
+    if (session?.user?.uuid && !user) {
+      console.log("检测到新的session，获取用户信息");
       fetchUserInfo();
+    } else if (!session && user) {
+      // 用户登出，清空用户信息
+      console.log("用户登出，清空用户信息");
+      setUser(null);
     }
-  }, [session]);
+  }, [session?.user?.uuid]); // 只监听关键字段
 
   return (
     <AppContext.Provider

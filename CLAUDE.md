@@ -12,6 +12,64 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Cloudflare preview**: `pnpm cf:preview`
 - **Cloudflare deploy**: `pnpm cf:deploy`
 
+## Development Workflow Guidelines
+
+### Before starting ANY feature development, MUST:
+
+1. **Comprehensive Code Investigation**
+   - Use Glob/Grep tools to search for related functionality
+   - Examine existing models, services, and API routes
+   - Understand current data structures and business logic
+   - Check for similar or overlapping features
+
+2. **Architecture Analysis**
+   - Identify existing patterns and conventions
+   - Understand the current implementation approach
+   - Map out data flow and dependencies
+   - Review authentication and authorization methods
+
+3. **Solution Planning**
+   - Present multiple approaches (extend existing vs create new)
+   - Explain pros/cons of each approach
+   - Identify potential conflicts or duplications
+   - Recommend the best solution with reasoning
+
+4. **User Confirmation**
+   - Get explicit approval before writing any code
+   - Confirm the chosen approach and scope
+   - Clarify requirements and constraints
+   - Establish success criteria
+
+5. **Incremental Implementation**
+   - Break work into logical steps
+   - Seek confirmation at major milestones
+   - Test each component before proceeding
+   - Document changes and reasoning
+
+### Architecture Principles
+
+- **Extend, Don't Duplicate**: Always prefer extending existing systems over creating parallel ones
+- **Follow Existing Patterns**: Maintain consistency with current code style and architecture
+- **Respect Layer Separation**: Follow the models → services → API routes hierarchy
+- **Reuse Business Logic**: Leverage existing authentication, validation, and business rules
+- **Maintain Type Safety**: Use existing TypeScript definitions and patterns
+
+### Forbidden Practices
+
+- ❌ Starting development without thorough investigation
+- ❌ Bypassing existing business logic layers
+- ❌ Creating duplicate functionality without justification
+- ❌ Ignoring established authentication patterns
+- ❌ Making architectural changes without user approval
+
+### Code Quality Standards
+
+- Follow existing naming conventions
+- Use established error handling patterns
+- Maintain consistent API response formats
+- Add proper TypeScript types and interfaces
+- Include comprehensive error handling and validation
+
 ## Architecture Overview
 
 This is a Next.js 15 TypeScript application using App Router with internationalization support. Key architectural decisions:

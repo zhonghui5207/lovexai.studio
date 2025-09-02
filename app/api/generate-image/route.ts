@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { deductUserCredits, getUserCreditBalance, addUserCredits } from "@/models/credit";
+import { decreaseCredits, getUserCredits } from "@/services/credit";
+import { getUserUuid } from "@/services/user";
+import { respData, respErr } from "@/lib/resp";
+import { newStorage } from "@/lib/storage";
+import { getSnowId } from "@/lib/hash";
 
-// 定义生图成本（每张图片消耗的积分）
+// 图片生成消费积分数量
 const IMAGE_GENERATION_COST = 10;
 
 export async function POST(request: NextRequest) {
   try {
-    // 验证用户认证
-    const session = await auth();
+    // 使用现有认证系统
+    const user_uuid = await getUserUuid();
     
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: "Authentication required" },
-        { status: 401 }
-      );
+    if (!user_uuid) {
+      return respErr("no auth");
     }
 
     const body = await request.json();
@@ -22,55 +22,20 @@ export async function POST(request: NextRequest) {
 
     // 验证必填参数
     if (!prompt || prompt.trim().length === 0) {
-      return NextResponse.json(
-        { success: false, error: "Prompt is required" },
-        { status: 400 }
-      );
+      return respErr("Prompt is required");
     }
 
-    // 检查用户积分余额
-    const currentBalance = await getUserCreditBalance(session.user.email);
-    if (currentBalance < IMAGE_GENERATION_COST) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: "Insufficient credits", 
-          required: IMAGE_GENERATION_COST,
-          current: currentBalance
-        },
-        { status: 402 } // Payment Required
-      );
-    }
-
-    // 扣除积分
-    const deductResult = await deductUserCredits(
-      session.user.email, 
-      IMAGE_GENERATION_COST, 
-      `Image generation: ${prompt.substring(0, 50)}...`
-    );
-
-    if (!deductResult.success) {
-      return NextResponse.json(
-        { success: false, error: deductResult.error },
-        { status: 402 }
-      );
+    // 使用现有积分系统检查余额
+    const userCredits = await getUserCredits(user_uuid);
+    if (userCredits.left_credits < IMAGE_GENERATION_COST) {
+      return respErr(`Insufficient credits. Need ${IMAGE_GENERATION_COST} but only have ${userCredits.left_credits}`);
     }
 
     // 验证API密钥
     const apiKey = process.env.TUZI_API_KEY;
     if (!apiKey) {
       console.error("TUZI_API_KEY not configured");
-      // 退还积分
-      await addUserCredits(
-        session.user.email,
-        IMAGE_GENERATION_COST,
-        `refund_config_error_${Date.now()}`,
-        365
-      );
-      return NextResponse.json(
-        { success: false, error: "API configuration error" },
-        { status: 500 }
-      );
+      return respErr("API configuration error");
     }
 
     // 构建请求数据
@@ -99,59 +64,81 @@ export async function POST(request: NextRequest) {
     console.log("Tuzi API response:", responseData);
 
     if (!response.ok) {
-      // 如果生图失败，退还积分
-      await addUserCredits(
-        session.user.email,
-        IMAGE_GENERATION_COST,
-        `refund_api_error_${Date.now()}`,
-        365
-      );
-      
       console.error("Tuzi API error:", responseData);
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: responseData.error?.message || "Failed to generate image (credits refunded)" 
-        },
-        { status: response.status }
-      );
+      // 生图失败，不扣积分，直接返回错误
+      return respErr(responseData.error?.message || "Failed to generate image");
     }
 
     // 成功响应，提取图片URL
     const imageUrl = responseData.data?.[0]?.url || responseData.url;
     
     if (!imageUrl) {
-      // 没有图片URL，退还积分
-      await addUserCredits(
-        session.user.email,
-        IMAGE_GENERATION_COST,
-        `refund_no_image_${Date.now()}`,
-        365
-      );
-      
       console.error("No image URL in response:", responseData);
-      return NextResponse.json(
-        { success: false, error: "No image URL received from API (credits refunded)" },
-        { status: 500 }
-      );
+      // 没有图片URL，生图失败，不扣积分
+      return respErr("No image URL received from API");
     }
 
-    return NextResponse.json({
-      success: true,
-      imageUrl,
-      data: responseData,
-      cost: IMAGE_GENERATION_COST,
-      remaining_credits: deductResult.remaining_credits
-    });
+    // 只有在确认生图成功并获得图片URL后才扣费和存储
+    try {
+      // 生成图片成功，开始保存到R2存储
+      const imageId = getSnowId();
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      
+      // 文件存储路径：images/2025/01/user_uuid/image_id.png
+      const storageKey = `images/${year}/${month}/${user_uuid}/${imageId}.png`;
+      
+      console.log("📁 开始保存图片到R2存储:", storageKey);
+      
+      // 下载并上传到R2
+      const storage = newStorage();
+      const storageResult = await storage.downloadAndUpload({
+        url: imageUrl,
+        key: storageKey,
+        contentType: "image/png"
+      });
+      
+      console.log("✅ 图片已保存到R2:", storageResult.url);
+      
+      // 扣除积分
+      await decreaseCredits({
+        user_uuid,
+        trans_type: "ping", // 沿用现有类型
+        credits: IMAGE_GENERATION_COST,
+      });
+      
+      // 获取扣费后的积分余额
+      const updatedCredits = await getUserCredits(user_uuid);
+
+      return respData({
+        success: true,
+        imageUrl: storageResult.url, // 返回R2存储的永久URL
+        originalUrl: imageUrl, // 原始临时URL（备用）
+        data: responseData,
+        cost: IMAGE_GENERATION_COST,
+        remaining_credits: updatedCredits.left_credits,
+        storage: {
+          key: storageResult.key,
+          bucket: storageResult.bucket,
+          location: storageResult.location
+        }
+      });
+    } catch (creditError) {
+      console.error("积分扣费或存储失败:", creditError);
+      // 存储失败但图片已生成，记录错误但仍返回成功
+      return respData({
+        success: true,
+        imageUrl, // 返回原始URL作为备用
+        data: responseData,
+        cost: IMAGE_GENERATION_COST,
+        warning: "Image generated successfully but storage or credit deduction failed: " + (creditError instanceof Error ? creditError.message : "Unknown error"),
+        remaining_credits: userCredits.left_credits // 使用原始积分
+      });
+    }
 
   } catch (error) {
     console.error("Generate image API error:", error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: error instanceof Error ? error.message : "Internal server error" 
-      },
-      { status: 500 }
-    );
+    return respErr(error instanceof Error ? error.message : "Internal server error");
   }
 }
