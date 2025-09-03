@@ -29,6 +29,12 @@ export default async function ({ children }: { children: ReactNode }) {
           is_active: false,
         },
         {
+          title: t("user.my_images"),
+          url: "/my-images",
+          icon: "RiImageLine",
+          is_active: false,
+        },
+        {
           title: t("my_invites.title"),
           url: "/my-invites",
           icon: "RiMoneyCnyCircleFill",

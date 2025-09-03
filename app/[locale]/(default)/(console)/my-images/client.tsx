@@ -1,0 +1,483 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Calendar, Download, Trash2, MoreHorizontal, Image as ImageIcon } from "lucide-react";
+import { toast } from "sonner";
+
+interface ImageGeneration {
+  uuid: string;
+  prompt: string;
+  revised_prompt?: string;
+  aspect_ratio?: string;
+  model?: string;
+  storage_url: string;
+  credits_cost?: number;
+  created_at: string;
+  status?: string;
+}
+
+interface ImageStats {
+  total_count: number;
+  today_count: number;
+  monthly_count: number;
+  monthly_credits: number;
+}
+
+interface ApiResponse {
+  code: number;
+  message: string;
+  data?: {
+    images: ImageGeneration[];
+    stats?: ImageStats;
+    pagination: {
+      page: number;
+      limit: number;
+      hasMore: boolean;
+    };
+    filters: {
+      search: string;
+      sort: 'newest' | 'oldest';
+    };
+  };
+}
+
+export default function MyImagesClient() {
+  const [images, setImages] = useState<ImageGeneration[]>([]);
+  const [stats, setStats] = useState<ImageStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
+  const [selectedImage, setSelectedImage] = useState<ImageGeneration | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const fetchImages = async (pageNum: number = 1, isLoadMore: boolean = false) => {
+    try {
+      if (isLoadMore) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
+      const params = new URLSearchParams({
+        page: pageNum.toString(),
+        limit: '12',
+        search: searchTerm,
+        sort: sortBy,
+      });
+
+      const response = await fetch(`/api/my-images?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const result: ApiResponse = await response.json();
+
+      // 检查API响应格式 - 使用项目的标准响应格式
+      if (result.code !== 0) {
+        throw new Error(result.message || 'API request failed');
+      }
+      
+      // 对于空数据的情况，直接设置空数组而不是抛出错误  
+      if (!result.data) {
+        // 设置空数据
+        if (isLoadMore) {
+          // Load more时不改变现有数据
+        } else {
+          setImages([]);
+          setStats({
+            total_count: 0,
+            today_count: 0,
+            monthly_count: 0,
+            monthly_credits: 0
+          });
+        }
+        setHasMore(false);
+        setPage(pageNum);
+        return;
+      }
+
+      const { images: newImages = [], stats: newStats, pagination } = result.data;
+
+      if (isLoadMore) {
+        setImages(prev => [...prev, ...newImages]);
+      } else {
+        setImages(newImages);
+        if (newStats) {
+          setStats(newStats);
+        }
+      }
+
+      setHasMore(pagination.hasMore);
+      setPage(pageNum);
+
+    } catch (error) {
+      console.error('Failed to fetch images:', error);
+      // 对于新用户或空数据情况，不显示错误提示
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch images';
+      if (!errorMessage.includes('no auth') && !errorMessage.includes('empty')) {
+        toast.error(errorMessage);
+      }
+      
+      // 即使出错也设置空数据，避免无限loading
+      setImages([]);
+      setStats({
+        total_count: 0,
+        today_count: 0,
+        monthly_count: 0,
+        monthly_credits: 0
+      });
+      setHasMore(false);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
+
+  const handleSearch = () => {
+    setPage(1);
+    fetchImages(1, false);
+  };
+
+  const handleLoadMore = () => {
+    if (hasMore && !loadingMore) {
+      fetchImages(page + 1, true);
+    }
+  };
+
+  const handleDelete = async (uuid: string) => {
+    try {
+      const response = await fetch(`/api/my-images/${uuid}`, {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      
+      if (result.code !== 0) {
+        throw new Error(result.message || 'Failed to delete image');
+      }
+      
+      setImages(prev => prev.filter(img => img.uuid !== uuid));
+      setSelectedImage(null);
+      toast.success('Image deleted successfully');
+      
+      // Update stats if we have them
+      if (stats) {
+        setStats(prev => prev ? {
+          ...prev,
+          total_count: prev.total_count - 1
+        } : null);
+      }
+    } catch (error) {
+      console.error('Failed to delete image:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to delete image');
+    }
+  };
+
+  const downloadImage = async (imageUrl: string, filename: string) => {
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success('Image downloaded');
+    } catch (error) {
+      console.error('Failed to download image:', error);
+      toast.error('Failed to download image');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  useEffect(() => {
+    fetchImages(1, false);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, sortBy]);
+
+  return (
+    <div className="space-y-6">
+      {/* Statistics Panel */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Images</CardTitle>
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total_count}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Today</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.today_count}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.monthly_count}</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Monthly Credits</CardTitle>
+              <ImageIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.monthly_credits}</div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Search and Filter Controls */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Search by prompt..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        
+        <Select value={sortBy} onValueChange={(value: 'newest' | 'oldest') => setSortBy(value)}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="oldest">Oldest First</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {!loading && images.length === 0 && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Images Found</h3>
+            <p className="text-muted-foreground text-center mb-4">
+              {searchTerm 
+                ? 'Try adjusting your search terms or clear the search to see all images' 
+                : 'You haven\'t generated any images yet. Start creating some beautiful AI images!'}
+            </p>
+            {!searchTerm && (
+              <Button 
+                onClick={() => window.location.href = '/'}
+                className="mt-2"
+              >
+                Generate Your First Image
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Images Grid */}
+      {!loading && images.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {images.map((image) => (
+            <Card key={image.uuid} className="group overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="relative aspect-square">
+                <img
+                  src={image.storage_url}
+                  alt={image.prompt}
+                  className="w-full h-full object-cover cursor-pointer"
+                  onClick={() => setSelectedImage(image)}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder-image.jpg';
+                  }}
+                />
+                
+                {/* Overlay with actions */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setSelectedImage(image)}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                  </Dialog>
+                  
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => downloadImage(image.storage_url, `${image.uuid}.png`)}
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                  {image.prompt}
+                </p>
+                
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{formatDate(image.created_at)}</span>
+                  {image.credits_cost && (
+                    <Badge variant="secondary">{image.credits_cost} credits</Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Load More Button */}
+      {!loading && hasMore && (
+        <div className="flex justify-center pt-6">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore ? 'Loading...' : 'Load More'}
+          </Button>
+        </div>
+      )}
+
+      {/* Image Detail Dialog */}
+      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+        <DialogContent className="max-w-4xl">
+          {selectedImage && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Image Details</DialogTitle>
+              </DialogHeader>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <img
+                    src={selectedImage.storage_url}
+                    alt={selectedImage.prompt}
+                    className="w-full rounded-lg"
+                  />
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Prompt</h4>
+                    <p className="text-sm text-muted-foreground">{selectedImage.prompt}</p>
+                  </div>
+                  
+                  {selectedImage.revised_prompt && (
+                    <div>
+                      <h4 className="font-semibold mb-2">Revised Prompt</h4>
+                      <p className="text-sm text-muted-foreground">{selectedImage.revised_prompt}</p>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Model:</span>
+                      <p className="text-muted-foreground">{selectedImage.model || 'flux-kontext-pro'}</p>
+                    </div>
+                    
+                    <div>
+                      <span className="font-medium">Aspect Ratio:</span>
+                      <p className="text-muted-foreground">{selectedImage.aspect_ratio || '16:9'}</p>
+                    </div>
+                    
+                    <div>
+                      <span className="font-medium">Credits Cost:</span>
+                      <p className="text-muted-foreground">{selectedImage.credits_cost || 0}</p>
+                    </div>
+                    
+                    <div>
+                      <span className="font-medium">Created:</span>
+                      <p className="text-muted-foreground">{formatDate(selectedImage.created_at)}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      onClick={() => downloadImage(selectedImage.storage_url, `${selectedImage.uuid}.png`)}
+                      className="flex-1"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download
+                    </Button>
+                    
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDelete(selectedImage.uuid)}
+                      className="flex-1"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

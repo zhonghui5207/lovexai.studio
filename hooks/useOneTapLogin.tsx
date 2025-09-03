@@ -5,7 +5,11 @@ import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 
 export default function () {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession({
+    refetchInterval: 0, // 禁用自动刷新
+    refetchOnWindowFocus: false, // 窗口聚焦时不刷新
+    refetchOnReconnect: false, // 重连时不刷新
+  });
   const isInitialized = useRef(false);
   const isPrompting = useRef(false);
 

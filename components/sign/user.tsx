@@ -36,9 +36,26 @@ export default function SignUser({ user }: { user: User }) {
         <DropdownMenuSeparator />
 
         <DropdownMenuItem className="flex justify-center cursor-pointer">
-          <Link href="/my-orders">{t("user.user_center")}</Link>
+          <Link href="/my-credits">{t("my_credits.title")}</Link>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem className="flex justify-center cursor-pointer">
+          <Link href="/my-images">{t("user.my_images")}</Link>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem className="flex justify-center cursor-pointer">
+          <Link href="/my-orders">{t("user.my_orders")}</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
+        
+        <DropdownMenuItem className="flex justify-center cursor-pointer">
+          <Link href="/api-keys">{t("api_keys.title")}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+
+        <DropdownMenuItem className="flex justify-center cursor-pointer">
+          <Link href="/my-orders">{t("user.user_center")}</Link>
+        </DropdownMenuItem>
 
         <DropdownMenuItem className="flex justify-center cursor-pointer">
           <Link href="/admin/users" target="_blank">

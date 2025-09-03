@@ -16,63 +16,27 @@ export default function Hero({ hero }: { hero: HeroType }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [credits, setCredits] = useState<number | null>(null);
-  const [isLoadingCredits, setIsLoadingCredits] = useState<boolean>(false);
-  const [lastCreditsFetch, setLastCreditsFetch] = useState<number>(0);
   
-  const { user, setShowSignModal } = useAppContext();
+  const { user, setShowSignModal, setUser } = useAppContext();
 
-  // 获取用户积分余额
-  useEffect(() => {
-    if (user?.uuid && credits === null) {
-      // 只在用户存在且credits未初始化时获取
-      fetchCredits();
-    } else if (!user) {
-      // 用户登出时清空积分
-      setCredits(null);
-    }
-  }, [user?.uuid]); // 只监听用户UUID变化
+  // 直接从user对象中获取积分，无需单独API调用
+  const credits = user?.credits?.left_credits ?? null;
 
-  const fetchCredits = async () => {
-    // 防止重复请求 - 30秒内不重复获取
-    const now = Date.now();
-    if (now - lastCreditsFetch < 30 * 1000) {
-      console.log("积分获取过于频繁，跳过");
-      return;
-    }
-
-    if (isLoadingCredits) {
-      console.log("积分正在获取中，跳过");
-      return;
-    }
-
-    try {
-      setIsLoadingCredits(true);
-      setLastCreditsFetch(now);
-      
-      const response = await fetch('/api/get-user-credits', {
-        method: 'POST'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        console.log("获取积分API响应:", data); // 添加调试日志
-        // API返回格式: { code: 0, data: { left_credits: number } }
-        setCredits(data.data?.left_credits || 0);
-      } else {
-        console.error("获取积分失败:", response.status, response.statusText);
-      }
-    } catch (error) {
-      console.error('Error fetching credits:', error);
-    } finally {
-      setIsLoadingCredits(false);
-    }
-  };
-
-  // 提供手动刷新积分的方法
+  // 刷新积分的方法 - 重新获取用户资料
   const refreshCredits = async () => {
     if (!user) return;
-    setLastCreditsFetch(0); // 重置时间戳，强制刷新
-    await fetchCredits();
+    
+    try {
+      const resp = await fetch("/api/get-user-info");
+      if (resp.ok) {
+        const { code, data } = await resp.json();
+        if (code === 0) {
+          setUser(data); // 更新用户信息，包括积分
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing credits:', error);
+    }
   };
 
   if (hero.disabled) {
@@ -116,9 +80,15 @@ export default function Hero({ hero }: { hero: HeroType }) {
       // API返回格式: { code: 0, message: "ok", data: { success: true, imageUrl: "...", remaining_credits: 179 } }
       if (response.ok && data.code === 0 && data.data?.success) {
         setGeneratedImage(data.data.imageUrl);
-        // 直接使用API返回的剩余积分，避免重新请求
-        if (typeof data.data.remaining_credits === 'number') {
-          setCredits(data.data.remaining_credits);
+        // 更新用户积分信息
+        if (typeof data.data.remaining_credits === 'number' && user) {
+          setUser({
+            ...user,
+            credits: {
+              ...user.credits,
+              left_credits: data.data.remaining_credits
+            }
+          });
         }
         console.log("Image generated successfully:", data.data.imageUrl);
       } else {
@@ -138,16 +108,36 @@ export default function Hero({ hero }: { hero: HeroType }) {
         
         if (errorMsg.includes('Insufficient credits')) {
           // 积分不足的特殊处理
-          setError(`Insufficient credits. ${errorMsg}`);
+          setError(`💳 Insufficient credits. You need at least 10 credits to generate an image.`);
+        } else if (errorMsg.includes('fetch failed') || errorMsg.includes('Network error')) {
+          // 网络错误的用户友好提示
+          setError('🌐 Network connection failed. Please check your internet and try again.');
+        } else if (errorMsg.includes('API error') || errorMsg.includes('Failed to generate')) {
+          // API错误的用户友好提示
+          setError('⚠️ Image generation temporarily unavailable. Please try again in a moment.');
         } else {
-          setError(errorMsg);
+          setError(`❌ ${errorMsg}`);
         }
-        console.error("Generation failed:", errorMsg, "Full response:", data);
+        
+        // 只在开发环境下输出详细错误日志
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Generation failed:", errorMsg, "Full response:", data);
+        }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Network error";
-      setError(errorMessage);
-      console.error("Generation error:", err);
+      // 统一处理网络错误和其他异常
+      if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('🌐 Network connection failed. Please check your internet and try again.');
+      } else if (err instanceof Error) {
+        setError(`⚠️ Something went wrong: ${err.message}`);
+      } else {
+        setError('⚠️ An unexpected error occurred. Please try again.');
+      }
+      
+      // 只在开发环境下输出详细错误日志
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Generation error:", err);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -156,7 +146,7 @@ export default function Hero({ hero }: { hero: HeroType }) {
   return (
     <>
       <HeroBg />
-      <section className="py-24">
+      <section className="py-16 lg:py-24">
         <div className="container">
           {hero.show_badge && (
             <div className="flex items-center justify-center mb-8">
@@ -167,127 +157,171 @@ export default function Hero({ hero }: { hero: HeroType }) {
               />
             </div>
           )}
-          <div className="text-center">
+          <div className="text-center max-w-5xl mx-auto">
             {hero.announcement && (
-              <a
-                href={hero.announcement.url}
-                className="mx-auto mb-3 inline-flex items-center gap-3 rounded-full border px-2 py-1 text-sm"
-              >
-                {hero.announcement.label && (
-                  <Badge>{hero.announcement.label}</Badge>
-                )}
-                {hero.announcement.title}
-              </a>
+              <div className="mb-8">
+                <a
+                  href={hero.announcement.url}
+                  className="inline-flex items-center gap-3 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/10"
+                >
+                  {hero.announcement.label && (
+                    <Badge variant="secondary">{hero.announcement.label}</Badge>
+                  )}
+                  {hero.announcement.title}
+                  <Icon name="RiArrowRightLine" className="h-3 w-3" />
+                </a>
+              </div>
             )}
 
             {texts && texts.length > 1 ? (
-              <h1 className="mx-auto mb-3 mt-4 max-w-3xl text-balance text-4xl font-bold lg:mb-7 lg:text-7xl">
-                {texts[0]}
-                <span className="bg-gradient-to-r from-primary via-primary to-primary bg-clip-text text-transparent">
+              <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl">
+                <span className="block">{texts[0]}</span>
+                <span className="block bg-gradient-to-r from-primary via-green-500 to-primary bg-clip-text text-transparent">
                   {highlightText}
                 </span>
-                {texts[1]}
+                <span className="block text-foreground">{texts[1]}</span>
               </h1>
             ) : (
-              <h1 className="mx-auto mb-3 mt-4 max-w-3xl text-balance text-4xl font-bold lg:mb-7 lg:text-7xl">
+              <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl xl:text-7xl">
                 {hero.title}
               </h1>
             )}
 
             <p
-              className="m mx-auto max-w-3xl text-muted-foreground lg:text-xl"
+              className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground lg:text-xl"
               dangerouslySetInnerHTML={{ __html: hero.description || "" }}
             />
             
-            {/* Credits Display */}
+            {/* Credits Display - Redesigned */}
             {user && credits !== null && (
-              <div className="mt-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
-                  <Icon name="RiCopperCoinLine" className="text-primary" />
-                  <span className="text-sm font-medium">
-                    Credits: <span className="font-bold text-primary">{credits}</span>
-                  </span>
+              <div className="mb-8">
+                <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-primary/10 to-green-500/10 border border-primary/20 rounded-full shadow-lg backdrop-blur-sm">
+                  <div className="flex items-center gap-2 text-primary font-semibold">
+                    <Icon name="RiCopperCoinLine" className="h-5 w-5" />
+                    <span className="text-lg">{credits}</span>
+                  </div>
+                  <div className="h-4 w-px bg-primary/20" />
+                  <span className="text-sm text-muted-foreground">Credits Available</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={refreshCredits}
+                    className="h-6 w-6 p-0 hover:bg-primary/20 rounded-full"
+                  >
+                    <Icon name="RiRefreshLine" className="h-3 w-3" />
+                  </Button>
                 </div>
               </div>
             )}
             
-            {/* Prompt Input Section */}
+            {/* Prompt Input Section - Redesigned */}
             {hero.prompt_input && (
-              <div className="mt-8 mx-auto max-w-2xl">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Input
-                    type="text"
-                    placeholder={hero.prompt_input.placeholder}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    className="flex-1 h-12 text-lg px-4"
-                    onKeyPress={(e) => e.key === 'Enter' && !isGenerating && handleGenerate()}
-                    disabled={isGenerating}
-                  />
-                  <Button
-                    onClick={handleGenerate}
-                    size="lg"
-                    className="h-12 px-8 whitespace-nowrap"
-                    disabled={!prompt.trim() || isGenerating || (user && credits !== null && credits < 10)}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Icon name="RiLoader4Line" className="mr-2 animate-spin" />
-                        Generating...
-                      </>
-                    ) : !user ? (
-                      <>
-                        Sign In to Generate
-                        <Icon name="RiLoginBoxLine" className="ml-2" />
-                      </>
-                    ) : user && credits !== null && credits < 10 ? (
-                      <>
-                        Insufficient Credits
-                        <Icon name="RiCopperCoinLine" className="ml-2" />
-                      </>
-                    ) : (
-                      <>
-                        {hero.prompt_input.generate_button} (10 Credits)
-                        <Icon name="RiSparklingFill" className="ml-2" />
-                      </>
-                    )}
-                  </Button>
+              <div className="mx-auto max-w-4xl">
+                <div className="relative">
+                  <div className="flex flex-col lg:flex-row gap-4 p-2 bg-background/60 backdrop-blur-sm border border-border/50 rounded-2xl shadow-2xl">
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        placeholder={hero.prompt_input.placeholder}
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="h-14 text-base px-6 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/70"
+                        onKeyPress={(e) => e.key === 'Enter' && !isGenerating && handleGenerate()}
+                        disabled={isGenerating}
+                      />
+                    </div>
+                    <Button
+                      onClick={handleGenerate}
+                      size="lg"
+                      className="h-14 px-8 bg-gradient-to-r from-primary to-green-500 hover:from-primary/90 hover:to-green-500/90 text-white font-semibold rounded-xl shadow-lg transition-all duration-200 hover:shadow-xl transform hover:-translate-y-0.5"
+                      disabled={!prompt.trim() || isGenerating || (user && credits !== null && credits < 10)}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Icon name="RiLoader4Line" className="mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : !user ? (
+                        <>
+                          Sign In to Generate
+                          <Icon name="RiLoginBoxLine" className="ml-2" />
+                        </>
+                      ) : user && credits !== null && credits < 10 ? (
+                        <>
+                          Insufficient Credits
+                          <Icon name="RiCopperCoinLine" className="ml-2" />
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="RiSparklingFill" className="mr-2" />
+                          Generate Now
+                          <span className="ml-1 text-xs opacity-80">(10 Credits)</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
+                
                 {hero.prompt_input.example_text && !generatedImage && !error && (
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {hero.prompt_input.example_text}
+                  <p className="mt-4 text-sm text-muted-foreground/80">
+                    💡 {hero.prompt_input.example_text}
                   </p>
                 )}
                 
-                {/* Error Display */}
+                {/* Error Display - Enhanced */}
                 {error && (
-                  <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                    <p className="text-sm text-destructive flex items-center">
-                      <Icon name="RiErrorWarningLine" className="mr-2" />
-                      {error}
-                    </p>
-                    {error.includes('Insufficient credits') && (
-                      <div className="mt-2">
-                        <Button variant="outline" size="sm" onClick={() => window.open('/#pricing', '_blank')}>
-                          Buy Credits
-                        </Button>
+                  <div className="mt-6 p-4 bg-destructive/5 border border-destructive/20 rounded-xl backdrop-blur-sm">
+                    <div className="flex items-start gap-3">
+                      <Icon name="RiErrorWarningLine" className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm text-destructive font-medium mb-2">{error}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {error.includes('Insufficient credits') && (
+                            <>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => window.open('/#pricing', '_blank')}
+                                className="border-primary/20 text-primary hover:bg-primary/10"
+                              >
+                                💎 Buy Credits
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={refreshCredits}
+                                className="border-muted-foreground/20"
+                              >
+                                🔄 Refresh Balance
+                              </Button>
+                            </>
+                          )}
+                          {(error.includes('Network connection failed') || error.includes('temporarily unavailable') || error.includes('Something went wrong')) && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={handleGenerate}
+                              className="border-muted-foreground/20"
+                            >
+                              🔄 Try Again
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
                 
-                {/* Generated Image Display */}
+                {/* Generated Image Display - Enhanced */}
                 {generatedImage && (
-                  <div className="mt-6">
-                    <div className="relative rounded-lg overflow-hidden border bg-muted/20">
+                  <div className="mt-8 p-2 bg-background/60 backdrop-blur-sm border border-border/50 rounded-2xl shadow-2xl">
+                    <div className="relative rounded-xl overflow-hidden bg-muted/20">
                       <img 
                         src={generatedImage} 
                         alt={`Generated: ${prompt}`}
-                        className="w-full h-auto max-h-96 object-contain"
+                        className="w-full h-auto max-h-[600px] object-contain"
                         onError={(e) => {
                           console.error("Image load error for URL:", generatedImage);
-                          console.error("Error details:", e);
-                          // 避免无限循环，先清除generatedImage再设置错误
                           const imageUrl = generatedImage;
                           setGeneratedImage(null);
                           setError(`Failed to load generated image: ${imageUrl}`);
@@ -296,27 +330,43 @@ export default function Hero({ hero }: { hero: HeroType }) {
                           console.log("Image loaded successfully:", generatedImage);
                         }}
                       />
-                      <div className="absolute top-2 right-2 flex gap-2">
+                      <div className="absolute top-4 right-4 flex gap-2">
                         <Button
                           size="sm"
                           variant="secondary"
                           onClick={() => window.open(generatedImage, '_blank')}
-                          className="bg-black/50 hover:bg-black/70 text-white"
+                          className="bg-black/60 hover:bg-black/80 text-white border-0 backdrop-blur-sm"
                         >
                           <Icon name="RiExternalLinkLine" className="w-4 h-4" />
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            const a = document.createElement('a');
+                            a.href = generatedImage;
+                            a.download = `lovexai-${prompt.slice(0, 30)}.png`;
+                            a.click();
+                          }}
+                          className="bg-black/60 hover:bg-black/80 text-white border-0 backdrop-blur-sm"
+                        >
+                          <Icon name="RiDownloadLine" className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground text-center">
-                      Generated from: "{prompt}" • Cost: 10 credits
-                    </p>
+                    <div className="p-4 text-center">
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">"{prompt}"</span> • 
+                        <span className="text-primary font-semibold"> Cost: 10 credits</span>
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
             )}
 
             {hero.tip && (
-              <p className="mt-8 text-md text-muted-foreground">{hero.tip}</p>
+              <p className="mt-12 text-sm text-muted-foreground/70 max-w-2xl mx-auto">{hero.tip}</p>
             )}
             {hero.show_happy_users && <HappyUsers />}
           </div>
