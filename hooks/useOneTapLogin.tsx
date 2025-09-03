@@ -5,11 +5,7 @@ import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 
 export default function () {
-  const { data: session, status } = useSession({
-    refetchInterval: 0, // 禁用自动刷新
-    refetchOnWindowFocus: false, // 窗口聚焦时不刷新
-    refetchOnReconnect: false, // 重连时不刷新
-  });
+  const { data: session, status } = useSession();
   const isInitialized = useRef(false);
   const isPrompting = useRef(false);
 
@@ -43,13 +39,9 @@ export default function () {
       }
 
       isPrompting.current = true;
-      window.google.accounts.id.prompt((notification: any) => {
-        // 处理提示结果
-        isPrompting.current = false;
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          console.log("One Tap not displayed:", notification.getNotDisplayedReason());
-        }
-      });
+      window.google.accounts.id.prompt();
+      // 注意：prompt() 方法不接受回调函数参数
+      // 结果会通过 initialize 中设置的 callback 处理
     } catch (error) {
       console.error("Google One Tap error:", error);
       isPrompting.current = false;

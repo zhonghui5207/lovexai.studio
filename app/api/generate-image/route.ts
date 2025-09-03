@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { decreaseCredits, getUserCredits } from "@/services/credit";
+import { decreaseCredits, getUserCredits, CreditsTransType } from "@/services/credit";
 import { getUserUuid } from "@/services/user";
 import { respData, respErr } from "@/lib/resp";
 import { newStorage } from "@/lib/storage";
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     // 先扣除积分
     await decreaseCredits({
       user_uuid,
-      trans_type: "ping",
+      trans_type: CreditsTransType.Ping,
       credits: IMAGE_GENERATION_COST,
     });
     
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
           aspect_ratio: aspect_ratio || "16:9",
           model: model || "flux-kontext-pro",
           original_url: imageUrl,
-          storage_url: storageResult.url,
+          storage_url: storageResult.url || imageUrl, // 如果存储失败，使用原始URL
           storage_key: storageKey,
           credits_cost: IMAGE_GENERATION_COST,
           status: "completed"

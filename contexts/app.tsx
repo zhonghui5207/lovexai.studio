@@ -29,11 +29,7 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
     useOneTapLogin();
   }
 
-  const { data: session, status } = useSession({
-    refetchInterval: 0, // 完全禁用自动刷新
-    refetchOnWindowFocus: false, // 窗口聚焦时不刷新
-    refetchOnReconnect: false, // 重连时不刷新
-  });
+  const { data: session, status } = useSession();
 
   const [theme, setTheme] = useState<string>(() => {
     return process.env.NEXT_PUBLIC_DEFAULT_THEME || "";
