@@ -11,7 +11,7 @@ Authorization: Bearer {{apiKey}}
 }
 
 ### get user info
-POST {{baseUrl}}/api/get-user-info
+GET  {{baseUrl}}/api/get-user-info
 Content-Type: application/json
 Authorization: Bearer {{apiKey}}
 
@@ -145,4 +145,35 @@ Authorization: Bearer {{apiKey}}
 {
   "credits": 15000,
   "reason": "test_invalid"
+}
+
+### ===== R2 STORAGE TESTS =====
+
+### Check R2 Configuration
+GET {{baseUrl}}/api/test-r2
+
+### Test R2 Direct Upload
+POST {{baseUrl}}/api/test-r2
+Content-Type: application/json
+
+{
+  "testType": "direct"
+}
+
+### Test R2 Download+Upload (using a test image URL)
+POST {{baseUrl}}/api/test-r2
+Content-Type: application/json
+
+{
+  "testType": "download",
+  "url": "https://picsum.photos/800/600"
+}
+
+### Test R2 Download+Upload (using AI service URL - replace with real URL)
+POST {{baseUrl}}/api/test-r2
+Content-Type: application/json
+
+{
+  "testType": "download",
+  "url": "https://delivery-us1.bfl.ai/results/d4/545192c8ea218d/c8ea218d3a38424c91d202c24f748b08/sample.png?se=2025-09-04T02%3A32%3A27Z&sp=r&sv=2024-11-04&sr=b&rsct=image/png&sig=80A6S21oePrgP2ux6n0ay94KED6RXcLQjOd3P7JM098%3D"
 }

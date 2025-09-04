@@ -1,4 +1,4 @@
-import { S3Client } from "@aws-sdk/client-s3";
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 
 interface StorageConfig {
@@ -114,5 +114,38 @@ export class Storage {
       contentType,
       disposition,
     });
+  }
+
+  async deleteFile({
+    key,
+    bucket,
+  }: {
+    key: string;
+    bucket?: string;
+  }) {
+    if (!bucket) {
+      bucket = process.env.STORAGE_BUCKET || "";
+    }
+
+    if (!bucket) {
+      throw new Error("Bucket is required");
+    }
+
+    if (!key) {
+      throw new Error("Key is required");
+    }
+
+    const command = new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: key,
+    });
+
+    await this.s3.send(command);
+
+    return {
+      success: true,
+      deleted_key: key,
+      bucket: bucket,
+    };
   }
 }

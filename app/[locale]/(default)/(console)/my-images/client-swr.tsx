@@ -30,6 +30,8 @@ export default function MyImagesClientSWR() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   const [selectedImage, setSelectedImage] = useState<ImageGeneration | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const pageSize = 12;
 
@@ -49,8 +51,54 @@ export default function MyImagesClientSWR() {
     setCurrentPage(1); // 排序时重置到第一页
   };
 
-  const handleDeleteImage = async (imageUuid: string) => {
+  // 改进的下载功能
+  const handleDownloadImage = async (image: ImageGeneration) => {
+    if (isDownloading) return;
+    
     try {
+      setIsDownloading(true);
+      
+      // 通过服务器代理下载，避免跨域问题
+      const response = await fetch(image.storage_url, {
+        mode: 'cors',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to download image: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lovexai-${image.uuid.slice(-8)}-${new Date(image.created_at).toLocaleDateString().replace(/\//g, '-')}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      console.log('Image downloaded successfully');
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Download failed. The image might be temporarily unavailable.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  // 改进的删除功能
+  const handleDeleteImage = async (imageUuid: string) => {
+    if (isDeleting) return;
+    
+    // 确认删除
+    if (!window.confirm('Are you sure you want to delete this image? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      setIsDeleting(true);
+      
       const response = await fetch(`/api/my-images/${imageUuid}`, {
         method: 'DELETE',
       });
@@ -64,9 +112,13 @@ export default function MyImagesClientSWR() {
       // 刷新数据
       mutate();
       setSelectedImage(null);
+      
+      console.log('Image deleted successfully');
     } catch (error) {
       console.error('Delete error:', error);
       alert('Delete failed, please try again');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -294,23 +346,38 @@ export default function MyImagesClientSWR() {
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      const a = document.createElement('a');
-                      a.href = selectedImage.storage_url;
-                      a.download = `image-${selectedImage.uuid}.png`;
-                      a.click();
-                    }}
+                    onClick={() => handleDownloadImage(selectedImage)}
+                    disabled={isDownloading}
                   >
-                    <Icon name="RiDownloadLine" className="mr-2 h-4 w-4" />
-                    Download
+                    {isDownloading ? (
+                      <>
+                        <Icon name="RiLoader4Line" className="mr-2 h-4 w-4 animate-spin" />
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="RiDownloadLine" className="mr-2 h-4 w-4" />
+                        Download
+                      </>
+                    )}
                   </Button>
                   
                   <Button
                     variant="destructive"
                     onClick={() => handleDeleteImage(selectedImage.uuid)}
+                    disabled={isDeleting}
                   >
-                    <Icon name="RiDeleteBinLine" className="mr-2 h-4 w-4" />
-                    Delete
+                    {isDeleting ? (
+                      <>
+                        <Icon name="RiLoader4Line" className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="RiDeleteBinLine" className="mr-2 h-4 w-4" />
+                        Delete
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

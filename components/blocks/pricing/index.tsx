@@ -23,6 +23,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
   const [group, setGroup] = useState(pricing.groups?.[0]?.name);
   const [isLoading, setIsLoading] = useState(false);
   const [productId, setProductId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
 
   const handleCheckout = async (item: PricingItem, cn_pay: boolean = false) => {
     try {
@@ -95,6 +96,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
     if (pricing.items) {
       setGroup(pricing.items[0].group);
       setProductId(pricing.items[0].product_id);
+      setSelectedItem(pricing.items[0].product_id); // 默认选中第一个
       setIsLoading(false);
     }
   }, [pricing.items]);
@@ -166,11 +168,12 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
               return (
                 <div
                   key={index}
-                  className={`rounded-lg p-6 ${
-                    item.is_featured
-                      ? "border-primary border-2 bg-card text-card-foreground"
-                      : "border-muted border"
+                  className={`rounded-lg p-6 cursor-pointer transition-all duration-200 ${
+                    selectedItem === item.product_id
+                      ? "border-primary border-2 bg-card text-card-foreground shadow-lg"
+                      : "border-muted border hover:border-primary/50"
                   }`}
+                  onClick={() => setSelectedItem(item.product_id)}
                 >
                   <div className="flex h-full flex-col justify-between gap-5">
                     <div>
@@ -233,7 +236,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                     <div className="flex flex-col gap-2">
                       {item.cn_amount && item.cn_amount > 0 ? (
                         <div className="flex items-center gap-x-2 mt-2">
-                          <span className="text-sm">人民币支付 👉</span>
+                          <span className="text-sm">👉</span>
                           <div
                             className="inline-block p-2 hover:cursor-pointer hover:bg-base-200 rounded-md"
                             onClick={() => {

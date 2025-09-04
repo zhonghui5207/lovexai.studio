@@ -91,38 +91,58 @@ export async function POST(request: NextRequest) {
     // 生成记录ID
     const imageId = getSnowId();
     
-    // 立即返回原始图片URL给用户（快速响应 < 5秒）
-    const quickResponse = {
-      success: true,
-      imageUrl: imageUrl, // 先返回原始URL，用户可立即查看
-      data: responseData,
-      cost: IMAGE_GENERATION_COST,
-      remaining_credits: updatedCredits.left_credits,
-      image_id: imageId,
-      status: "processing" // 表示正在后台处理永久存储
-    };
+    try {
+      console.log("📁 开始立即处理R2存储:", imageId);
+      
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const storageKey = `images/${year}/${month}/${user_uuid}/${imageId}.png`;
+      
+      // 立即下载并上传到R2（同步处理）
+      const storage = newStorage();
+      const storageResult = await storage.downloadAndUpload({
+        url: imageUrl,
+        key: storageKey,
+        contentType: "image/png"
+      });
+      
+      console.log("✅ 图片已保存到R2:", storageResult.url);
+      
+      // 保存到数据库
+      await insertImageGeneration({
+        uuid: imageId,
+        user_uuid,
+        prompt: prompt.trim(),
+        revised_prompt: responseData.data?.[0]?.revised_prompt,
+        aspect_ratio: aspect_ratio || "16:9",
+        model: model || "flux-kontext-pro",
+        original_url: imageUrl,
+        storage_url: storageResult.url || "", // 使用R2 URL
+        storage_key: storageKey,
+        credits_cost: IMAGE_GENERATION_COST,
+        status: "completed"
+      });
 
-    // 后台异步处理R2存储和数据库记录（不阻塞用户响应）
-    process.nextTick(async () => {
+      console.log("💾 图片记录已完成:", imageId);
+
+      // 返回成功响应，包含永久可用的R2链接
+      return respData({
+        success: true,
+        imageUrl: storageResult.url, // 返回R2 URL
+        original_url: imageUrl, // 保留原始URL作为备份信息
+        data: responseData,
+        cost: IMAGE_GENERATION_COST,
+        remaining_credits: updatedCredits.left_credits,
+        image_id: imageId,
+        status: "completed"
+      });
+
+    } catch (error) {
+      console.error("R2存储处理失败:", error);
+      
+      // 存储失败时的后备方案：使用原始URL
       try {
-        console.log("📁 后台开始处理R2存储:", imageId);
-        
-        const currentDate = new Date();
-        const year = currentDate.getFullYear();
-        const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-        const storageKey = `images/${year}/${month}/${user_uuid}/${imageId}.png`;
-        
-        // 下载并上传到R2
-        const storage = newStorage();
-        const storageResult = await storage.downloadAndUpload({
-          url: imageUrl,
-          key: storageKey,
-          contentType: "image/png"
-        });
-        
-        console.log("✅ 图片已保存到R2:", storageResult.url);
-        
-        // 保存到数据库
         await insertImageGeneration({
           uuid: imageId,
           user_uuid,
@@ -131,20 +151,31 @@ export async function POST(request: NextRequest) {
           aspect_ratio: aspect_ratio || "16:9",
           model: model || "flux-kontext-pro",
           original_url: imageUrl,
-          storage_url: storageResult.url || imageUrl, // 如果存储失败，使用原始URL
-          storage_key: storageKey,
+          storage_url: imageUrl, // 使用原始URL作为后备
+          storage_key: "", // 没有存储成功
           credits_cost: IMAGE_GENERATION_COST,
           status: "completed"
         });
-
-        console.log("💾 图片记录已完成:", imageId);
-      } catch (backgroundError) {
-        console.error("后台存储处理失败:", backgroundError);
-        // 可以考虑添加重试机制
+        
+        console.log("⚠️  R2存储失败，使用原始URL保存了数据库记录:", imageId);
+        
+        // 返回原始URL（虽然可能会过期）
+        return respData({
+          success: true,
+          imageUrl: imageUrl,
+          data: responseData,
+          cost: IMAGE_GENERATION_COST,
+          remaining_credits: updatedCredits.left_credits,
+          image_id: imageId,
+          status: "completed",
+          warning: "Image saved to temporary storage only"
+        });
+        
+      } catch (dbError) {
+        console.error("数据库记录也失败了:", dbError);
+        return respErr("Failed to save image record to database");
       }
-    });
-
-    return respData(quickResponse);
+    }
 
   } catch (error) {
     console.error("Generate image API error:", error);

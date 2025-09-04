@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getUserUuid } from "@/services/user";
 import { respData, respErr } from "@/lib/resp";
 import { getImageGenerationByUuid, deleteImageGeneration } from "@/models/image";
+import { newStorage } from "@/lib/storage";
 
 export async function GET(
   request: NextRequest,
@@ -51,7 +52,29 @@ export async function DELETE(
       return respErr("UUID is required");
     }
 
-    // 删除图片记录
+    // 先获取图片信息以获取storage_key
+    const image = await getImageGenerationByUuid(uuid);
+    
+    // 验证图片属于当前用户
+    if (image.user_uuid !== user_uuid) {
+      return respErr("Access denied");
+    }
+
+    // 删除R2存储中的文件（如果有storage_key）
+    if (image.storage_key) {
+      try {
+        const storage = newStorage();
+        await storage.deleteFile({
+          key: image.storage_key,
+        });
+        console.log(`✅ R2文件已删除: ${image.storage_key}`);
+      } catch (storageError) {
+        console.error("R2删除失败:", storageError);
+        // 不阻止删除流程，即使R2删除失败也继续删除数据库记录
+      }
+    }
+
+    // 删除数据库记录
     await deleteImageGeneration(uuid, user_uuid);
 
     return respData({

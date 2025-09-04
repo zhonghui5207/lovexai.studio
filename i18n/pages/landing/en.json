@@ -369,22 +369,21 @@
   "pricing": {
     "name": "pricing",
     "label": "Pricing",
-    "title": "Pricing",
-    "description": "Get all features of LOVEXAI.STUDIO, Ship your AI SaaS startups fast.",
+    "title": "Choose Your AI Creative Plan",
+    "description": "From AI image generation to video creation, select the perfect plan for your creative needs.",
     "groups": [],
     "items": [
       {
-        "title": "Starter",
-        "description": "Get started with your first SaaS startup.",
+        "title": "Basic",
+        "description": "Perfect for individual creators and artists.",
         "features_title": "Includes",
         "features": [
           "100 credits, valid for 1 month",
-          "NextJS boilerplate",
-          "SEO-friendly structure",
-          "Payment with Stripe",
-          "Data storage with Supabase",
-          "Google Oauth & One-Tap Login",
-          "i18n support"
+          "AI Image Generation (multiple ratios)",
+          "Basic image editing tools",
+          "Image download & sharing",
+          "User account management",
+          "Basic technical support"
         ],
         "interval": "one-time",
         "amount": 9900,
@@ -394,31 +393,31 @@
         "original_price": "$199",
         "unit": "USD",
         "is_featured": false,
-        "tip": "Pay once. Build unlimited projects!",
+        "tip": "Perfect for individual creators!",
         "button": {
           "title": "Start Creating",
           "url": "/#pricing",
-          "icon": "RiFlashlightFill"
+          "icon": "RiImageLine"
         },
-        "product_id": "starter",
-        "product_name": "LOVEXAI.STUDIO Boilerplate Starter",
+        "product_id": "basic",
+        "product_name": "LOVEXAI.STUDIO Basic Plan",
         "credits": 100,
         "valid_months": 1
       },
       {
-        "title": "Standard",
-        "description": "Ship Fast with your SaaS Startups.",
+        "title": "Pro",
+        "description": "Ideal for content creators and designers.",
         "label": "Popular",
-        "features_title": "Everything in Starter, plus",
+        "features_title": "Everything in Basic, plus",
         "features": [
-          "200 credits, valid for 3 month",
-          "Deploy with Vercel or Cloudflare",
-          "Generation of Privacy & Terms",
-          "Google Analytics Integration",
-          "Google Search Console Integration",
-          "Discord community",
-          "Technical support for your first ship",
-          "Lifetime updates"
+          "300 credits, valid for 3 months",
+          "AI Video Generation",
+          "Advanced image editing tools",
+          "Batch processing capabilities",
+          "HD image export",
+          "Priority processing queue",
+          "Professional template library",
+          "API access"
         ],
         "interval": "one-time",
         "amount": 19900,
@@ -428,29 +427,30 @@
         "original_price": "$299",
         "unit": "USD",
         "is_featured": true,
-        "tip": "Pay once. Build unlimited projects!",
+        "tip": "Most popular choice!",
         "button": {
-          "title": "Start Creating",
+          "title": "Upgrade to Pro",
           "url": "/#pricing",
-          "icon": "RiFlashlightFill"
+          "icon": "RiVideoLine"
         },
-        "product_id": "standard",
-        "product_name": "LOVEXAI.STUDIO Boilerplate Standard",
-        "credits": 200,
+        "product_id": "pro",
+        "product_name": "LOVEXAI.STUDIO Pro Plan",
+        "credits": 300,
         "valid_months": 3
       },
       {
-        "title": "Premium",
-        "description": "Ship Any AI SaaS Startups.",
-        "features_title": "Everything in Standard, plus",
+        "title": "Enterprise",
+        "description": "Built for teams and businesses.",
+        "features_title": "Everything in Pro, plus",
         "features": [
-          "300 credits, valid for 1 year",
-          "Business Functions with AI",
-          "User Center",
-          "Credits System",
-          "API Sales for your SaaS",
-          "Admin System",
-          "Priority Technical Support"
+          "1000 credits, valid for 1 year",
+          "Team collaboration features",
+          "Custom AI model training",
+          "White-label solution",
+          "Dedicated account manager",
+          "24/7 technical support",
+          "SLA service guarantee",
+          "Enterprise-grade security"
         ],
         "interval": "one-time",
         "amount": 29900,
@@ -460,15 +460,15 @@
         "original_price": "$399",
         "unit": "USD",
         "is_featured": false,
-        "tip": "Pay once. Build unlimited projects!",
+        "tip": "Enterprise-grade solution!",
         "button": {
-          "title": "Start Creating",
+          "title": "Contact Sales",
           "url": "/#pricing",
-          "icon": "RiFlashlightFill"
+          "icon": "RiTeamLine"
         },
-        "product_id": "premium",
-        "product_name": "LOVEXAI.STUDIO Boilerplate Premium",
-        "credits": 300,
+        "product_id": "enterprise",
+        "product_name": "LOVEXAI.STUDIO Enterprise Plan",
+        "credits": 1000,
         "valid_months": 12
       }
     ]
@@ -538,45 +538,45 @@
     "items": [
       {
         "title": "What exactly is LOVEXAI.STUDIO and how does it work?",
-        "description": "LOVEXAI.STUDIO is a comprehensive NextJS boilerplate designed specifically for building AI SaaS startups. It provides ready-to-use templates, infrastructure setup, and deployment tools that help you launch your AI business in hours instead of days."
+        "description": "LOVEXAI.STUDIO is a comprehensive AI-powered creative platform that enables you to generate stunning images, videos, and audio content from simple text descriptions. Our advanced AI models transform your creative ideas into professional-quality content in seconds."
       },
       {
-        "title": "Do I need advanced technical skills to use LOVEXAI.STUDIO?",
-        "description": "While basic programming knowledge is helpful, LOVEXAI.STUDIO is designed to be developer-friendly. Our templates and documentation make it easy to get started, even if you're not an expert in AI or cloud infrastructure."
+        "title": "What types of content can I create with LOVEXAI.STUDIO?",
+        "description": "You can create a wide variety of content including AI-generated images in multiple ratios, dynamic videos from text prompts, voice synthesis, music generation, and more. Our platform supports everything from social media content to professional marketing materials."
       },
       {
-        "title": "What types of AI SaaS can I build with LOVEXAI.STUDIO?",
-        "description": "LOVEXAI.STUDIO supports a wide range of AI applications, from content generation to data analysis tools. Our templates cover popular use cases like AI chatbots, content generators, image processing apps, and more."
+        "title": "How do credits work in LOVEXAI.STUDIO?",
+        "description": "Credits are used to generate content on our platform. Each image generation costs 10 credits, video generation costs more credits depending on length and quality. Credits are valid for the duration specified in your plan and can be purchased as needed."
       },
       {
-        "title": "How long does it typically take to launch with LOVEXAI.STUDIO?",
-        "description": "With LOVEXAI.STUDIO, you can have a working prototype in hours and a production-ready application in hours. Our one-click deployment and pre-configured infrastructure significantly reduce the traditional months-long development cycle."
+        "title": "Can I use the generated content commercially?",
+        "description": "Yes! All content generated with LOVEXAI.STUDIO can be used for commercial purposes, including marketing, social media, websites, and business projects. You own the rights to all content you create on our platform."
       },
       {
-        "title": "What's included in the LOVEXAI.STUDIO infrastructure?",
-        "description": "LOVEXAI.STUDIO provides a complete infrastructure stack including authentication, database setup, API integration, payment processing, and scalable cloud deployment. Everything is pre-configured following industry best practices."
+        "title": "What file formats are supported for downloads?",
+        "description": "We support multiple high-quality formats including PNG, JPG, MP4, and audio files. Pro and Enterprise users get access to HD exports and additional format options for professional use."
       },
       {
-        "title": "Can I customize the templates to match my brand?",
-        "description": "Absolutely! All LOVEXAI.STUDIO templates are fully customizable. You can modify the design, features, and functionality to match your brand identity and specific business requirements while maintaining the robust underlying infrastructure."
+        "title": "Is there an API available for developers?",
+        "description": "Yes! Pro and Enterprise plans include API access, allowing you to integrate LOVEXAI.STUDIO's AI capabilities into your own applications and workflows. Our API supports all generation features with comprehensive documentation."
       }
     ]
   },
   "cta": {
     "name": "cta",
-    "title": "Ship your first AI SaaS Startup",
-    "description": "Start from here, ship with LOVEXAI.STUDIO.",
+    "title": "Start Creating Amazing Content Today",
+    "description": "Join thousands of creators using AI to bring their ideas to life.",
     "buttons": [
       {
         "title": "Start Creating",
-        "url": "https://shipany.ai",
-        "target": "_blank",
-        "icon": "GoArrowUpRight"
+        "url": "/#pricing",
+        "target": "_self",
+        "icon": "RiSparklingFill"
       },
       {
-        "title": "Read Document",
-        "url": "https://docs.shipany.ai",
-        "target": "_blank",
+        "title": "Try Free Demo",
+        "url": "/#hero",
+        "target": "_self",
         "variant": "outline"
       }
     ]
@@ -585,7 +585,7 @@
     "name": "footer",
     "brand": {
       "title": "LOVEXAI.STUDIO",
-      "description": "LOVEXAI.STUDIO is a NextJS boilerplate for building AI SaaS startups. Ship Fast with a variety of templates and components.",
+      "description": "LOVEXAI.STUDIO is an AI-powered creative platform for generating stunning images, videos, and audio content. Transform your ideas into reality with cutting-edge AI technology.",
       "logo": {
         "src": "/logo.png",
         "alt": "LOVEXAI.STUDIO"
