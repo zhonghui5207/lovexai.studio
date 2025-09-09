@@ -43,12 +43,14 @@ export async function getUserUuid() {
     // api key
     if (token.startsWith("sk-")) {
       const user_uuid = await getUserUuidByApiKey(token);
-
+  
       return user_uuid || "";
     }
   }
 
   const session = await auth();
+
+  
   if (session && session.user && session.user.uuid) {
     user_uuid = session.user.uuid;
   }

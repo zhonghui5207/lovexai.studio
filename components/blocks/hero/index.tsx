@@ -10,6 +10,7 @@ import Icon from "@/components/icon";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useAppContext } from "@/contexts/app";
+import { useSession } from "next-auth/react";
 
 export default function Hero({ hero }: { hero: HeroType }) {
   const [prompt, setPrompt] = useState("");
@@ -18,6 +19,15 @@ export default function Hero({ hero }: { hero: HeroType }) {
   const [error, setError] = useState<string | null>(null);
   
   const { user, setShowSignModal, setUser } = useAppContext();
+  const { data: session } = useSession();
+
+  // 检查用户状态，如果session存在但user为空，则刷新
+  useEffect(() => {
+    if (session?.user?.uuid && !user) {
+      console.log("🔄 检测到session存在但user为空，刷新用户状态");
+      refreshCredits();
+    }
+  }, [session?.user?.uuid, user]);
 
   // 直接从user对象中获取积分，无需单独API调用
   const credits = user?.credits?.left_credits ?? null;
@@ -52,8 +62,14 @@ export default function Hero({ hero }: { hero: HeroType }) {
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
 
+    // 添加调试信息
+    console.log("🎯 开始生图，当前用户状态:", user);
+    console.log("🎯 当前积分:", credits);
+    console.log("🎯 当前session状态:", session);
+
     // 检查用户是否已登录
     if (!user) {
+      console.log("❌ 用户未登录，显示登录弹窗");
       setShowSignModal(true);
       return;
     }
@@ -68,6 +84,7 @@ export default function Hero({ hero }: { hero: HeroType }) {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // 确保携带 cookies (NextAuth session)
         body: JSON.stringify({
           prompt: prompt.trim(),
           aspect_ratio: "16:9"
@@ -76,6 +93,8 @@ export default function Hero({ hero }: { hero: HeroType }) {
 
       const data = await response.json();
       console.log("生图API完整响应:", data); // 添加调试日志
+      console.log("响应状态:", response.status);
+      console.log("响应头:", Object.fromEntries(response.headers.entries()));
 
       // API返回格式: { code: 0, message: "ok", data: { success: true, imageUrl: "...", remaining_credits: 179 } }
       if (response.ok && data.code === 0 && data.data?.success) {
@@ -126,6 +145,12 @@ export default function Hero({ hero }: { hero: HeroType }) {
       }
     } catch (err) {
       // 统一处理网络错误和其他异常
+      console.error("生图请求异常详情:", err);
+      console.error("错误类型:", typeof err);
+      console.error("错误构造函数:", err?.constructor?.name);
+      console.error("错误消息:", (err as Error)?.message);
+      console.error("错误堆栈:", (err as Error)?.stack);
+      
       if (err instanceof TypeError && err.message.includes('fetch')) {
         setError('🌐 Network connection failed. Please check your internet and try again.');
       } else if (err instanceof Error) {

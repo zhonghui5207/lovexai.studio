@@ -235,43 +235,53 @@ export default function MyImagesClient() {
       {/* Statistics Panel */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Images</CardTitle>
-              <ImageIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_count}</div>
+          <Card className="bg-blue-50 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-blue-600 font-medium mb-1">Total</div>
+                  <div className="text-2xl font-bold text-blue-900">{stats.total_count}</div>
+                </div>
+                <ImageIcon className="h-8 w-8 text-blue-500" />
+              </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.today_count}</div>
+          <Card className="bg-green-50 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-green-600 font-medium mb-1">Today</div>
+                  <div className="text-2xl font-bold text-green-900">{stats.today_count}</div>
+                </div>
+                <Calendar className="h-8 w-8 text-green-500" />
+              </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.monthly_count}</div>
+          <Card className="bg-purple-50 border-purple-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-purple-600 font-medium mb-1">This Month</div>
+                  <div className="text-2xl font-bold text-purple-900">{stats.monthly_count}</div>
+                </div>
+                <Calendar className="h-8 w-8 text-purple-500" />
+              </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Credits</CardTitle>
-              <ImageIcon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.monthly_credits}</div>
+          <Card className="bg-orange-50 border-orange-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-orange-600 font-medium mb-1">Credits Used</div>
+                  <div className="text-2xl font-bold text-orange-900">{stats.monthly_credits}</div>
+                </div>
+                <div className="h-8 w-8 rounded-full bg-orange-500 flex items-center justify-center">
+                  <div className="h-4 w-4 rounded-full bg-white"></div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -282,7 +292,7 @@ export default function MyImagesClient() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Search by prompt..."
+            placeholder="Search image descriptions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -334,55 +344,33 @@ export default function MyImagesClient() {
       {!loading && images.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {images.map((image) => (
-            <Card key={image.uuid} className="group overflow-hidden hover:shadow-lg transition-shadow">
+            <Card key={image.uuid} className="group overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedImage(image)}>
               <div className="relative aspect-square">
                 <img
                   src={image.storage_url}
                   alt={image.prompt}
-                  className="w-full h-full object-cover cursor-pointer"
-                  onClick={() => setSelectedImage(image)}
+                  className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = '/placeholder-image.jpg';
                   }}
                 />
                 
-                {/* Overlay with actions */}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => setSelectedImage(image)}
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                  </Dialog>
-                  
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => downloadImage(image.storage_url, `${image.uuid}.png`)}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
+                {/* Prompt overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-white text-sm font-medium line-clamp-2">
+                      {image.prompt}
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-white/80 text-xs">{formatDate(image.created_at).split(',')[0]}</span>
+                      {image.credits_cost && (
+                        <span className="text-white/80 text-xs">{image.credits_cost} credits</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              <CardContent className="p-4">
-                <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                  {image.prompt}
-                </p>
-                
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{formatDate(image.created_at)}</span>
-                  {image.credits_cost && (
-                    <Badge variant="secondary">{image.credits_cost} credits</Badge>
-                  )}
-                </div>
-              </CardContent>
             </Card>
           ))}
         </div>
@@ -410,12 +398,12 @@ export default function MyImagesClient() {
                 <DialogTitle>Image Details</DialogTitle>
               </DialogHeader>
               
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
+              <div className="space-y-6">
+                <div className="aspect-video w-full rounded-lg overflow-hidden">
                   <img
                     src={selectedImage.storage_url}
                     alt={selectedImage.prompt}
-                    className="w-full rounded-lg"
+                    className="w-full h-full object-contain bg-gray-100"
                   />
                 </div>
                 
@@ -425,38 +413,15 @@ export default function MyImagesClient() {
                     <p className="text-sm text-muted-foreground">{selectedImage.prompt}</p>
                   </div>
                   
-                  {selectedImage.revised_prompt && (
-                    <div>
-                      <h4 className="font-semibold mb-2">Revised Prompt</h4>
-                      <p className="text-sm text-muted-foreground">{selectedImage.revised_prompt}</p>
-                    </div>
-                  )}
-                  
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium">Model:</span>
-                      <p className="text-muted-foreground">{selectedImage.model || 'flux-kontext-pro'}</p>
-                    </div>
-                    
-                    <div>
-                      <span className="font-medium">Aspect Ratio:</span>
-                      <p className="text-muted-foreground">{selectedImage.aspect_ratio || '16:9'}</p>
-                    </div>
-                    
-                    <div>
-                      <span className="font-medium">Credits Cost:</span>
-                      <p className="text-muted-foreground">{selectedImage.credits_cost || 0}</p>
-                    </div>
-                    
-                    <div>
-                      <span className="font-medium">Created:</span>
-                      <p className="text-muted-foreground">{formatDate(selectedImage.created_at)}</p>
-                    </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Generated: {formatDate(selectedImage.created_at)}</span>
+                    <span className="text-muted-foreground">Credits: {selectedImage.credits_cost || 10}</span>
                   </div>
                   
-                  <div className="flex gap-2 pt-4">
+                  <div className="flex gap-3 pt-4">
                     <Button
                       onClick={() => downloadImage(selectedImage.storage_url, `${selectedImage.uuid}.png`)}
+                      variant="outline"
                       className="flex-1"
                     >
                       <Download className="h-4 w-4 mr-2" />

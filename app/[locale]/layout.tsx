@@ -7,7 +7,6 @@ import { Inter as FontSans } from "next/font/google";
 import { Metadata } from "next";
 import { NextAuthSessionProvider } from "@/auth/session";
 import { NextIntlClientProvider } from "next-intl";
-import { SWRProvider } from "@/providers/swr";
 import { ThemeProvider } from "@/providers/theme";
 import { cn } from "@/lib/utils";
 
@@ -64,13 +63,11 @@ export default async function RootLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <NextAuthSessionProvider>
-            <SWRProvider>
-              <AppContextProvider>
-                <ThemeProvider attribute="class" disableTransitionOnChange>
-                  {children}
-                </ThemeProvider>
-              </AppContextProvider>
-            </SWRProvider>
+            <AppContextProvider>
+              <ThemeProvider attribute="class" disableTransitionOnChange>
+                {children}
+              </ThemeProvider>
+            </AppContextProvider>
           </NextAuthSessionProvider>
         </NextIntlClientProvider>
       </body>

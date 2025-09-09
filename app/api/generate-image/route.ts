@@ -51,14 +51,17 @@ export async function POST(request: NextRequest) {
 
     console.log("Generating image with payload:", payload);
 
-    // 调用兔子AI的API
+    // 调用兔子AI的API - 添加网络配置
     const response = await fetch("https://api.tu-zi.com/v1/images/generations", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json; charset=utf-8"
+        "Content-Type": "application/json; charset=utf-8",
+        "User-Agent": "LOVEXAI-Studio/1.0"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      // 添加超时和重试配置
+      signal: AbortSignal.timeout(60000), // 60秒超时
     });
 
     const responseData = await response.json();
@@ -92,51 +95,85 @@ export async function POST(request: NextRequest) {
     const imageId = getSnowId();
     
     try {
-      console.log("📁 开始立即处理R2存储:", imageId);
+      console.log("📁 开始异步处理R2存储:", imageId);
+      console.log("当前时间:", new Date().toISOString());
+      console.log("图片URL:", imageUrl);
       
       const currentDate = new Date();
       const year = currentDate.getFullYear();
       const month = String(currentDate.getMonth() + 1).padStart(2, '0');
       const storageKey = `images/${year}/${month}/${user_uuid}/${imageId}.png`;
       
-      // 立即下载并上传到R2（同步处理）
-      const storage = newStorage();
-      const storageResult = await storage.downloadAndUpload({
-        url: imageUrl,
-        key: storageKey,
-        contentType: "image/png"
-      });
-      
-      console.log("✅ 图片已保存到R2:", storageResult.url);
-      
-      // 保存到数据库
-      await insertImageGeneration({
-        uuid: imageId,
-        user_uuid,
-        prompt: prompt.trim(),
-        revised_prompt: responseData.data?.[0]?.revised_prompt,
-        aspect_ratio: aspect_ratio || "16:9",
-        model: model || "flux-kontext-pro",
-        original_url: imageUrl,
-        storage_url: storageResult.url || "", // 使用R2 URL
-        storage_key: storageKey,
-        credits_cost: IMAGE_GENERATION_COST,
-        status: "completed"
-      });
-
-      console.log("💾 图片记录已完成:", imageId);
-
-      // 返回成功响应，包含永久可用的R2链接
-      return respData({
+      // 立即返回响应给用户，避免用户等待
+      const quickResponse = {
         success: true,
-        imageUrl: storageResult.url, // 返回R2 URL
-        original_url: imageUrl, // 保留原始URL作为备份信息
+        imageUrl: imageUrl, // 先返回原始URL，用户可立即查看
         data: responseData,
         cost: IMAGE_GENERATION_COST,
         remaining_credits: updatedCredits.left_credits,
         image_id: imageId,
-        status: "completed"
+        status: "processing" // 表示正在后台处理永久存储
+      };
+
+      // 后台异步处理R2存储和数据库记录（不阻塞用户响应）
+      process.nextTick(async () => {
+        try {
+          console.log("📁 后台开始处理R2存储:", imageId);
+          console.log("后台处理时间:", new Date().toISOString());
+          
+          // 下载并上传到R2
+          const storage = newStorage();
+          const storageResult = await storage.downloadAndUpload({
+            url: imageUrl,
+            key: storageKey,
+            contentType: "image/png"
+          });
+          
+          console.log("✅ 图片已保存到R2:", storageResult.url);
+          
+          // 保存到数据库
+          await insertImageGeneration({
+            uuid: imageId,
+            user_uuid,
+            prompt: prompt.trim(),
+            revised_prompt: responseData.data?.[0]?.revised_prompt,
+            aspect_ratio: aspect_ratio || "16:9",
+            model: model || "flux-kontext-pro",
+            original_url: imageUrl,
+            storage_url: storageResult.url || imageUrl,
+            storage_key: storageKey,
+            credits_cost: IMAGE_GENERATION_COST,
+            status: "completed"
+          });
+
+          console.log("💾 图片记录已完成:", imageId);
+        } catch (backgroundError) {
+          console.error("后台存储处理失败:", backgroundError);
+          console.error("失败时间:", new Date().toISOString());
+          
+          // 即使存储失败，也要保存数据库记录（使用原始URL）
+          try {
+            await insertImageGeneration({
+              uuid: imageId,
+              user_uuid,
+              prompt: prompt.trim(),
+              revised_prompt: responseData.data?.[0]?.revised_prompt,
+              aspect_ratio: aspect_ratio || "16:9",
+              model: model || "flux-kontext-pro",
+              original_url: imageUrl,
+              storage_url: imageUrl, // 使用原始URL作为后备
+              storage_key: "",
+              credits_cost: IMAGE_GENERATION_COST,
+              status: "completed"
+            });
+            console.log("⚠️  使用原始URL保存了数据库记录:", imageId);
+          } catch (dbError) {
+            console.error("数据库记录也失败了:", dbError);
+          }
+        }
       });
+
+      return respData(quickResponse);
 
     } catch (error) {
       console.error("R2存储处理失败:", error);

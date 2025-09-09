@@ -1,12 +1,12 @@
 import { getTranslations } from "next-intl/server";
-import MyImagesClientSWR from "./client-swr";
+import MyImagesClient from "./client";
 
 export default async function MyImagesPage() {
   const t = await getTranslations();
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <MyImagesClientSWR />
+      <MyImagesClient />
     </div>
   );
 }

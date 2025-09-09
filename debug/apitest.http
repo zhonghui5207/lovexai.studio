@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:3000
 @apiKey = sk-Qc0Zn98UXokmsV0IjO98dAZwo354QtKy
+@sessionToken = eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiZ1k0RjFYRDlKYkpTSHlhbVRLanlYSzMxMjFsY0MwRUlSZExsYXB5ZExYYk05M0RrbzZOMHo2aWRGMnZuUEt3T0hIaVdTZnBKWnVIVk92VDVxdlBHcUEifQ..-7E8HAS5KLGy8HgllRbzgg.reB2oc-v77eyN9uN1d7BZS7uDmknsJFpRrQjOR3VoxQ904f0Y4zZRHRPQHVCI9YoSbXNKWOAAM7KjGxSFYXhE0gZrohv3sK299m1T6ox3GvHN68SCnP1ZdOsOxB_Y0vGY-1dkAQc4BtkCCyminGJRAdNZk-tTVnamVe-e3UkOrn5Rag4n6avX0fJMR7ldE9zPnERCA4PoxJZd5qZ9ka8g5yFt7GkVPhMtSLW7ITxUcOScXD52m0pnuOR-N2hD6aIF8UPMgZTbTzkugPXcSuJPv6gdkVqVETBOJVePlY4v8zOfuv7bDXijMK_42iCDG5_xE5u6wOtUSNXL4ecIZQzA_hPinfYMhPoODBYAAwk_aP_OcxRkuA7XNo17LaqtXe3BI4qOEO0tkFXwlvnn1i3GBCq8YezQ3-Sw6j7vbxTYaLUeZ8-UegkqwYjjT4gFPr4dQsRDSfhsKYdlMNhCXayKNcBBorJKDmIgj9Z4IYVAeE-rUvK9_oSsIbLAk7CqiKW0FT05oGdqZbwZnPyAOFZHv-yeyv6QcbwIMPahUGWzKx7QQE7hSLxpgtjoRoIzE0fOCT20yKEAFbHTs5sDuqHhr2lDs0PNbniElT-hgKpcBVZR-CTDU4fdczfJWKWSt-2Up0qkYSqzxrK2AKBXULuiZvI6iWINchHd01lXTloIbH_ilh6Rym3DLvhGeU7m7_42OI1LTseHE9BUhYelHlgvzvqowML-M-KXdeWa4T-PcQsjJBd6Xf189QKIKfcduq2.nF5fIxEPXvUxBpLJBA2piyFuem7O1fYrmUOTepOPvE8
 
-### ping api
+### ===== API KEY TESTS =====
+
+### ping api (API key required)
 POST {{baseUrl}}/api/ping
 Content-Type: application/json
 Authorization: Bearer {{apiKey}}
@@ -10,32 +13,85 @@ Authorization: Bearer {{apiKey}}
   "message": "hello"
 }
 
-### get user info
-GET  {{baseUrl}}/api/get-user-info
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
-
-
-### get user credits
+### get user credits (API key required)
 POST {{baseUrl}}/api/get-user-credits
 Content-Type: application/json
 Authorization: Bearer {{apiKey}}
 
+### Manual Add Credits (API key required)
+POST {{baseUrl}}/api/manual-add-credits
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
 
+{
+  "credits": 100,
+  "reason": "test_recharge"
+}
 
+### ===== NEXTAUTH SESSION TESTS (已配置session token) =====
 
-### gen image
+### get user info (使用API Key认证)
+GET {{baseUrl}}/api/get-user-info
+Authorization: Bearer {{apiKey}}
+
+### ===== IMAGE GENERATION TESTS (使用API Key认证) =====
+
+### Test Image Generation - Basic (API Key)
+POST {{baseUrl}}/api/generate-image
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "prompt": "a beautiful sunset landscape with mountains",
+  "aspect_ratio": "16:9"
+}
+
+### Test Image Generation - Happy Girl (API Key - for R2 testing)
+POST {{baseUrl}}/api/generate-image  
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "prompt": "a happy girl",
+  "aspect_ratio": "16:9"
+}
+
+### Test Image Generation - Cat (API Key)
+POST {{baseUrl}}/api/generate-image  
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "prompt": "a cute cat wearing sunglasses, studio photo",
+  "aspect_ratio": "1:1"
+}
+
+### ===== IMAGE GENERATION TESTS (使用session认证 - 如果需要) =====
+
+### Test Image Generation - Basic (Session)
+POST {{baseUrl}}/api/generate-image
+Content-Type: application/json
+Cookie: next-auth.session-token={{sessionToken}}
+
+{
+  "prompt": "a beautiful sunset landscape with mountains",
+  "aspect_ratio": "16:9"
+}
+
+### ===== DEMO API TESTS (API key required) =====
+
+### Demo gen image (API key required)
 POST {{baseUrl}}/api/demo/gen-image
 Content-Type: application/json
 Authorization: Bearer {{apiKey}}
 
 {
   "prompt": "a beautiful girl running with 2 cats",
-  "provider": "replicate",
+  "provider": "replicate", 
   "model": "black-forest-labs/flux-schnell"
 }
 
-### gen text 
+### Demo gen text (API key required)
 POST {{baseUrl}}/api/demo/gen-text
 Content-Type: application/json
 Authorization: Bearer {{apiKey}}
@@ -46,134 +102,10 @@ Authorization: Bearer {{apiKey}}
   "model": "deepseek/deepseek-r1"
 }
 
-### ===== DATABASE CONNECTION TEST =====
+### ===== DATABASE & OTHER TESTS =====
 
-### Test Database Connection
+### Test Database Connection (no auth needed)
 GET {{baseUrl}}/api/test-db
 
-### ===== AUTHENTICATION TESTS =====
-
-### Test NextAuth API
+### Test NextAuth Providers (no auth needed)
 GET {{baseUrl}}/api/auth/providers
-
-### ===== CREDIT SYSTEM TESTS =====
-
-### Test user credit balance (requires authentication)
-GET {{baseUrl}}/api/credits/balance
-
-### Add credits to user (requires authentication)
-POST {{baseUrl}}/api/credits/add
-Content-Type: application/json
-
-{
-  "amount": 100,
-  "order_no": "test_order_001",
-  "expired_days": 365
-}
-
-### ===== IMAGE GENERATION TESTS WITH CREDITS =====
-
-### Test Tuzi AI Image Generation - Basic (with credit deduction)
-POST {{baseUrl}}/api/generate-image
-Content-Type: application/json
-
-{
-  "prompt": "a beautiful sunset landscape with mountains"
-}
-
-### Test Tuzi AI Image Generation - Complex prompt (with credit deduction)
-POST {{baseUrl}}/api/generate-image
-Content-Type: application/json
-
-{
-  "prompt": "A futuristic cityscape at sunset, with flying cars and neon lights, cyberpunk style, highly detailed"
-}
-
-### Test Tuzi AI Image Generation - With custom aspect ratio (with credit deduction)
-POST {{baseUrl}}/api/generate-image
-Content-Type: application/json
-
-{
-  "prompt": "a cute cat wearing sunglasses, studio photo",
-  "aspect_ratio": "1:1"
-}
-
-### Test Tuzi AI Image Generation - Portrait style (with credit deduction)
-POST {{baseUrl}}/api/generate-image
-Content-Type: application/json
-
-{
-  "prompt": "professional headshot of a young woman, business attire, clean background",
-  "aspect_ratio": "9:16"
-}
-
-### Test Image Generation - Without Authentication (should fail)
-POST {{baseUrl}}/api/generate-image
-Content-Type: application/json
-
-{
-  "prompt": "This should fail without authentication"
-}
-
-### ===== MANUAL CREDIT MANAGEMENT =====
-
-### Manual Add Credits (requires authentication)
-POST {{baseUrl}}/api/manual-add-credits
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
-
-{
-  "credits": 100,
-  "reason": "test_recharge"
-}
-
-### Manual Add Credits - Small Amount
-POST {{baseUrl}}/api/manual-add-credits  
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
-
-{
-  "credits": 50,
-  "reason": "customer_service"
-}
-
-### Manual Add Credits - Invalid Amount (should fail)
-POST {{baseUrl}}/api/manual-add-credits
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
-
-{
-  "credits": 15000,
-  "reason": "test_invalid"
-}
-
-### ===== R2 STORAGE TESTS =====
-
-### Check R2 Configuration
-GET {{baseUrl}}/api/test-r2
-
-### Test R2 Direct Upload
-POST {{baseUrl}}/api/test-r2
-Content-Type: application/json
-
-{
-  "testType": "direct"
-}
-
-### Test R2 Download+Upload (using a test image URL)
-POST {{baseUrl}}/api/test-r2
-Content-Type: application/json
-
-{
-  "testType": "download",
-  "url": "https://picsum.photos/800/600"
-}
-
-### Test R2 Download+Upload (using AI service URL - replace with real URL)
-POST {{baseUrl}}/api/test-r2
-Content-Type: application/json
-
-{
-  "testType": "download",
-  "url": "https://delivery-us1.bfl.ai/results/d4/545192c8ea218d/c8ea218d3a38424c91d202c24f748b08/sample.png?se=2025-09-04T02%3A32%3A27Z&sp=r&sv=2024-11-04&sr=b&rsct=image/png&sig=80A6S21oePrgP2ux6n0ay94KED6RXcLQjOd3P7JM098%3D"
-}
