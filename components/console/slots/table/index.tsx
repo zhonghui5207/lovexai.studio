@@ -6,17 +6,21 @@ import Toolbar from "@/components/blocks/toolbar";
 export default function ({ ...table }: TableSlotType) {
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium">{table.title}</h3>
-        <p className="text-sm text-muted-foreground">{table.description}</p>
-      </div>
+      {table.title && (
+        <div>
+          <h3 className="text-lg font-medium text-white">{table.title}</h3>
+          <p className="text-sm text-white/70">{table.description}</p>
+        </div>
+      )}
       {table.tip && (
-        <p className="text-sm text-muted-foreground">
-          {table.tip.description || table.tip.title}
-        </p>
+        <div className="p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl">
+          <p className="text-sm text-white/80">
+            {table.tip.description || table.tip.title}
+          </p>
+        </div>
       )}
       {table.toolbar && <Toolbar items={table.toolbar.items} />}
-      <Separator />
+      <div className="h-px bg-white/10" />
       <TableBlock {...table} />
     </div>
   );

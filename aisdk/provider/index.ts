@@ -1,1 +1,1 @@
-export * from "./video-model/index";
+// Provider exports - focused on image generation only

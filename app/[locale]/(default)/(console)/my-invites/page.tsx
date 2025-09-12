@@ -6,6 +6,7 @@ import { getUserEmail, getUserUuid } from "@/services/user";
 import Invite from "@/components/invite";
 import Link from "next/link";
 import TableBlock from "@/components/blocks/table";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { TableColumn } from "@/types/blocks/table";
 import { Table as TableSlotType } from "@/types/slots/table";
 import { findUserByUuid } from "@/models/user";
@@ -41,10 +42,12 @@ export default async function () {
     if (!user.is_affiliate) {
       // no right
       return (
-        <div className="text-center flex flex-col items-center justify-center h-full py-16 gap-4">
-          <RiEmotionSadFill className="w-8 h-8" />
-          <span>{t("my_invites.no_orders")}</span>
-        </div>
+        <DashboardLayout title="My Invites">
+          <div className="text-center flex flex-col items-center justify-center py-16 gap-4">
+            <RiEmotionSadFill className="w-8 h-8 text-white/40" />
+            <span className="text-white/70">{t("my_invites.no_orders")}</span>
+          </div>
+        </DashboardLayout>
       );
     }
   } else {
@@ -59,24 +62,25 @@ export default async function () {
 
     if (!is_affiliate && !user.is_affiliate) {
       return (
-        <div className="text-center flex flex-col items-center justify-center h-full py-16 gap-4">
-          <RiEmotionSadFill className="w-8 h-8" />
-          <span>{t("my_invites.no_affiliates")}</span>
-          <Link
-            href="https://discord.gg/HQNnrzjZQS"
-            target="_blank"
-            className="flex items-center gap-1 font-semibold text-sm text-primary border border-primary rounded-md px-4 py-2"
-          >
-            <RiDiscordFill className="text-xl" />
-            Discord
-          </Link>
-        </div>
+        <DashboardLayout title="My Invites">
+          <div className="text-center flex flex-col items-center justify-center py-16 gap-4">
+            <RiEmotionSadFill className="w-8 h-8 text-white/40" />
+            <span className="text-white/70">{t("my_invites.no_affiliates")}</span>
+            <Link
+              href="https://discord.gg/HQNnrzjZQS"
+              target="_blank"
+              className="flex items-center gap-1 font-semibold text-sm text-white border border-white/20 rounded-md px-4 py-2 hover:bg-white/10 transition-colors"
+            >
+              <RiDiscordFill className="text-xl" />
+              Discord
+            </Link>
+          </div>
+        </DashboardLayout>
       );
     }
   }
 
   const affiliates = await getUserAffiliates(user_uuid);
-
   const summary = await getAffiliateSummary(user_uuid);
 
   const columns: TableColumn[] = [
@@ -116,8 +120,8 @@ export default async function () {
   ];
 
   const table: TableSlotType = {
-    title: t("my_invites.title"),
-    description: t("my_invites.description"),
+    title: "", // Remove title since it's in the layout
+    description: "", // Remove description since it's in the layout
     tip: {
       description: t("my_invites.my_invite_link"),
     },
@@ -144,9 +148,14 @@ export default async function () {
   };
 
   return (
-    <div className="space-y-8">
-      <Invite summary={summary} />
-      <TableBlock {...table} />
-    </div>
+    <DashboardLayout 
+      title="My Invites" 
+      description="Manage your referrals and track your earnings"
+    >
+      <div className="space-y-8">
+        <Invite summary={summary} />
+        <TableBlock {...table} />
+      </div>
+    </DashboardLayout>
   );
 }

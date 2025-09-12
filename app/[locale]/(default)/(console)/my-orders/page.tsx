@@ -3,6 +3,7 @@ import { getUserEmail, getUserUuid } from "@/services/user";
 
 import { TableColumn } from "@/types/blocks/table";
 import TableSlot from "@/components/console/slots/table";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table as TableSlotType } from "@/types/slots/table";
 import { getTranslations } from "next-intl/server";
 import moment from "moment";
@@ -45,8 +46,8 @@ export default async function () {
   ];
 
   const table: TableSlotType = {
-    title: t("my_orders.title"),
-    description: t("my_orders.description"),
+    title: "", // Remove title since it's in the layout
+    description: "", // Remove description since it's in the layout
     toolbar: {
       items: [
         {
@@ -69,5 +70,12 @@ export default async function () {
     empty_message: t("my_orders.no_orders"),
   };
 
-  return <TableSlot {...table} />;
+  return (
+    <DashboardLayout 
+      title="My Orders" 
+      description="View your purchase history and order details"
+    >
+      <TableSlot {...table} />
+    </DashboardLayout>
+  );
 }

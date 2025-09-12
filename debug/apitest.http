@@ -66,6 +66,18 @@ Authorization: Bearer {{apiKey}}
   "aspect_ratio": "1:1"
 }
 
+### Test Image Generation - Image-to-Image Mode
+POST {{baseUrl}}/api/generate-image  
+Content-Type: application/json
+Authorization: Bearer {{apiKey}}
+
+{
+  "prompt": "give her sunglasses and make the background tropical",
+  "aspect_ratio": "1:1",
+  "mode": "image-to-image",
+  "source_image_url": "https://example.com/source-image.jpg"
+}
+
 ### ===== IMAGE GENERATION TESTS (使用session认证 - 如果需要) =====
 
 ### Test Image Generation - Basic (Session)

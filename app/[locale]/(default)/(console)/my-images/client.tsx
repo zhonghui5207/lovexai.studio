@@ -231,81 +231,73 @@ export default function MyImagesClient() {
   }, [searchTerm, sortBy]);
 
   return (
-    <div className="space-y-6">
-      {/* Statistics Panel */}
+    <div className="space-y-8">
+      {/* Statistics Panel - Unified lightweight design */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-blue-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-blue-600 font-medium mb-1">Total</div>
-                  <div className="text-2xl font-bold text-blue-900">{stats.total_count}</div>
-                </div>
-                <ImageIcon className="h-8 w-8 text-blue-500" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-white/70 font-medium mb-1">Total</div>
+                <div className="text-2xl font-bold text-white">{stats.total_count}</div>
               </div>
-            </CardContent>
-          </Card>
+              <ImageIcon className="h-8 w-8 text-white/40" />
+            </div>
+          </div>
           
-          <Card className="bg-green-50 border-green-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-green-600 font-medium mb-1">Today</div>
-                  <div className="text-2xl font-bold text-green-900">{stats.today_count}</div>
-                </div>
-                <Calendar className="h-8 w-8 text-green-500" />
+          <div className="p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-white/70 font-medium mb-1">Today</div>
+                <div className="text-2xl font-bold text-white">{stats.today_count}</div>
               </div>
-            </CardContent>
-          </Card>
+              <Calendar className="h-8 w-8 text-white/40" />
+            </div>
+          </div>
           
-          <Card className="bg-purple-50 border-purple-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-purple-600 font-medium mb-1">This Month</div>
-                  <div className="text-2xl font-bold text-purple-900">{stats.monthly_count}</div>
-                </div>
-                <Calendar className="h-8 w-8 text-purple-500" />
+          <div className="p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-white/70 font-medium mb-1">This Month</div>
+                <div className="text-2xl font-bold text-white">{stats.monthly_count}</div>
               </div>
-            </CardContent>
-          </Card>
+              <Calendar className="h-8 w-8 text-white/40" />
+            </div>
+          </div>
           
-          <Card className="bg-orange-50 border-orange-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-orange-600 font-medium mb-1">Credits Used</div>
-                  <div className="text-2xl font-bold text-orange-900">{stats.monthly_credits}</div>
-                </div>
-                <div className="h-8 w-8 rounded-full bg-orange-500 flex items-center justify-center">
-                  <div className="h-4 w-4 rounded-full bg-white"></div>
-                </div>
+          <div className="p-6 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-white/70 font-medium mb-1">Credits Used</div>
+                <div className="text-2xl font-bold text-white">{stats.monthly_credits}</div>
               </div>
-            </CardContent>
-          </Card>
+              <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">
+                <div className="h-4 w-4 rounded-full bg-white/60"></div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Search and Filter Controls */}
+      {/* Search and Filter Controls - Unified style */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40 h-4 w-4" />
           <Input
             placeholder="Search image descriptions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-white/40"
           />
         </div>
         
         <Select value={sortBy} onValueChange={(value: 'newest' | 'oldest') => setSortBy(value)}>
-          <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectTrigger className="w-full sm:w-[180px] bg-white/5 border-white/10 text-white">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="newest">Newest First</SelectItem>
-            <SelectItem value="oldest">Oldest First</SelectItem>
+          <SelectContent className="bg-slate-800/95 backdrop-blur-sm border-white/10">
+            <SelectItem value="newest" className="text-white hover:bg-white/10">Newest First</SelectItem>
+            <SelectItem value="oldest" className="text-white hover:bg-white/10">Oldest First</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -313,17 +305,17 @@ export default function MyImagesClient() {
       {/* Loading State */}
       {loading && (
         <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-white/20 border-t-white"></div>
         </div>
       )}
 
       {/* Empty State */}
       {!loading && images.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <ImageIcon className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Images Found</h3>
-            <p className="text-muted-foreground text-center mb-4">
+        <div className="p-16 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl">
+          <div className="flex flex-col items-center justify-center">
+            <ImageIcon className="h-12 w-12 text-white/40 mb-4" />
+            <h3 className="text-lg font-semibold mb-2 text-white">No Images Found</h3>
+            <p className="text-white/70 text-center mb-4">
               {searchTerm 
                 ? 'Try adjusting your search terms or clear the search to see all images' 
                 : 'You haven\'t generated any images yet. Start creating some beautiful AI images!'}
@@ -331,25 +323,25 @@ export default function MyImagesClient() {
             {!searchTerm && (
               <Button 
                 onClick={() => window.location.href = '/'}
-                className="mt-2"
+                className="mt-2 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600"
               >
                 Generate Your First Image
               </Button>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Images Grid */}
       {!loading && images.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {images.map((image) => (
-            <Card key={image.uuid} className="group overflow-hidden hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setSelectedImage(image)}>
+            <div key={image.uuid} className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl transform hover:scale-105" onClick={() => setSelectedImage(image)}>
               <div className="relative aspect-square">
                 <img
                   src={image.storage_url}
                   alt={image.prompt}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-t-2xl"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = '/placeholder-image.jpg';
@@ -357,8 +349,8 @@ export default function MyImagesClient() {
                 />
                 
                 {/* Prompt overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent rounded-t-2xl">
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
                     <p className="text-white text-sm font-medium line-clamp-2">
                       {image.prompt}
                     </p>
@@ -371,7 +363,7 @@ export default function MyImagesClient() {
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
@@ -383,6 +375,7 @@ export default function MyImagesClient() {
             variant="outline"
             onClick={handleLoadMore}
             disabled={loadingMore}
+            className="bg-white/5 border-white/10 text-white hover:bg-white/10"
           >
             {loadingMore ? 'Loading...' : 'Load More'}
           </Button>
@@ -391,11 +384,11 @@ export default function MyImagesClient() {
 
       {/* Image Detail Dialog */}
       <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl bg-slate-900/95 backdrop-blur-sm border-white/10">
           {selectedImage && (
             <>
               <DialogHeader>
-                <DialogTitle>Image Details</DialogTitle>
+                <DialogTitle className="text-white">Image Details</DialogTitle>
               </DialogHeader>
               
               <div className="space-y-6">
@@ -403,26 +396,26 @@ export default function MyImagesClient() {
                   <img
                     src={selectedImage.storage_url}
                     alt={selectedImage.prompt}
-                    className="w-full h-full object-contain bg-gray-100"
+                    className="w-full h-full object-contain bg-white/5"
                   />
                 </div>
                 
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2">Prompt</h4>
-                    <p className="text-sm text-muted-foreground">{selectedImage.prompt}</p>
+                    <h4 className="font-semibold mb-2 text-white">Prompt</h4>
+                    <p className="text-sm text-white/70">{selectedImage.prompt}</p>
                   </div>
                   
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Generated: {formatDate(selectedImage.created_at)}</span>
-                    <span className="text-muted-foreground">Credits: {selectedImage.credits_cost || 10}</span>
+                    <span className="text-white/70">Generated: {formatDate(selectedImage.created_at)}</span>
+                    <span className="text-white/70">Credits: {selectedImage.credits_cost || 10}</span>
                   </div>
                   
                   <div className="flex gap-3 pt-4">
                     <Button
                       onClick={() => downloadImage(selectedImage.storage_url, `${selectedImage.uuid}.png`)}
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 bg-white/5 border-white/10 text-white hover:bg-white/10"
                     >
                       <Download className="h-4 w-4 mr-2" />
                       Download
@@ -431,7 +424,7 @@ export default function MyImagesClient() {
                     <Button
                       variant="destructive"
                       onClick={() => handleDelete(selectedImage.uuid)}
-                      className="flex-1"
+                      className="flex-1 bg-red-500/20 border-red-500/30 text-red-400 hover:bg-red-500/30"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete

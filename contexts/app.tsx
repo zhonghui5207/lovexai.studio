@@ -58,23 +58,28 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
       setIsLoadingUser(true);
       setLastUserFetch(now);
       
+      console.log("开始获取用户信息...");
       const resp = await fetch("/api/get-user-info", {
         method: "GET",
       });
 
+      console.log("用户信息API响应状态:", resp.status);
       if (!resp.ok) {
         throw new Error("fetch user info failed with status: " + resp.status);
       }
 
       const { code, message, data } = await resp.json();
+      console.log("用户信息API响应:", { code, message, data: data ? "有数据" : "无数据" });
+      
       if (code !== 0) {
         throw new Error(message);
       }
 
       setUser(data);
+      console.log("✅ 用户信息设置成功");
       updateInvite(data);
     } catch (e) {
-      console.log("fetch user info failed");
+      console.error("❌ fetch user info failed:", e);
     } finally {
       setIsLoadingUser(false);
     }

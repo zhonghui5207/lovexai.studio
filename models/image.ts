@@ -12,6 +12,10 @@ export interface ImageGeneration {
   aspect_ratio?: string;
   model?: string;
   
+  // 图生图相关
+  generation_mode?: "text-to-image" | "image-to-image";
+  source_image_url?: string;
+  
   // 存储信息
   original_url?: string;
   storage_url: string;

@@ -1,5 +1,6 @@
 import Empty from "@/components/blocks/empty";
 import TableSlot from "@/components/console/slots/table";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Table as TableSlotType } from "@/types/slots/table";
 import { getCreditsByUserUuid } from "@/models/credit";
 import { getTranslations } from "next-intl/server";
@@ -13,15 +14,18 @@ export default async function () {
   const user_uuid = await getUserUuid();
 
   if (!user_uuid) {
-    return <Empty message="no auth" />;
+    return (
+      <DashboardLayout title="My Credits">
+        <Empty message="no auth" />
+      </DashboardLayout>
+    );
   }
 
   const data = await getCreditsByUserUuid(user_uuid, 1, 100);
-
   const userCredits = await getUserCredits(user_uuid);
 
   const table: TableSlotType = {
-    title: t("my_credits.title"),
+    title: "", // Remove title since it's in the layout
     tip: {
       title: t("my_credits.left_tip", {
         left_credits: userCredits?.left_credits || 0,
@@ -61,5 +65,12 @@ export default async function () {
     empty_message: t("my_credits.no_credits"),
   };
 
-  return <TableSlot {...table} />;
+  return (
+    <DashboardLayout 
+      title="My Credits" 
+      description="Track your credit usage and transaction history"
+    >
+      <TableSlot {...table} />
+    </DashboardLayout>
+  );
 }

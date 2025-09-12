@@ -32,12 +32,12 @@ export default function ({
           className={cn(
             buttonVariants({ variant: "ghost" }),
             item.is_active
-              ? "bg-muted/50 text-primary hover:bg-muted hover:text-primary"
-              : "hover:bg-transparent hover:underline",
-            "justify-start"
+              ? "bg-white/10 text-white border border-white/20 hover:bg-white/15 hover:text-white"
+              : "text-white/70 hover:bg-white/5 hover:text-white",
+            "justify-start transition-all duration-200"
           )}
         >
-          {item.icon && <Icon name={item.icon} className="w-4 h-4" />}
+          {item.icon && <Icon name={item.icon} className="w-4 h-4 mr-2" />}
           {item.title}
         </Link>
       ))}
