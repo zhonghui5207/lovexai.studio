@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
-import { X, Share2, MessageCircle, ChevronDown } from "lucide-react";
+import { X, MessageCircle, ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 interface CharacterModalProps {
