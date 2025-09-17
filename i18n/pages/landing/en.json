@@ -369,19 +369,19 @@
   "pricing": {
     "name": "pricing",
     "label": "Pricing",
-    "title": "Choose Your AI Creative Plan",
-    "description": "From AI image generation to video creation, select the perfect plan for your creative needs.",
+    "title": "Choose Your AI Companion Plan",
+    "description": "From casual conversations to deep connections, select the perfect plan for your AI companion experience.",
     "groups": [],
     "items": [
       {
         "title": "Basic",
-        "description": "Perfect for individual creators and artists.",
+        "description": "Perfect for individual users exploring AI companionship.",
         "features_title": "Includes",
         "features": [
-          "100 credits, valid for 1 month",
-          "AI Image Generation (multiple ratios)",
-          "Basic image editing tools",
-          "Image download & sharing",
+          "100 chat credits, valid for 1 month",
+          "Basic AI companion interactions",
+          "Character customization options",
+          "Chat history & memory",
           "User account management",
           "Basic technical support"
         ],
@@ -393,11 +393,11 @@
         "original_price": "$199",
         "unit": "USD",
         "is_featured": false,
-        "tip": "Perfect for individual creators!",
+        "tip": "Perfect for individual users!",
         "button": {
-          "title": "Start Creating",
+          "title": "Start Chatting",
           "url": "/#pricing",
-          "icon": "RiImageLine"
+          "icon": "RiChatSmile3Line"
         },
         "product_id": "basic",
         "product_name": "LOVEXAI.STUDIO Basic Plan",
@@ -406,18 +406,18 @@
       },
       {
         "title": "Pro",
-        "description": "Ideal for content creators and designers.",
+        "description": "Ideal for users seeking deeper AI relationships.",
         "label": "Popular",
         "features_title": "Everything in Basic, plus",
         "features": [
-          "300 credits, valid for 3 months",
-          "AI Video Generation",
-          "Advanced image editing tools",
-          "Batch processing capabilities",
-          "HD image export",
-          "Priority processing queue",
-          "Professional template library",
-          "API access"
+          "300 chat credits, valid for 3 months",
+          "Advanced personality customization",
+          "Multiple AI companion characters",
+          "NSFW content access",
+          "Priority response time",
+          "Emotional intelligence features",
+          "Voice chat capabilities",
+          "Premium character templates"
         ],
         "interval": "one-time",
         "amount": 19900,
@@ -431,7 +431,7 @@
         "button": {
           "title": "Upgrade to Pro",
           "url": "/#pricing",
-          "icon": "RiVideoLine"
+          "icon": "RiHeartLine"
         },
         "product_id": "pro",
         "product_name": "LOVEXAI.STUDIO Pro Plan",
@@ -440,16 +440,16 @@
       },
       {
         "title": "Enterprise",
-        "description": "Built for teams and businesses.",
+        "description": "Built for power users and content creators.",
         "features_title": "Everything in Pro, plus",
         "features": [
-          "1000 credits, valid for 1 year",
-          "Team collaboration features",
+          "1000 chat credits, valid for 1 year",
+          "Unlimited character creation",
           "Custom AI model training",
-          "White-label solution",
+          "API access for developers",
           "Dedicated account manager",
           "24/7 technical support",
-          "SLA service guarantee",
+          "White-label solution",
           "Enterprise-grade security"
         ],
         "interval": "one-time",

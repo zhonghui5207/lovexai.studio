@@ -102,19 +102,19 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
   }, [pricing.items]);
 
   return (
-    <section id={pricing.name} className="relative py-24 overflow-hidden">
+    <section id={pricing.name} className="relative py-24 overflow-hidden bg-background">
       <div className="container">
         <div className="mx-auto mb-16 text-center">
-          <h2 className="mb-6 text-5xl font-bold lg:text-6xl text-white drop-shadow-2xl">
+          <h2 className="mb-6 text-5xl font-bold lg:text-6xl text-foreground">
             {pricing.title}
           </h2>
-          <p className="text-white/70 lg:text-xl font-light max-w-2xl mx-auto">
+          <p className="text-muted-foreground lg:text-xl font-light max-w-2xl mx-auto">
             {pricing.description}
           </p>
         </div>
         <div className="flex flex-col items-center gap-8">
           {pricing.groups && pricing.groups.length > 0 && (
-            <div className="flex h-14 mb-8 items-center rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-2 text-lg">
+            <div className="flex h-14 mb-8 items-center rounded-2xl bg-muted/20 backdrop-blur-sm border border-border p-2 text-lg">
               <RadioGroup
                 value={group}
                 className={`h-full grid-cols-${pricing.groups.length}`}
@@ -126,7 +126,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                   return (
                     <div
                       key={i}
-                      className='h-full rounded-xl transition-all duration-300 has-[button[data-state="checked"]]:bg-gradient-to-r has-[button[data-state="checked"]]:from-blue-500/80 has-[button[data-state="checked"]]:to-purple-500/80'
+                      className='h-full rounded-xl transition-all duration-300 has-[button[data-state="checked"]]:bg-primary'
                     >
                       <RadioGroupItem
                         value={item.name || ""}
@@ -135,13 +135,13 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                       />
                       <Label
                         htmlFor={item.name}
-                        className="flex h-full cursor-pointer items-center justify-center px-8 font-semibold text-white/70 peer-data-[state=checked]:text-white transition-all duration-300"
+                        className="flex h-full cursor-pointer items-center justify-center px-8 font-semibold text-muted-foreground peer-data-[state=checked]:text-primary-foreground transition-all duration-300"
                       >
                         {item.title}
                         {item.label && (
                           <Badge
                             variant="outline"
-                            className="border-white/30 bg-white/20 px-2 ml-2 text-white backdrop-blur-sm"
+                            className="border-border bg-background px-2 ml-2 text-foreground backdrop-blur-sm"
                           >
                             {item.label}
                           </Badge>
@@ -170,8 +170,8 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                   key={index}
                   className={`relative overflow-hidden rounded-2xl p-8 cursor-pointer transition-all duration-300 backdrop-blur-sm border ${
                     selectedItem === item.product_id
-                      ? "border-emerald-400/50 bg-white/5 shadow-lg shadow-emerald-500/10"
-                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                      ? "border-primary/50 bg-primary/5 shadow-lg shadow-primary/10"
+                      : "border-border bg-card hover:border-border/60 hover:bg-muted/20"
                   }`}
                   onClick={() => setSelectedItem(item.product_id)}
                 >
@@ -180,7 +180,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                     <div>
                       <div className="flex items-center gap-2 mb-6">
                         {item.title && (
-                          <h3 className="text-2xl font-bold text-white">
+                          <h3 className="text-2xl font-bold text-foreground">
                             {item.title}
                           </h3>
                         )}
@@ -188,7 +188,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                         {item.label && (
                           <Badge
                             variant="outline"
-                            className="border-white/30 bg-gradient-to-r from-blue-500/80 to-purple-500/80 px-3 py-1 text-white font-medium backdrop-blur-sm"
+                            className="border-primary/30 bg-primary text-primary-foreground px-3 py-1 font-medium backdrop-blur-sm"
                           >
                             {item.label}
                           </Badge>
@@ -196,28 +196,28 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                       </div>
                       <div className="flex items-end gap-3 mb-6">
                         {item.original_price && (
-                          <span className="text-xl text-white/50 font-semibold line-through">
+                          <span className="text-xl text-muted-foreground font-semibold line-through">
                             {item.original_price}
                           </span>
                         )}
                         {item.price && (
-                          <span className="text-6xl font-bold text-white drop-shadow-lg">
+                          <span className="text-6xl font-bold text-foreground">
                             {item.price}
                           </span>
                         )}
                         {item.unit && (
-                          <span className="block font-semibold text-white/80 text-lg">
+                          <span className="block font-semibold text-muted-foreground text-lg">
                             {item.unit}
                           </span>
                         )}
                       </div>
                       {item.description && (
-                        <p className="text-white/70 text-lg font-light leading-relaxed">
+                        <p className="text-muted-foreground text-lg font-light leading-relaxed">
                           {item.description}
                         </p>
                       )}
                       {item.features_title && (
-                        <p className="mb-4 mt-8 font-bold text-white text-lg">
+                        <p className="mb-4 mt-8 font-bold text-foreground text-lg">
                           {item.features_title}
                         </p>
                       )}
@@ -225,8 +225,8 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                         <ul className="flex flex-col gap-4">
                           {item.features.map((feature, fi) => {
                             return (
-                              <li className="flex gap-3 text-white/80" key={`feature-${fi}`}>
-                                <Check className="mt-1 size-5 shrink-0 text-green-400" />
+                              <li className="flex gap-3 text-foreground" key={`feature-${fi}`}>
+                                <Check className="mt-1 size-5 shrink-0 text-green-500" />
                                 <span className="font-medium">{feature}</span>
                               </li>
                             );
@@ -239,7 +239,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                         <div className="flex items-center gap-x-3 mt-4">
                           <span className="text-lg">👉</span>
                           <div
-                            className="inline-block p-3 hover:cursor-pointer hover:bg-white/5 rounded-xl transition-all duration-300 border border-white/10 backdrop-blur-sm"
+                            className="inline-block p-3 hover:cursor-pointer hover:bg-muted/20 rounded-xl transition-all duration-300 border border-border backdrop-blur-sm"
                             onClick={() => {
                               if (isLoading) {
                                 return;
@@ -257,7 +257,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                       ) : null}
                       {item.button && (
                         <Button
-                          className="w-full flex items-center justify-center gap-3 font-bold text-lg py-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 hover:from-blue-600 hover:via-purple-600 hover:to-pink-600 text-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-blue-500/20"
+                          className="w-full flex items-center justify-center gap-3 font-bold text-lg py-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-primary/20"
                           disabled={isLoading}
                           onClick={() => {
                             if (isLoading) {
@@ -283,7 +283,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                         </Button>
                       )}
                       {item.tip && (
-                        <p className="text-white/60 text-sm mt-3 font-light text-center">
+                        <p className="text-muted-foreground text-sm mt-3 font-light text-center">
                           {item.tip}
                         </p>
                       )}

@@ -29,18 +29,18 @@ export default function ({ isIcon = false }: { isIcon?: boolean }) {
 
   return (
     <Select value={locale} onValueChange={handleSwitchLanguage}>
-      <SelectTrigger className="flex items-center gap-x-2 border-none text-white/80 hover:text-white outline-none hover:bg-transparent focus:ring-0 focus:ring-offset-0 bg-transparent">
-        <MdLanguage className="text-xl" />
+      <SelectTrigger className="flex items-center gap-x-2 border border-border text-foreground hover:text-foreground outline-none hover:bg-muted focus:ring-0 focus:ring-offset-0 bg-background/50 px-3 py-1.5 rounded-md min-w-[100px]">
+        <MdLanguage className="text-base" />
         {!isIcon && (
-          <span className="hidden md:block">{localeNames[locale]}</span>
+          <span className="hidden md:block font-medium">{localeNames[locale]}</span>
         )}
       </SelectTrigger>
-      <SelectContent className="z-50 bg-slate-800/95 backdrop-blur-sm border-white/10 text-white">
+      <SelectContent className="z-50 bg-background border-border">
         {Object.keys(localeNames).map((key: string) => {
           const name = localeNames[key];
           return (
             <SelectItem 
-              className="cursor-pointer text-white/80 hover:text-white hover:bg-white/5 focus:bg-white/5 focus:text-white data-[highlighted]:bg-white/5 data-[highlighted]:text-white" 
+              className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted" 
               key={key} 
               value={key}
             >
