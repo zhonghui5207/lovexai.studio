@@ -1,123 +1,158 @@
-@baseUrl = http://localhost:3000
-@apiKey = sk-Qc0Zn98UXokmsV0IjO98dAZwo354QtKy
-@sessionToken = eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiZ1k0RjFYRDlKYkpTSHlhbVRLanlYSzMxMjFsY0MwRUlSZExsYXB5ZExYYk05M0RrbzZOMHo2aWRGMnZuUEt3T0hIaVdTZnBKWnVIVk92VDVxdlBHcUEifQ..-7E8HAS5KLGy8HgllRbzgg.reB2oc-v77eyN9uN1d7BZS7uDmknsJFpRrQjOR3VoxQ904f0Y4zZRHRPQHVCI9YoSbXNKWOAAM7KjGxSFYXhE0gZrohv3sK299m1T6ox3GvHN68SCnP1ZdOsOxB_Y0vGY-1dkAQc4BtkCCyminGJRAdNZk-tTVnamVe-e3UkOrn5Rag4n6avX0fJMR7ldE9zPnERCA4PoxJZd5qZ9ka8g5yFt7GkVPhMtSLW7ITxUcOScXD52m0pnuOR-N2hD6aIF8UPMgZTbTzkugPXcSuJPv6gdkVqVETBOJVePlY4v8zOfuv7bDXijMK_42iCDG5_xE5u6wOtUSNXL4ecIZQzA_hPinfYMhPoODBYAAwk_aP_OcxRkuA7XNo17LaqtXe3BI4qOEO0tkFXwlvnn1i3GBCq8YezQ3-Sw6j7vbxTYaLUeZ8-UegkqwYjjT4gFPr4dQsRDSfhsKYdlMNhCXayKNcBBorJKDmIgj9Z4IYVAeE-rUvK9_oSsIbLAk7CqiKW0FT05oGdqZbwZnPyAOFZHv-yeyv6QcbwIMPahUGWzKx7QQE7hSLxpgtjoRoIzE0fOCT20yKEAFbHTs5sDuqHhr2lDs0PNbniElT-hgKpcBVZR-CTDU4fdczfJWKWSt-2Up0qkYSqzxrK2AKBXULuiZvI6iWINchHd01lXTloIbH_ilh6Rym3DLvhGeU7m7_42OI1LTseHE9BUhYelHlgvzvqowML-M-KXdeWa4T-PcQsjJBd6Xf189QKIKfcduq2.nF5fIxEPXvUxBpLJBA2piyFuem7O1fYrmUOTepOPvE8
+### Test Chat API with Tuzi Service
+### 测试聊天API和Tuzi服务集成
 
-### ===== API KEY TESTS =====
-
-### ping api (API key required)
-POST {{baseUrl}}/api/ping
+# Basic test with Sophia Chen character
+POST http://localhost:3000/api/chat
 Content-Type: application/json
-Authorization: Bearer {{apiKey}}
 
 {
-  "message": "hello"
+  "messages": [
+    {
+      "id": "1",
+      "content": "Hello Sophia! How are you doing today?",
+      "sender": "user",
+      "timestamp": "2025-09-18T08:00:00Z"
+    }
+  ],
+  "character": {
+    "id": "sophia_chen",
+    "name": "Sophia Chen",
+    "username": "sophia_chen",
+    "avatar": "https://cdn.lovexai.studio/characters/sophia.jpg",
+    "description": "A warm and intelligent university student studying psychology, always eager to help others understand their emotions.",
+    "personality": "Sophia is empathetic, curious, and has a natural ability to make people feel comfortable. She loves deep conversations and is genuinely interested in understanding human nature.",
+    "traits": ["Empathetic", "Intelligent", "Supportive", "Curious"],
+    "greeting": "Hi there! I'm Sophia. I love getting to know new people and having meaningful conversations. What's on your mind today?",
+    "chatCount": "104K chats",
+    "age": 22,
+    "location": "San Francisco, CA"
+  },
+  "settings": {
+    "responseLength": "default",
+    "includeNarrator": false,
+    "narratorVoice": "male",
+    "selectedModel": "nectar_basic"
+  }
 }
 
-### get user credits (API key required)
-POST {{baseUrl}}/api/get-user-credits
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
+###
 
-### Manual Add Credits (API key required)
-POST {{baseUrl}}/api/manual-add-credits
+# Test with premium model (Orchid)
+POST http://localhost:3000/api/chat
 Content-Type: application/json
-Authorization: Bearer {{apiKey}}
 
 {
-  "credits": 100,
-  "reason": "test_recharge"
+  "messages": [
+    {
+      "id": "1",
+      "content": "Tell me about your favorite memory from university",
+      "sender": "user",
+      "timestamp": "2025-09-18T08:00:00Z"
+    }
+  ],
+  "character": {
+    "id": "sophia_chen",
+    "name": "Sophia Chen",
+    "username": "sophia_chen",
+    "avatar": "https://cdn.lovexai.studio/characters/sophia.jpg",
+    "description": "A warm and intelligent university student studying psychology, always eager to help others understand their emotions.",
+    "personality": "Sophia is empathetic, curious, and has a natural ability to make people feel comfortable. She loves deep conversations and is genuinely interested in understanding human nature.",
+    "traits": ["Empathetic", "Intelligent", "Supportive", "Curious"],
+    "greeting": "Hi there! I'm Sophia. I love getting to know new people and having meaningful conversations. What's on your mind today?",
+    "chatCount": "104K chats",
+    "age": 22,
+    "location": "San Francisco, CA"
+  },
+  "settings": {
+    "responseLength": "long",
+    "includeNarrator": true,
+    "narratorVoice": "female",
+    "selectedModel": "orchid"
+  }
 }
 
-### ===== NEXTAUTH SESSION TESTS (已配置session token) =====
+###
 
-### get user info (使用API Key认证)
-GET {{baseUrl}}/api/get-user-info
-Authorization: Bearer {{apiKey}}
-
-### ===== IMAGE GENERATION TESTS (使用API Key认证) =====
-
-### Test Image Generation - Basic (API Key)
-POST {{baseUrl}}/api/generate-image
+# Test with short response length
+POST http://localhost:3000/api/chat
 Content-Type: application/json
-Authorization: Bearer {{apiKey}}
 
 {
-  "prompt": "a beautiful sunset landscape with mountains",
-  "aspect_ratio": "16:9"
+  "messages": [
+    {
+      "id": "1",
+      "content": "What's your favorite subject?",
+      "sender": "user",
+      "timestamp": "2025-09-18T08:00:00Z"
+    }
+  ],
+  "character": {
+    "id": "sophia_chen",
+    "name": "Sophia Chen",
+    "username": "sophia_chen",
+    "avatar": "https://cdn.lovexai.studio/characters/sophia.jpg",
+    "description": "A warm and intelligent university student studying psychology, always eager to help others understand their emotions.",
+    "personality": "Sophia is empathetic, curious, and has a natural ability to make people feel comfortable. She loves deep conversations and is genuinely interested in understanding human nature.",
+    "traits": ["Empathetic", "Intelligent", "Supportive", "Curious"],
+    "greeting": "Hi there! I'm Sophia. I love getting to know new people and having meaningful conversations. What's on your mind today?",
+    "chatCount": "104K chats",
+    "age": 22,
+    "location": "San Francisco, CA"
+  },
+  "settings": {
+    "responseLength": "short",
+    "includeNarrator": false,
+    "narratorVoice": "male",
+    "selectedModel": "nectar_basic"
+  }
 }
 
-### Test Image Generation - Happy Girl (API Key - for R2 testing)
-POST {{baseUrl}}/api/generate-image  
+###
+
+# Test conversation history (multiple messages)
+POST http://localhost:3000/api/chat
 Content-Type: application/json
-Authorization: Bearer {{apiKey}}
 
 {
-  "prompt": "a happy girl",
-  "aspect_ratio": "16:9"
+  "messages": [
+    {
+      "id": "1",
+      "content": "Hi Sophia! I'm feeling a bit stressed about my studies.",
+      "sender": "user",
+      "timestamp": "2025-09-18T08:00:00Z"
+    },
+    {
+      "id": "2",
+      "content": "I understand that feeling! Stress about studies is really common, especially when you care about doing well. What specifically is making you feel most stressed right now?",
+      "sender": "character",
+      "timestamp": "2025-09-18T08:01:00Z"
+    },
+    {
+      "id": "3",
+      "content": "I have three major exams next week and I don't feel prepared.",
+      "sender": "user",
+      "timestamp": "2025-09-18T08:02:00Z"
+    }
+  ],
+  "character": {
+    "id": "sophia_chen",
+    "name": "Sophia Chen",
+    "username": "sophia_chen",
+    "avatar": "https://cdn.lovexai.studio/characters/sophia.jpg",
+    "description": "A warm and intelligent university student studying psychology, always eager to help others understand their emotions.",
+    "personality": "Sophia is empathetic, curious, and has a natural ability to make people feel comfortable. She loves deep conversations and is genuinely interested in understanding human nature.",
+    "traits": ["Empathetic", "Intelligent", "Supportive", "Curious"],
+    "greeting": "Hi there! I'm Sophia. I love getting to know new people and having meaningful conversations. What's on your mind today?",
+    "chatCount": "104K chats",
+    "age": 22,
+    "location": "San Francisco, CA"
+  },
+  "settings": {
+    "responseLength": "default",
+    "includeNarrator": false,
+    "narratorVoice": "male",
+    "selectedModel": "nevoria"
+  }
 }
 
-### Test Image Generation - Cat (API Key)
-POST {{baseUrl}}/api/generate-image  
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
-
-{
-  "prompt": "a cute cat wearing sunglasses, studio photo",
-  "aspect_ratio": "1:1"
-}
-
-### Test Image Generation - Image-to-Image Mode
-POST {{baseUrl}}/api/generate-image  
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
-
-{
-  "prompt": "give her sunglasses and make the background tropical",
-  "aspect_ratio": "1:1",
-  "mode": "image-to-image",
-  "source_image_url": "https://example.com/source-image.jpg"
-}
-
-### ===== IMAGE GENERATION TESTS (使用session认证 - 如果需要) =====
-
-### Test Image Generation - Basic (Session)
-POST {{baseUrl}}/api/generate-image
-Content-Type: application/json
-Cookie: next-auth.session-token={{sessionToken}}
-
-{
-  "prompt": "a beautiful sunset landscape with mountains",
-  "aspect_ratio": "16:9"
-}
-
-### ===== DEMO API TESTS (API key required) =====
-
-### Demo gen image (API key required)
-POST {{baseUrl}}/api/demo/gen-image
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
-
-{
-  "prompt": "a beautiful girl running with 2 cats",
-  "provider": "replicate", 
-  "model": "black-forest-labs/flux-schnell"
-}
-
-### Demo gen text (API key required)
-POST {{baseUrl}}/api/demo/gen-text
-Content-Type: application/json
-Authorization: Bearer {{apiKey}}
-
-{
-  "prompt": "9.11 vs 9.8, which one is greater?",
-  "provider": "openrouter",
-  "model": "deepseek/deepseek-r1"
-}
-
-### ===== DATABASE & OTHER TESTS =====
-
-### Test Database Connection (no auth needed)
-GET {{baseUrl}}/api/test-db
-
-### Test NextAuth Providers (no auth needed)
-GET {{baseUrl}}/api/auth/providers
+###

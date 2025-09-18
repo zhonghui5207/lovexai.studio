@@ -86,30 +86,43 @@ export default function ChatInterface({ character }: ChatInterfaceProps) {
 
       setMessages(prev => [...prev, aiMessage]);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            // Stream finished, stop typing immediately
+            setIsTyping(false);
+            break;
+          }
 
-        const chunk = new TextDecoder().decode(value);
-        const lines = chunk.split('\n');
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim());
 
-        for (const line of lines) {
-          if (line.startsWith('0:')) {
-            try {
-              const jsonStr = line.slice(2);
-              const data = JSON.parse(jsonStr);
-              if (data.textDelta) {
-                aiResponseContent += data.textDelta;
-                setMessages(prev => prev.map(msg =>
-                  msg.id === aiMessage.id
-                    ? { ...msg, content: aiResponseContent }
-                    : msg
-                ));
+          for (const line of lines) {
+            if (line.startsWith('0:')) {
+              try {
+                const jsonStr = line.slice(2);
+                const data = JSON.parse(jsonStr);
+                if (data.textDelta) {
+                  aiResponseContent += data.textDelta;
+                  setMessages(prev => prev.map(msg =>
+                    msg.id === aiMessage.id
+                      ? { ...msg, content: aiResponseContent }
+                      : msg
+                  ));
+                }
+              } catch (e) {
+                console.error('Parse error:', e);
               }
-            } catch (e) {
-              console.error('Parse error:', e);
             }
           }
+        }
+      } finally {
+        // Ensure reader is properly closed
+        try {
+          reader.releaseLock();
+        } catch (e) {
+          console.error('Error releasing reader lock:', e);
         }
       }
     } catch (error) {
