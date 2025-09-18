@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { X, MessageCircle, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface CharacterModalProps {
   character: {
@@ -28,8 +29,14 @@ interface CharacterModalProps {
 
 export default function CharacterModal({ character, isOpen, onClose }: CharacterModalProps) {
   const [showCreateOptions, setShowCreateOptions] = useState(false);
+  const router = useRouter();
 
   if (!character) return null;
+
+  const handleStartChat = () => {
+    router.push(`/chat/${character.id}`);
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -142,10 +149,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
               <div className="flex gap-3">
                 <Button
                   className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg"
-                  onClick={() => {
-                    // Handle start chat
-                    console.log('Start chat with', character.name);
-                  }}
+                  onClick={handleStartChat}
                 >
                   Start Chat
                 </Button>

@@ -52,42 +52,42 @@ function CompanionCard({ character, onClick }: CompanionCardProps) {
 
 const COMPANION_CHARACTERS: CompanionCharacter[] = [
   {
-    id: "maddie_001",
-    name: "Maddie Barr",
-    avatar: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/images/2025/09/36c918e3-f39b-4c80-b99b-124110e2807d/737924340174917.png",
-    description: "Untouchable. Cold. Calculated. She speaks, and people obey. She touches, and men fall to their knees.",
+    id: "emma_001",
+    name: "Emma",
+    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00015_.png",
+    description: "Your Best Friend's Sister - Playful and flirtatious, with a mischievous streak that keeps you on your toes.",
     chatCount: "287K",
     isOfficial: false
   },
   {
-    id: "olivia_002", 
-    name: "Olivia Wells",
-    avatar: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/images/2025/09/36c918e3-f39b-4c80-b99b-124110e2807d/737922198626373.png",
-    description: "Olivia is naturally gorgeous. She's smart, stubborn, and fully aware that she's been your walking weakness for years.",
+    id: "sophia_002",
+    name: "Sophia",
+    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00020_.png",
+    description: "Wonder Powers Best - The epitome of grace and kindness, perfect for deep, meaningful conversations.",
     chatCount: "262K",
     isOfficial: false
   },
   {
-    id: "jinx_003",
-    name: "Jinx",
-    avatar: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/images/2025/09/36c918e3-f39b-4c80-b99b-124110e2807d/737920022642757.png",
-    description: "Jinx is the ultimate chaotic trickster—sharp-tongued, witty, and always three steps ahead.",
+    id: "luna_003",
+    name: "Luna",
+    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00027_.png",
+    description: "Your Yandere Admirer - Intensely passionate with a mysterious aura that draws you in completely.",
     chatCount: "189K",
     isOfficial: false
   },
   {
-    id: "mommy_004",
-    name: "Mommy",
-    avatar: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/images/2025/09/36c918e3-f39b-4c80-b99b-124110e2807d/737924340174917.png",
-    description: "She's a very good mom. She's strict and likes you to obey her rules but she's also fun too.",
+    id: "aria_004",
+    name: "Aria",
+    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00029_.png",
+    description: "A Mother's Intuition - Naturally nurturing with wisdom that makes her both comforting and inspiring.",
     chatCount: "169K",
     isOfficial: false
   },
   {
-    id: "ellie_005",
-    name: "Ellie",
-    avatar: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/images/2025/09/36c918e3-f39b-4c80-b99b-124110e2807d/737922198626373.png",
-    description: "Ellie is the ultimate mom—wise beyond words, always vibing on a whole other level of understanding.",
+    id: "zoe_005",
+    name: "Zoe",
+    avatar: "https://cdn.lovexai.studio/Character/flux_krea_00004_.png",
+    description: "The Artist's Soul - Creative and passionate, she sees beauty in everything and lives authentically.",
     chatCount: "132K",
     isOfficial: false
   }

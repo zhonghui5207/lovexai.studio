@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import CharacterModal from "./CharacterModal";
 
 // Import the same character data structure from DiscoverSection
@@ -27,7 +28,7 @@ const heroCharacters: Character[] = [
     id: "emma_001",
     name: "Emma",
     username: "emmytime",
-    avatar: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/images/2025/09/36c918e3-f39b-4c80-b99b-124110e2807d/737924340174917.png",
+    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00015_.png",
     description: "Your Best Friend's Sister",
     traits: ["Playful", "Witty", "Charming"],
     greeting: "Hey there... I was wondering when you'd finally notice me 😉",
@@ -42,7 +43,7 @@ const heroCharacters: Character[] = [
     id: "sophia_002",
     name: "Sophia",
     username: "sophiawonder",
-    avatar: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/images/2025/09/36c918e3-f39b-4c80-b99b-124110e2807d/737922198626373.png",
+    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00020_.png",
     description: "Wonder Powers Best",
     traits: ["Gentle", "Patient", "Caring"],
     greeting: "Ready for an adventure? Let's explore together! ✨",
@@ -57,7 +58,7 @@ const heroCharacters: Character[] = [
     id: "luna_003",
     name: "Luna",
     username: "lunarmystic",
-    avatar: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/images/2025/09/36c918e3-f39b-4c80-b99b-124110e2807d/737924842242117.png",
+    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00027_.png",
     description: "Your Yandere Admirer",
     traits: ["Mysterious", "Intense", "Devoted"],
     greeting: "I've been waiting for someone like you... 🌙",
@@ -74,6 +75,7 @@ export default function HeroBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
   // Auto-play carousel
   useEffect(() => {
@@ -86,6 +88,10 @@ export default function HeroBanner() {
   const handleCharacterClick = (character: Character) => {
     setSelectedCharacter(character);
     setIsModalOpen(true);
+  };
+
+  const handleStartChat = (character: Character) => {
+    router.push(`/chat/${character.id}`);
   };
 
   const handleCloseModal = () => {
@@ -117,9 +123,10 @@ export default function HeroBanner() {
               
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white font-semibold px-8 py-4 text-base shadow-lg"
+                  onClick={() => handleStartChat(heroCharacters[currentIndex])}
                 >
                   Start Chatting
                 </Button>
@@ -193,7 +200,7 @@ export default function HeroBanner() {
                               className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white font-semibold px-4 py-2 rounded-lg"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleCharacterClick(character);
+                                handleStartChat(character);
                               }}
                             >
                               Chat
