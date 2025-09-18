@@ -146,9 +146,9 @@ export default function ChatInterface({ character }: ChatInterfaceProps) {
         <img
           src={character.avatar}
           alt={character.name}
-          className="w-full h-full object-cover opacity-10 blur-sm"
+          className="w-full h-full object-cover opacity-40 blur-[1px]"
         />
-        <div className="absolute inset-0 bg-background/80" />
+        <div className="absolute inset-0 bg-background/40" />
       </div>
 
       {/* Left Sidebar - Chat List */}
