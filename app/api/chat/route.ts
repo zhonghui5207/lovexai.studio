@@ -1,5 +1,14 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
-import { NextRequest } from 'next/server';
+import {
+  getConversationWithCharacter,
+  createMessage,
+  getGenerationSettings,
+  sendUserMessage
+} from '@/models/conversation';
+import { recordCreditUsage } from '@/models/payment';
+import { checkUserPermissions, findUserById } from '@/models/user-new';
+import { getSupabaseClient } from '@/models/db';
 
 const tuziClient = new OpenAI({
   apiKey: process.env.TUZI_API_KEY,
@@ -8,9 +17,65 @@ const tuziClient = new OpenAI({
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, character, settings } = await req.json();
+    const { conversationId, content, userId } = await req.json();
 
-    // Create character-specific system prompt
+    // 验证必要参数
+    if (!conversationId || !content || !userId) {
+      return NextResponse.json(
+        { error: 'Missing required parameters' },
+        { status: 400 }
+      );
+    }
+
+    // 获取对话信息
+    const conversation = await getConversationWithCharacter(conversationId);
+    if (!conversation) {
+      return NextResponse.json(
+        { error: 'Conversation not found' },
+        { status: 404 }
+      );
+    }
+
+    // 验证用户权限
+    const user = await findUserById(userId);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // 检查用户是否有权限访问该角色
+    const permissions = await checkUserPermissions(userId);
+    if (!permissions.canAccessCharacter(conversation.characters.access_level)) {
+      return NextResponse.json(
+        { error: 'Access denied: Upgrade subscription to chat with this character' },
+        { status: 403 }
+      );
+    }
+
+    // 检查积分是否足够
+    const creditsRequired = conversation.characters.credits_per_message;
+    if (!permissions.canSendMessage(creditsRequired)) {
+      return NextResponse.json(
+        { error: 'Insufficient credits' },
+        { status: 402 }
+      );
+    }
+
+    // 发送用户消息并扣除积分
+    const { userMessage } = await sendUserMessage(conversationId, content);
+
+    // 获取对话生成设置
+    const settings = await getGenerationSettings(conversationId) || {
+      response_length: 'default',
+      include_narrator: false,
+      narrator_voice: 'male',
+      selected_model: 'nectar_basic'
+    };
+
+    // 创建角色专用系统提示
+    const character = conversation.characters;
     const systemPrompt = `You are ${character.name}, an AI character with the following traits:
 - Description: ${character.description}
 - Personality: ${character.personality}
@@ -20,81 +85,110 @@ export async function POST(req: NextRequest) {
 
 Response guidelines:
 - Stay in character at all times
-- Use ${settings.responseLength === 'short' ? 'brief, concise' : settings.responseLength === 'long' ? 'detailed, elaborate' : 'moderate length'} responses
-- ${settings.includeNarrator ? 'Include narrative descriptions in *italics* to describe actions and environment' : 'Focus on dialogue and character responses'}
+- Use ${settings.response_length === 'short' ? 'brief, concise' : settings.response_length === 'long' ? 'detailed, elaborate' : 'moderate length'} responses
+- ${settings.include_narrator ? 'Include narrative descriptions in *italics* to describe actions and environment' : 'Focus on dialogue and character responses'}
 - Be engaging and maintain the roleplay atmosphere
 - Respond naturally as this character would
 - Keep responses conversational and immersive`;
 
-    // Convert messages to the expected format
+    // 获取对话历史 (最近10条消息)
+    const { data: recentMessages } = await getSupabaseClient()
+      .from('messages')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    // 格式化消息历史
     const formattedMessages = [
-      { role: 'system', content: systemPrompt },
-      ...messages.map((msg: any) => ({
-        role: msg.sender === 'user' ? 'user' : 'assistant',
+      { role: 'system' as const, content: systemPrompt },
+      ...(recentMessages?.reverse().map(msg => ({
+        role: msg.sender_type === 'user' ? 'user' as const : 'assistant' as const,
         content: msg.content
-      }))
+      })) || [])
     ];
 
-    // Select model based on settings
-    let model;
-    let maxTokens;
+    // 选择AI模型
+    let model: string;
+    let maxTokens: number;
 
-    switch (settings.selectedModel) {
+    switch (settings.selected_model) {
       case 'nevoria':
       case 'fuchsia':
       case 'deepseek_v3':
-        model = 'gpt-4o-all'; // 使用Tuzi的高级模型
-        maxTokens = settings.responseLength === 'short' ? 200 :
-                   settings.responseLength === 'long' ? 600 : 400;
+        model = 'gpt-4o-all';
+        maxTokens = settings.response_length === 'short' ? 200 :
+                   settings.response_length === 'long' ? 600 : 400;
         break;
       case 'orchid':
-        model = 'gpt-4o-all'; // 最高级模型
-        maxTokens = settings.responseLength === 'short' ? 250 :
-                   settings.responseLength === 'long' ? 800 : 500;
+        model = 'gpt-4o-all';
+        maxTokens = settings.response_length === 'short' ? 250 :
+                   settings.response_length === 'long' ? 800 : 500;
         break;
       case 'nectar_basic':
       default:
-        model = 'gpt-4o-mini'; // 基础模型
-        maxTokens = settings.responseLength === 'short' ? 150 :
-                   settings.responseLength === 'long' ? 400 : 250;
+        model = 'gpt-4o-mini';
+        maxTokens = settings.response_length === 'short' ? 150 :
+                   settings.response_length === 'long' ? 400 : 250;
         break;
     }
 
+    // 调用AI生成回复
     const completion = await tuziClient.chat.completions.create({
       model,
       messages: formattedMessages,
-      temperature: settings.selectedModel === 'nevoria' ? 0.8 : 0.7,
+      temperature: settings.selected_model === 'nevoria' ? 0.8 : 0.7,
       max_tokens: maxTokens,
       stream: true,
     });
 
-    // Create readable stream for real-time response
+    // 创建流式响应
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
+        let fullResponse = '';
         let completed = false;
+
         try {
           for await (const chunk of completion) {
             const content = chunk.choices[0]?.delta?.content || '';
             if (content) {
+              fullResponse += content;
               const data = JSON.stringify({ textDelta: content });
               controller.enqueue(encoder.encode(`0:${data}\n`));
             }
 
-            // Check if the stream is finished
             if (chunk.choices[0]?.finish_reason === 'stop' ||
                 chunk.choices[0]?.finish_reason === 'length') {
               completed = true;
               break;
             }
           }
+
+          // 保存AI回复到数据库
+          if (fullResponse && completed) {
+            await createMessage({
+              conversation_id: conversationId,
+              content: fullResponse.trim(),
+              sender_type: 'character'
+            });
+
+            // 记录积分使用
+            await recordCreditUsage(
+              userId,
+              creditsRequired,
+              user.credits_balance - creditsRequired,
+              userMessage.id,
+              `Chat with ${character.name}`
+            );
+          }
+
         } catch (error) {
           console.error('Stream processing error:', error);
-          if (!completed && !controller.desiredSize === null) {
+          if (!completed && controller.desiredSize !== null) {
             controller.error(error);
           }
         } finally {
-          // Ensure stream is properly closed
           if (!completed && controller.desiredSize !== null) {
             try {
               controller.close();
@@ -121,12 +215,9 @@ Response guidelines:
 
   } catch (error) {
     console.error('Chat API error:', error);
-    return new Response(JSON.stringify({
+    return NextResponse.json({
       error: 'Failed to generate response',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    }, { status: 500 });
   }
 }

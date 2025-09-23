@@ -1,0 +1,226 @@
+import { User, UserSubscription, UserWithSubscription } from "@/types/chat";
+import { getSupabaseClient } from "./db";
+
+// 用户基础操作
+export async function createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("users")
+    .insert(userData)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create user: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function findUserById(id: string): Promise<User | null> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    return null;
+  }
+
+  return data;
+}
+
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .single();
+
+  if (error) {
+    return null;
+  }
+
+  return data;
+}
+
+export async function updateUser(id: string, updates: Partial<User>): Promise<User> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("users")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update user: ${error.message}`);
+  }
+
+  return data;
+}
+
+// 查找或创建用户 - 用于 NextAuth
+export async function findOrCreateUser(userData: {
+  email: string;
+  name: string;
+  avatar_url?: string;
+  provider: string;
+  provider_id: string;
+}): Promise<User> {
+  // 首先尝试查找用户
+  let user = await findUserByEmail(userData.email);
+
+  if (!user) {
+    // 用户不存在，创建新用户
+    user = await createUser({
+      email: userData.email,
+      name: userData.name,
+      avatar_url: userData.avatar_url || '',
+      subscription_tier: 'free', // 默认免费订阅
+      credits_balance: 100, // 默认100积分
+    });
+  } else {
+    // 用户存在，更新头像等信息
+    if (userData.avatar_url && userData.avatar_url !== user.avatar_url) {
+      user = await updateUser(user.id, {
+        avatar_url: userData.avatar_url,
+        name: userData.name, // 也更新名称以防有变化
+      });
+    }
+  }
+
+  return user;
+}
+
+// 积分相关操作
+export async function updateCreditsBalance(userId: string, newBalance: number): Promise<User> {
+  return updateUser(userId, { credits_balance: newBalance });
+}
+
+export async function addCredits(userId: string, amount: number): Promise<User> {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const newBalance = user.credits_balance + amount;
+  const newTotal = user.total_credits_purchased + (amount > 0 ? amount : 0);
+
+  return updateUser(userId, {
+    credits_balance: newBalance,
+    total_credits_purchased: newTotal
+  });
+}
+
+export async function deductCredits(userId: string, amount: number): Promise<User> {
+  const user = await findUserById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (user.credits_balance < amount) {
+    throw new Error("Insufficient credits");
+  }
+
+  const newBalance = user.credits_balance - amount;
+  return updateUser(userId, { credits_balance: newBalance });
+}
+
+// 订阅相关操作
+export async function getUserWithSubscription(userId: string): Promise<UserWithSubscription | null> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("users")
+    .select(`
+      *,
+      user_subscriptions!inner(
+        *,
+        subscription_plans(*)
+      )
+    `)
+    .eq("id", userId)
+    .eq("user_subscriptions.status", "active")
+    .single();
+
+  if (error) {
+    // 如果没有订阅记录，返回用户基础信息
+    const user = await findUserById(userId);
+    return user;
+  }
+
+  return data;
+}
+
+export async function updateSubscriptionTier(
+  userId: string,
+  tier: User['subscription_tier'],
+  expiresAt?: string
+): Promise<User> {
+  const updates: Partial<User> = { subscription_tier: tier };
+  if (expiresAt) {
+    updates.subscription_expires_at = expiresAt;
+  }
+
+  return updateUser(userId, updates);
+}
+
+// 用户权限检查
+export async function checkUserPermissions(userId: string) {
+  const user = await getUserWithSubscription(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return {
+    canAccessCharacter: (characterAccessLevel: string) => {
+      const tierLevels = { free: 0, basic: 1, pro: 2, ultra: 3 };
+      const userLevel = tierLevels[user.subscription_tier as keyof typeof tierLevels] || 0;
+      const requiredLevel = tierLevels[characterAccessLevel as keyof typeof tierLevels] || 0;
+      return userLevel >= requiredLevel;
+    },
+
+    canSendMessage: (creditsRequired: number) => {
+      return user.credits_balance >= creditsRequired;
+    },
+
+    hasActiveSubscription: () => {
+      if (user.subscription_tier === 'free') return true;
+      if (!user.subscription_expires_at) return false;
+      return new Date(user.subscription_expires_at) > new Date();
+    }
+  };
+}
+
+// 批量操作
+export async function findUsersByIds(ids: string[]): Promise<User[]> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .in("id", ids);
+
+  if (error) {
+    throw new Error(`Failed to find users: ${error.message}`);
+  }
+
+  return data || [];
+}
+
+export async function searchUsers(query: string, limit: number = 10): Promise<User[]> {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .or(`name.ilike.%${query}%,email.ilike.%${query}%`)
+    .limit(limit);
+
+  if (error) {
+    throw new Error(`Failed to search users: ${error.message}`);
+  }
+
+  return data || [];
+}

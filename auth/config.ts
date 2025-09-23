@@ -3,11 +3,9 @@ import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { NextAuthConfig } from "next-auth";
 import { Provider } from "next-auth/providers/index";
-import { User } from "@/types/user";
+import { findOrCreateUser } from "@/models/user-new";
 import { getClientIp } from "@/lib/ip";
 import { getIsoTimestr } from "@/lib/time";
-import { getUuid } from "@/lib/hash";
-import { saveUser } from "@/services/user";
 
 let providers: Provider[] = [];
 
@@ -121,17 +119,29 @@ export const authOptions: NextAuthConfig = {
   },
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
+      console.log("SignIn callback called with:", {
+        hasUser: !!user,
+        hasAccount: !!account,
+        userEmail: user?.email,
+        provider: account?.provider
+      });
+
       const isAllowedToSignIn = true;
       if (isAllowedToSignIn) {
         return true;
       } else {
-        // Return false to display a default error message
         return false;
-        // Or you can return a URL to redirect to:
-        // return '/unauthorized'
       }
     },
     async redirect({ url, baseUrl }) {
+      console.log("Redirect callback:", { url, baseUrl });
+
+      // Fix port mismatch - if baseUrl is 3000 but we're running on 3001
+      if (baseUrl.includes('localhost:3000') && process.env.NODE_ENV === 'development') {
+        baseUrl = baseUrl.replace('localhost:3000', 'localhost:3001');
+        console.log("Fixed baseUrl to:", baseUrl);
+      }
+
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
@@ -148,27 +158,26 @@ export const authOptions: NextAuthConfig = {
       // Persist the OAuth access_token and or the user id to the token right after signin
       try {
         if (user && user.email && account) {
-          const dbUser: User = {
-            uuid: getUuid(),
-            email: user.email,
-            nickname: user.name || "",
-            avatar_url: user.image || "",
-            signin_type: account.type,
-            signin_provider: account.provider,
-            signin_openid: account.providerAccountId,
-            created_at: getIsoTimestr(),
-            signin_ip: await getClientIp(),
-          };
-
+          console.log("Creating/finding user for:", user.email);
           try {
-            const savedUser = await saveUser(dbUser);
+            const dbUser = await findOrCreateUser({
+              email: user.email,
+              name: user.name || "",
+              avatar_url: user.image || "",
+              provider: account.provider,
+              provider_id: account.providerAccountId,
+            });
+
+            console.log("User created/found successfully:", dbUser.id);
 
             token.user = {
-              uuid: savedUser.uuid,
-              email: savedUser.email,
-              nickname: savedUser.nickname,
-              avatar_url: savedUser.avatar_url,
-              created_at: savedUser.created_at,
+              id: dbUser.id,
+              email: dbUser.email,
+              name: dbUser.name,
+              avatar_url: dbUser.avatar_url,
+              subscription_tier: dbUser.subscription_tier,
+              credits_balance: dbUser.credits_balance,
+              created_at: dbUser.created_at,
             };
           } catch (e) {
             console.error("save user failed:", e);

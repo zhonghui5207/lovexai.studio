@@ -11,7 +11,7 @@ import { cacheGet, cacheRemove } from "@/lib/cache";
 
 import { CacheKey } from "@/services/constant";
 import { ContextValue } from "@/types/context";
-import { User } from "@/types/user";
+import { User } from "@/types/chat"; // 使用新的User类型
 import moment from "moment";
 import useOneTapLogin from "@/hooks/useOneTapLogin";
 import { useSession } from "next-auth/react";
@@ -87,51 +87,18 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
 
   const updateInvite = async (user: User) => {
     try {
-      if (user.invited_by) {
-        // user already been invited
-        console.log("user already been invited", user.invited_by);
-        return;
-      }
+      // 新的User类型暂时不包含invited_by字段，跳过邀请逻辑
+      // 如果需要邀请功能，需要在数据库和User类型中添加相关字段
+      console.log("邀请功能暂时禁用 - 新用户架构");
+      return;
 
-      const inviteCode = cacheGet(CacheKey.InviteCode);
-      if (!inviteCode) {
-        // no invite code
-        return;
-      }
+      // const inviteCode = cacheGet(CacheKey.InviteCode);
+      // if (!inviteCode) {
+      //   // no invite code
+      //   return;
+      // }
 
-      const userCreatedAt = moment(user.created_at).unix();
-      const currentTime = moment().unix();
-      const timeDiff = Number(currentTime - userCreatedAt);
-
-      if (timeDiff <= 0 || timeDiff > 7200) {
-        // user created more than 2 hours
-        console.log("user created more than 2 hours");
-        return;
-      }
-
-      // update invite relation
-      console.log("update invite", inviteCode, user.uuid);
-      const req = {
-        invite_code: inviteCode,
-        user_uuid: user.uuid,
-      };
-      const resp = await fetch("/api/update-invite", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(req),
-      });
-      if (!resp.ok) {
-        throw new Error("update invite failed with status: " + resp.status);
-      }
-      const { code, message, data } = await resp.json();
-      if (code !== 0) {
-        throw new Error(message);
-      }
-
-      setUser(data);
-      cacheRemove(CacheKey.InviteCode);
+      // // 省略邀请逻辑...
     } catch (e) {
       console.log("update invite failed: ", e);
     }
@@ -139,19 +106,35 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     console.log("🔄 AppContext useEffect 触发");
-    console.log("🔄 当前session:", session?.user?.uuid ? "有" : "无");
+    console.log("🔄 当前session:", session?.user?.id ? "有" : "无");
     console.log("🔄 当前user:", user ? "有" : "无");
-    
-    // 只在session从无到有时才获取用户信息
-    if (session?.user?.uuid && !user) {
-      console.log("检测到新的session，获取用户信息");
-      fetchUserInfo();
+
+    // 直接使用会话中的用户数据，不再调用额外的API
+    if (session?.user?.id && !user) {
+      console.log("检测到新的session，直接使用会话数据");
+
+      // 将session用户数据转换为User类型
+      const sessionUser: User = {
+        id: session.user.id,
+        email: session.user.email || '',
+        name: session.user.name || '',
+        avatar_url: session.user.avatar_url || '',
+        subscription_tier: session.user.subscription_tier || 'free',
+        credits_balance: session.user.credits_balance || 0,
+        total_credits_purchased: 0, // 默认值
+        created_at: session.user.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString(), // 默认值
+      };
+
+      setUser(sessionUser);
+      console.log("✅ 用户信息从会话设置成功");
+      updateInvite(sessionUser);
     } else if (!session && user) {
       // 用户登出，清空用户信息
       console.log("用户登出，清空用户信息");
       setUser(null);
     }
-  }, [session?.user?.uuid]); // 只监听关键字段
+  }, [session?.user?.id]); // 只监听关键字段
 
   return (
     <AppContext.Provider

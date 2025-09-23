@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 import CharacterPanel from "./CharacterPanel";
@@ -16,11 +17,11 @@ interface Character {
   id: string;
   name: string;
   username?: string;
-  avatar: string;
+  avatar_url: string;
   description: string;
   traits: string[];
-  greeting: string;
-  chatCount: string;
+  greeting_message: string;
+  chat_count: string;
   personality: string;
   age?: number;
   location?: string;
@@ -28,20 +29,89 @@ interface Character {
 
 interface ChatInterfaceProps {
   character: Character;
+  conversationId?: string;
 }
 
-export default function ChatInterface({ character }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      content: character.greeting,
-      sender: "character",
-      timestamp: new Date(),
-    }
-  ]);
+export default function ChatInterface({ character, conversationId }: ChatInterfaceProps) {
+  const { data: session } = useSession();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null); // 每次都重新初始化
+
+  // Initialize conversation if not provided
+  useEffect(() => {
+    if (!session?.user?.id || !character.id) return;
+    if (currentConversationId !== null) return; // 如果已有对话ID，不重新初始化
+
+    const initializeConversation = async () => {
+      // 每次都重新初始化对话
+      setMessages([]); // 清空消息
+      setIsTyping(false); // 重置状态
+
+      try {
+        console.log('Initializing conversation for character:', character.id);
+        const response = await fetch('/api/conversations/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: session.user.id,
+            characterId: character.id,
+            title: `Chat with ${character.name}`
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Conversation initialized:', data.data.conversation.id, 'isNew:', data.data.isNewConversation);
+          setCurrentConversationId(data.data.conversation.id);
+
+          // If it's an existing conversation, load all messages
+          if (!data.data.isNewConversation) {
+            // Load conversation history
+            try {
+              const messagesResponse = await fetch(`/api/conversations/${data.data.conversation.id}/messages`);
+              if (messagesResponse.ok) {
+                const messagesData = await messagesResponse.json();
+                const formattedMessages = messagesData.data.map((msg: any) => ({
+                  id: msg.id,
+                  content: msg.content,
+                  sender: msg.sender_type === 'user' ? 'user' : 'character',
+                  timestamp: new Date(msg.created_at),
+                }));
+                console.log('Loaded', formattedMessages.length, 'existing messages');
+                setMessages(formattedMessages);
+              }
+            } catch (error) {
+              console.error('Failed to load conversation history:', error);
+            }
+          } else {
+            // Set initial greeting message for new conversation
+            setMessages([{
+              id: data.data.greeting.id,
+              content: data.data.greeting.content,
+              sender: "character",
+              timestamp: new Date(data.data.greeting.created_at),
+            }]);
+          }
+        } else {
+          console.error('Failed to create conversation:', await response.text());
+        }
+      } catch (error) {
+        console.error('Failed to initialize conversation:', error);
+      }
+    };
+
+    initializeConversation();
+  }, [session?.user?.id, character.id, currentConversationId]); // 添加currentConversationId依赖
 
   const handleSendMessage = async (content: string, settings?: any) => {
+    if (!session?.user?.id || !currentConversationId) {
+      console.error('No user session or conversation ID');
+      return;
+    }
+
+    console.log('Sending message with conversationId:', currentConversationId);
+
     const userMessage: Message = {
       id: Date.now().toString(),
       content,
@@ -59,18 +129,30 @@ export default function ChatInterface({ character }: ChatInterfaceProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage],
-          character,
-          settings: settings || {
-            responseLength: "default",
-            includeNarrator: false,
-            selectedModel: "nectar_basic"
-          }
+          conversationId: currentConversationId,
+          content,
+          userId: session.user.id
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to get response');
+        const errorData = await response.json();
+
+        // 如果是对话不存在的错误，尝试重新初始化
+        if (errorData.error === 'Conversation not found') {
+          console.log('Conversation not found, reinitializing...');
+          setCurrentConversationId(null); // 重置对话ID，触发重新初始化
+          setMessages(prev => prev.slice(0, -1)); // 移除刚添加的用户消息
+          setIsTyping(false);
+
+          // 延迟一下再显示错误，让用户可以重新尝试
+          setTimeout(() => {
+            alert('Conversation expired. Please try sending your message again.');
+          }, 100);
+          return;
+        }
+
+        throw new Error(errorData.error || 'Failed to get response');
       }
 
       const reader = response.body?.getReader();
@@ -127,26 +209,59 @@ export default function ChatInterface({ character }: ChatInterfaceProps) {
       }
     } catch (error) {
       console.error('Error sending message:', error);
-      const errorMessage: Message = {
+      let errorMessage = "Sorry, I'm having trouble responding right now. Please try again.";
+
+      // Handle specific error cases
+      if (error instanceof Error) {
+        if (error.message.includes('credits')) {
+          errorMessage = "⭐ You don't have enough credits to send this message. Please purchase more credits to continue chatting.";
+        } else if (error.message.includes('Access denied')) {
+          errorMessage = "🔒 This character requires a higher subscription tier. Please upgrade to continue chatting.";
+        } else if (error.message.includes('User not found')) {
+          errorMessage = "Please log in to continue chatting.";
+        }
+      }
+
+      const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "Sorry, I'm having trouble responding right now. Please try again.",
+        content: errorMessage,
         sender: "character",
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsTyping(false);
     }
   };
+
+  // Show login prompt if no session
+  if (!session) {
+    return (
+      <div className="flex h-screen bg-background items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4">Please log in to start chatting</h2>
+          <button
+            onClick={() => window.location.href = '/api/auth/signin'}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+          >
+            Log In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background relative overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <img
-          src={character.avatar}
+          src={character.avatar_url}
           alt={character.name}
           className="w-full h-full object-cover opacity-40 blur-[1px]"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
+          }}
         />
         <div className="absolute inset-0 bg-background/40" />
       </div>

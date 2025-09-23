@@ -10,7 +10,7 @@ interface Character {
   id: string;
   name: string;
   username?: string;
-  avatar: string;
+  avatar_url: string;
   description: string;
   traits: string[];
   personality: string;
@@ -41,9 +41,12 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
         {/* Large Character Image */}
         <div className="h-64 relative overflow-hidden">
           <img
-            src={character.avatar}
+            src={character.avatar_url}
             alt={character.name}
             className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </div>
@@ -170,9 +173,12 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
                   <h4 className="text-sm font-medium mb-2">Character</h4>
                   <div className="flex items-center gap-3 p-2 bg-muted rounded-lg">
                     <img
-                      src={character.avatar}
+                      src={character.avatar_url}
                       alt={character.name}
                       className="w-8 h-8 rounded-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
+                      }}
                     />
                     <span className="text-sm font-medium">{character.name}</span>
                     <Button variant="ghost" size="sm" className="ml-auto text-xs">
