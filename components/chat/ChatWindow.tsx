@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Send, Smile, MoreVertical, ArrowLeft, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -57,6 +57,46 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // 预加载并缓存头像，避免重复加载
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
+  const avatarImageRef = useRef<HTMLImageElement | null>(null);
+
+  // 预创建头像元素
+  useEffect(() => {
+    const img = new Image();
+    img.src = character.avatar_url;
+    img.onload = () => {
+      setAvatarLoaded(true);
+      avatarImageRef.current = img;
+    };
+    img.onerror = () => {
+      const fallbackImg = new Image();
+      fallbackImg.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
+      fallbackImg.onload = () => {
+        setAvatarLoaded(true);
+        avatarImageRef.current = fallbackImg;
+      };
+    };
+  }, [character.avatar_url]);
+
+  // 渲染缓存的头像
+  const renderAvatar = () => (
+    <div className="relative flex-shrink-0">
+      <img
+        src={avatarLoaded ? (avatarImageRef.current?.src || character.avatar_url) : character.avatar_url}
+        alt={character.name}
+        className="w-8 h-8 rounded-full object-cover"
+        style={{
+          imageRendering: 'optimizeSpeed',
+          transform: 'translateZ(0)',
+          opacity: avatarLoaded ? 1 : 0.8
+        }}
+        loading="eager"
+        decoding="sync"
+      />
+    </div>
+  );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -174,18 +214,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
             }`}
           >
             {/* Avatar - only show for character messages */}
-            {message.sender === "character" && (
-              <div className="relative flex-shrink-0">
-                <img
-                  src={character.avatar_url}
-                  alt={character.name}
-                  className="w-8 h-8 rounded-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
-                  }}
-                />
-              </div>
-            )}
+            {message.sender === "character" && renderAvatar()}
 
             <div
               className={`max-w-[70%] ${
@@ -219,14 +248,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
 
         {isTyping && (
           <div className="flex items-start gap-3">
-            <img
-              src={character.avatar_url}
-              alt={character.name}
-              className="w-8 h-8 rounded-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
-              }}
-            />
+            {renderAvatar()}
             <div className="bg-muted rounded-2xl px-4 py-2">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>

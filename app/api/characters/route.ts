@@ -25,8 +25,6 @@ export async function GET(req: NextRequest) {
 
     // 获取用户可访问的角色
     const characters = await getCharactersForUser(user.subscription_tier);
-    console.log('Found characters for user:', characters.length, 'characters');
-    console.log('Characters:', characters.map(c => ({ id: c.id, name: c.name, username: c.username })));
 
     return NextResponse.json({
       success: true,

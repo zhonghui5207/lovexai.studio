@@ -161,6 +161,9 @@ Response guidelines:
             if (chunk.choices[0]?.finish_reason === 'stop' ||
                 chunk.choices[0]?.finish_reason === 'length') {
               completed = true;
+              // 发送结束信号
+              const endSignal = JSON.stringify({ finished: true });
+              controller.enqueue(encoder.encode(`0:${endSignal}\n`));
               break;
             }
           }
@@ -189,7 +192,8 @@ Response guidelines:
             controller.error(error);
           }
         } finally {
-          if (!completed && controller.desiredSize !== null) {
+          // 确保流被正确关闭
+          if (controller.desiredSize !== null) {
             try {
               controller.close();
             } catch (e) {

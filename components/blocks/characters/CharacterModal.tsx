@@ -34,7 +34,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
   if (!character) return null;
 
   const handleStartChat = () => {
-    router.push(`/chat/${character.id}`);
+    router.push(`/chat`);
     onClose();
   };
 

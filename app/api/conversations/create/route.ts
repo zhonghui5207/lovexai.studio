@@ -15,9 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 检查角色是否存在
-    console.log('Looking for character with ID:', characterId);
     const character = await findCharacterById(characterId);
-    console.log('Found character:', character);
     if (!character) {
       return NextResponse.json(
         { error: 'Character not found' },
@@ -43,7 +41,6 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Create conversation error:', error);
     return NextResponse.json({
       error: 'Failed to create conversation',
       details: error instanceof Error ? error.message : 'Unknown error'

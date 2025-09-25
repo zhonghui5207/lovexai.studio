@@ -1,21 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getConversationMessages } from '@/models/conversation';
+import { getConversationMessagesWithSender } from '@/models/conversation';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: conversationId } = await params;
+    const { id } = await params;
+    const conversationId = id;
 
     if (!conversationId) {
       return NextResponse.json(
-        { error: 'Conversation ID is required' },
+        { error: 'Missing conversation ID' },
         { status: 400 }
       );
     }
 
-    const messages = await getConversationMessages(conversationId);
+    // Get messages for conversation
+    const messages = await getConversationMessagesWithSender(conversationId);
 
     return NextResponse.json({
       success: true,
@@ -23,7 +22,6 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Get messages error:', error);
     return NextResponse.json({
       error: 'Failed to get messages',
       details: error instanceof Error ? error.message : 'Unknown error'

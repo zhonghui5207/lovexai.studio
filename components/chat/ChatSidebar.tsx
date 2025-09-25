@@ -2,10 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { MessageCircle, Search } from "lucide-react";
+import { MessageCircle, Search, Plus, User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface UserConversation {
   id: string;
@@ -17,141 +23,217 @@ interface UserConversation {
   unreadCount: number;
 }
 
-interface ChatSidebarProps {
-  currentCharacterId: string;
+interface Character {
+  id: string;
+  name: string;
+  username?: string;
+  avatar_url: string;
+  description: string;
+  traits: string[];
+  greeting_message: string;
+  chat_count: string;
+  personality: string;
+  age?: number;
+  location?: string;
+  access_level: string;
+  credits_per_message: number;
 }
 
-export default function ChatSidebar({ currentCharacterId }: ChatSidebarProps) {
+interface ChatSidebarProps {
+  currentCharacterId: string;
+  currentConversationId: string | null;
+  conversations: UserConversation[];
+  onConversationSwitch: (conversation: UserConversation) => void;
+  onNewChatWithCharacter: (character: Character) => void;
+  availableCharacters: Character[];
+}
+
+export default function ChatSidebar({
+  currentCharacterId,
+  currentConversationId,
+  conversations,
+  onConversationSwitch,
+  onNewChatWithCharacter,
+  availableCharacters
+}: ChatSidebarProps) {
   const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
-  const [conversations, setConversations] = useState<UserConversation[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!session?.user?.id) {
-      setConversations([]);
-      setLoading(false);
-      return;
-    }
-
-    const fetchUserConversations = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/conversations?userId=${session.user.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            setConversations(data.data || []);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch conversations:', error);
-        setConversations([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserConversations();
-  }, [session?.user?.id]);
-
-  const filteredChats = conversations.filter(chat =>
-    chat.characterName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConversations = (conversations || []).filter(conv =>
+    conv.characterName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (conv.lastMessage && conv.lastMessage.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const formatTimeAgo = (dateString?: string) => {
-    if (!dateString) return '';
-    const now = new Date();
-    const messageTime = new Date(dateString);
-    const diffMs = now.getTime() - messageTime.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+  const formatTimeAgo = (timeString?: string) => {
+    if (!timeString) return "";
 
-    if (diffMins < 60) return diffMins < 1 ? 'now' : `${diffMins}m`;
-    if (diffHours < 24) return `${diffHours}h`;
-    return `${diffDays}d`;
+    const date = new Date(timeString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+
+    if (diffInMinutes < 1) return "Just now";
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
+  const handleConversationClick = (conversation: UserConversation) => {
+    onConversationSwitch(conversation);
+  };
+
+  const handleNewChatClick = (character: Character) => {
+    onNewChatWithCharacter(character);
+  };
+
+  if (!session) {
+    return (
+      <div className="w-80 bg-muted/30 border-r border-border flex items-center justify-center p-6">
+        <div className="text-center text-muted-foreground">
+          <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p>Please log in to see your conversations</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="w-80 bg-muted/30 border-r border-border flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Chats</h2>
-          <MessageCircle className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-lg font-semibold">Conversations</h2>
+
+          {/* New Chat Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" variant="outline" className="h-8 w-8 p-0">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64">
+              {availableCharacters.map((character) => (
+                <DropdownMenuItem
+                  key={character.id}
+                  onClick={() => handleNewChatClick(character)}
+                  className="flex items-center gap-3 p-3"
+                >
+                  <img
+                    src={character.avatar_url}
+                    alt={character.name}
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/api/placeholder/32/32';
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm truncate">{character.name}</p>
+                      {character.access_level === 'premium' && (
+                        <Badge variant="secondary" className="text-xs">Pro</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {character.description}
+                    </p>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Search chats..."
+            placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-9"
           />
         </div>
       </div>
 
-      {/* Chat List */}
+      {/* Conversations List */}
       <div className="flex-1 overflow-y-auto">
-        {loading ? (
-          <div className="p-4 text-center text-muted-foreground">
-            Loading conversations...
-          </div>
-        ) : filteredChats.length === 0 ? (
-          <div className="p-4 text-center text-muted-foreground">
-            {searchQuery ? 'No conversations match your search.' : 'No conversations yet. Start a chat with a character!'}
+        {filteredConversations.length === 0 ? (
+          <div className="p-6 text-center text-muted-foreground">
+            {searchQuery ? (
+              <>
+                <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No conversations match your search</p>
+              </>
+            ) : (
+              <>
+                <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="mb-2">No conversations yet</p>
+                <p className="text-sm">Start a new chat with a character</p>
+              </>
+            )}
           </div>
         ) : (
-          filteredChats.map((chat) => (
-            <Link
-              key={chat.id}
-              href={`/chat/${chat.characterId}`}
-              className={`block border-b border-border last:border-b-0 hover:bg-muted/50 transition-colors ${
-                currentCharacterId === chat.characterId ? "bg-muted" : ""
-              }`}
-            >
-              <div className="p-4">
+          <div className="space-y-1 p-2">
+            {filteredConversations.map((conversation) => (
+              <button
+                key={conversation.id}
+                onClick={() => handleConversationClick(conversation)}
+                className={`w-full text-left p-3 rounded-lg transition-all duration-200 hover:bg-muted/50 ${
+                  conversation.id === currentConversationId
+                    ? 'bg-primary/10 border border-primary/20'
+                    : 'hover:bg-muted'
+                }`}
+              >
                 <div className="flex items-start gap-3">
-                  {/* Avatar */}
-                  <div className="relative flex-shrink-0">
-                    <img
-                      src={chat.characterAvatar}
-                      alt={chat.characterName}
-                      className="w-12 h-12 rounded-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
-                      }}
-                    />
-                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-background"></div>
-                  </div>
-
-                  {/* Chat Info */}
+                  <img
+                    src={conversation.characterAvatar}
+                    alt={conversation.characterName}
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/api/placeholder/40/40';
+                    }}
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-semibold text-sm truncate">{chat.characterName}</h3>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          {formatTimeAgo(chat.lastMessageTime)}
-                        </span>
-                        {chat.unreadCount > 0 && (
-                          <Badge variant="destructive" className="h-5 min-w-5 text-xs flex items-center justify-center px-1">
-                            {chat.unreadCount > 9 ? "9+" : chat.unreadCount}
+                      <h3 className="font-medium text-sm truncate">
+                        {conversation.characterName}
+                      </h3>
+                      <div className="flex items-center gap-1">
+                        {conversation.unreadCount > 0 && (
+                          <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                            {conversation.unreadCount}
                           </Badge>
                         )}
+                        <span className="text-xs text-muted-foreground flex-shrink-0">
+                          {formatTimeAgo(conversation.lastMessageTime)}
+                        </span>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2 leading-tight">
-                      {chat.lastMessage || 'No messages yet'}
+                    <p className="text-sm text-muted-foreground truncate">
+                      {conversation.lastMessage || "No messages yet"}
                     </p>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))
+              </button>
+            ))}
+          </div>
         )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-border">
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <p className="font-medium text-sm">{session.user?.name || session.user?.email}</p>
+            <p className="text-xs text-muted-foreground">
+              {(conversations || []).length} conversation{(conversations || []).length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+            <User className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );

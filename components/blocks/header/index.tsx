@@ -65,6 +65,12 @@ export default function Header({ header }: { header: HeaderType }) {
             Home
           </a>
           <a
+            href="/chat"
+            className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
+          >
+            Messages
+          </a>
+          <a
             href="/discover"
             className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
           >
@@ -126,6 +132,7 @@ export default function Header({ header }: { header: HeaderType }) {
             </SheetHeader>
             <div className="flex flex-col space-y-4 mt-8">
               <a href="/" className="text-lg font-medium px-2 py-3 border-b">Home</a>
+              <a href="/chat" className="text-lg font-medium px-2 py-3 border-b">Messages</a>
               <a href="/discover" className="text-lg font-medium px-2 py-3 border-b">Discover</a>
               <a href="/create" className="text-lg font-medium px-2 py-3 border-b">Create</a>
               <a href="/generate" className="text-lg font-medium px-2 py-3 border-b">Generate</a>

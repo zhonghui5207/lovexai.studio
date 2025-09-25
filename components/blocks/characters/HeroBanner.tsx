@@ -91,7 +91,7 @@ export default function HeroBanner() {
   };
 
   const handleStartChat = (character: Character) => {
-    router.push(`/chat/${character.id}`);
+    router.push(`/chat`);
   };
 
   const handleCloseModal = () => {
