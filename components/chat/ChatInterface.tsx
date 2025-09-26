@@ -311,15 +311,32 @@ export default function ChatInterface({
         onNewChatWithCharacter={onNewChatWithCharacter}
         availableCharacters={availableCharacters}
       />
-      <div className="flex-1 flex">
-        <ChatWindow
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          character={character}
-          isTyping={isTyping}
-          isLoading={isLoading}
+      <div className="flex-1 flex relative">
+        {/* Fixed background image for main chat area only */}
+        <div
+          className="absolute inset-0 opacity-50 pointer-events-none transition-opacity duration-500"
+          style={{
+            backgroundImage: `url(${character.avatar_url})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+            filter: 'blur(5px) contrast(1.1) brightness(0.8)',
+            zIndex: 0,
+          }}
         />
-        <CharacterPanel character={character} />
+
+        {/* Content layer */}
+        <div className="relative z-10 flex w-full">
+          <ChatWindow
+            messages={messages}
+            onSendMessage={handleSendMessage}
+            character={character}
+            isTyping={isTyping}
+            isLoading={isLoading}
+          />
+          <CharacterPanel character={character} />
+        </div>
       </div>
     </div>
   );

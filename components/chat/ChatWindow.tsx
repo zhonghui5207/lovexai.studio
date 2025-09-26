@@ -205,7 +205,9 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto relative">
+        {/* Messages content */}
+        <div className="relative z-10 p-4 space-y-4 min-h-full">
         {messages.map((message) => (
           <div
             key={message.id}
@@ -260,6 +262,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
         )}
 
         <div ref={messagesEndRef} />
+        </div> {/* 闭合 Messages content div */}
       </div>
 
       {/* Input Area */}
