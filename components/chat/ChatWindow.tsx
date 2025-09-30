@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import GenerationSettingsModal from "./GenerationSettingsModal";
+import FormattedMessage from "./FormattedMessage";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,7 +52,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [generationSettings, setGenerationSettings] = useState<GenerationSettings>({
     responseLength: "default",
-    includeNarrator: false,
+    includeNarrator: true,
     narratorVoice: "male",
     selectedModel: "nectar_basic"
   });
@@ -230,7 +231,9 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                     : "bg-muted"
                 }`}
               >
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                <p className="text-sm leading-relaxed">
+                  <FormattedMessage content={message.content} />
+                </p>
               </div>
               <div
                 className={`mt-1 text-xs text-muted-foreground flex items-center gap-1 ${

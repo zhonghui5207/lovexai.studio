@@ -186,7 +186,7 @@ export default function ChatInterface({
   }, [session?.user?.id, onConversationsUpdate]);
 
   // Handle new message
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, settings?: any) => {
     if (!session?.user?.id || !currentConversationId) return;
 
     const userMessage: Message = {
@@ -214,9 +214,9 @@ export default function ChatInterface({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conversationId: currentConversationId,
-          content: content,  // 改为 content
-          userId: session.user.id
-          // 移除多余的 characterId
+          content: content,
+          userId: session.user.id,
+          settings: settings // 添加设置参数
         }),
       });
 
