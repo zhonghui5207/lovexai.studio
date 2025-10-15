@@ -3,9 +3,10 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
-import { X, MessageCircle, ChevronDown } from "lucide-react";
+import { X, MessageCircle, ChevronDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 interface CharacterModalProps {
   character: {
@@ -29,13 +30,55 @@ interface CharacterModalProps {
 
 export default function CharacterModal({ character, isOpen, onClose }: CharacterModalProps) {
   const [showCreateOptions, setShowCreateOptions] = useState(false);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
   const router = useRouter();
+  const { data: session } = useSession();
 
   if (!character) return null;
 
-  const handleStartChat = () => {
-    router.push(`/chat`);
-    onClose();
+  const handleStartChat = async () => {
+    // 重置错误状态
+    setCreateError(null);
+
+    // 检查用户是否登录
+    if (!session?.user?.id) {
+      // 未登录，跳转到登录页面
+      window.location.href = '/api/auth/signin';
+      return;
+    }
+
+    setIsCreatingChat(true);
+
+    try {
+      // 调用API创建对话
+      const response = await fetch('/api/conversations/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: session.user.id,
+          characterId: character.id,
+          title: `Chat with ${character.name}`
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const conversationId = data.data.conversation.id;
+
+        // 跳转到新创建的对话页面
+        router.push(`/chat?c=${conversationId}`);
+        onClose();
+      } else {
+        const errorData = await response.json();
+        setCreateError(errorData.error || 'Failed to create conversation');
+      }
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      setCreateError('Network error. Please try again.');
+    } finally {
+      setIsCreatingChat(false);
+    }
   };
 
   return (
@@ -146,12 +189,27 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
 
             {/* Action Buttons - Fixed at bottom */}
             <div className="p-6 pt-0 bg-gray-900">
+              {/* Error Message */}
+              {createError && (
+                <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+                  <p className="text-red-400 text-sm">{createError}</p>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <Button
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg"
+                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleStartChat}
+                  disabled={isCreatingChat}
                 >
-                  Start Chat
+                  {isCreatingChat ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    'Start Chat'
+                  )}
                 </Button>
 
                 <div className="relative">

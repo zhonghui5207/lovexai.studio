@@ -96,7 +96,7 @@ export default async function () {
         <div className="flex items-center gap-2">
           {item?.user?.avatar_url && (
             <img
-              src={item.user?.avatar_url || ""}
+              src={item.user?.avatar_url || null}
               className="w-8 h-8 rounded-full"
             />
           )}

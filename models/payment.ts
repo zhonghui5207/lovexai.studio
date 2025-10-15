@@ -11,7 +11,7 @@ import {
   PurchaseSubscriptionParams
 } from "@/types/chat";
 import { getSupabaseClient } from "./db";
-import { addCredits, updateSubscriptionTier } from "./user-new";
+import { addCredits, updateSubscriptionTier } from "./user";
 
 // 积分包操作
 export async function getAllCreditPackages(): Promise<CreditPackage[]> {

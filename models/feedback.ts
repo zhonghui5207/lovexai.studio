@@ -1,6 +1,6 @@
 import { Feedback } from "@/types/feedback";
 import { getSupabaseClient } from "./db";
-import { getUsersByUuids } from "./user";
+import { findUsersByUuids } from "./user";
 
 export async function insertFeedback(feedback: Feedback) {
   const supabase = getSupabaseClient();
@@ -55,10 +55,10 @@ export async function getFeedbacks(
   }
 
   const user_uuids = Array.from(new Set(data.map((item) => item.user_uuid)));
-  const users = await getUsersByUuids(user_uuids);
+  const users = await findUsersByUuids(user_uuids);
 
   const feedbacks = data.map((item) => {
-    const user = users.find((user) => user.uuid === item.user_uuid);
+    const user = users.find((user) => user.id === item.user_uuid);
     return { ...item, user };
   });
 

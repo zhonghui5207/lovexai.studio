@@ -1,7 +1,7 @@
 import { Affiliate } from "@/types/affiliate";
 import { User } from "@/types/user";
 import { getSupabaseClient } from "@/models/db";
-import { getUsersByUuids } from "./user";
+import { findUsersByUuids } from "./user";
 
 export async function insertAffiliate(affiliate: Affiliate) {
   const supabase = getSupabaseClient();
@@ -47,9 +47,9 @@ export async function getUserAffiliates(
 
   const user_uuids = Array.from(new Set(data.map((item) => item.user_uuid)));
 
-  const users = await getUsersByUuids(user_uuids);
+  const users = await findUsersByUuids(user_uuids);
   const affiliates = data.map((item) => {
-    const user = users.find((user) => user.uuid === item.user_uuid);
+    const user = users.find((user) => user.id === item.user_uuid);
     return { ...item, user };
   });
 
@@ -135,13 +135,13 @@ export async function getAllAffiliates(
     new Set(data.map((item) => item.invited_by))
   );
 
-  const users = await getUsersByUuids(user_uuids);
-  const invited_by_users = await getUsersByUuids(invited_by_uuids);
+  const users = await findUsersByUuids(user_uuids);
+  const invited_by_users = await findUsersByUuids(invited_by_uuids);
 
   const affiliates = data.map((item) => {
-    const user = users.find((user) => user.uuid === item.user_uuid);
+    const user = users.find((user) => user.id === item.user_uuid);
     const invited_by = invited_by_users.find(
-      (user) => user.uuid === item.invited_by
+      (user) => user.id === item.invited_by
     );
     return { ...item, user, invited_by_user: invited_by };
   });

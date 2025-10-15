@@ -20,6 +20,9 @@ export interface User {
   subscription_expires_at?: string;
   credits_balance: number;
   total_credits_purchased: number;
+  invite_code?: string;
+  invited_by?: string;
+  is_affiliate?: boolean;
   created_at: string;
   updated_at: string;
 }

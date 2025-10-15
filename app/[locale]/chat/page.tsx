@@ -105,7 +105,7 @@ export default function ChatPage() {
             setCurrentCharacter(character);
           }
           // 更新URL但不刷新页面
-          router.replace(`/chat?c=${latest.id}`, { shallow: true });
+          router.replace(`/chat?c=${latest.id}`);
         }
 
       } catch (err) {
@@ -146,7 +146,7 @@ export default function ChatPage() {
     }
 
     // 使用shallow routing更新URL，不重新渲染页面
-    router.push(`/chat?c=${conversation.id}`, { shallow: true });
+    router.push(`/chat?c=${conversation.id}`);
   };
 
   // 开始新聊天
@@ -185,7 +185,7 @@ export default function ChatPage() {
         setCurrentCharacter(character);
 
         // 更新URL
-        router.push(`/chat?c=${newConversation.id}`, { shallow: true });
+        router.push(`/chat?c=${newConversation.id}`);
       }
     } catch (error) {
       console.error('Error creating conversation:', error);
@@ -265,7 +265,7 @@ export default function ChatPage() {
                     className="w-12 h-12 rounded-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = '/api/placeholder/48/48';
+                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iMjQiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjOUNBM0FGIj48cGF0aCBkPSJNMTIgMTJjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+Cjwvc3ZnPgo=';
                     }}
                   />
                   <div>

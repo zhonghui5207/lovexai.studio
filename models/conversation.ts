@@ -10,7 +10,7 @@ import {
 } from "@/types/chat";
 import { getSupabaseClient } from "./db";
 import { findCharacterById } from "./character";
-import { findUserById, deductCredits } from "./user-new";
+import { findUserById, deductCredits } from "./user";
 
 // 对话会话操作
 export async function createConversation(params: CreateConversationParams): Promise<Conversation> {
@@ -62,7 +62,14 @@ export async function getConversationWithCharacter(id: string): Promise<Conversa
     return null;
   }
 
-  return data;
+  // Supabase 返回的数据中角色信息在 characters 字段中，需要映射到 character 字段
+  const conversationData = data as any;
+  if (conversationData.characters) {
+    conversationData.character = conversationData.characters;
+    delete conversationData.characters;
+  }
+
+  return conversationData as ConversationWithCharacter;
 }
 
 export async function getUserConversations(userId: string): Promise<ConversationWithCharacter[]> {
@@ -81,7 +88,16 @@ export async function getUserConversations(userId: string): Promise<Conversation
     throw new Error(`Failed to get user conversations: ${error.message}`);
   }
 
-  return data || [];
+  // Supabase 返回的数据中角色信息在 characters 字段中，需要映射到 character 字段
+  const conversations = (data || []).map((conv: any) => {
+    if (conv.characters) {
+      conv.character = conv.characters;
+      delete conv.characters;
+    }
+    return conv as ConversationWithCharacter;
+  });
+
+  return conversations;
 }
 
 // 获取对话的最后一条消息
@@ -124,7 +140,14 @@ export async function findActiveConversationByUserAndCharacter(
     return null;
   }
 
-  return data;
+  // Supabase 返回的数据中角色信息在 characters 字段中，需要映射到 character 字段
+  const conversationData = data as any;
+  if (conversationData.characters) {
+    conversationData.character = conversationData.characters;
+    delete conversationData.characters;
+  }
+
+  return conversationData as ConversationWithCharacter;
 }
 
 export async function updateConversation(id: string, updates: Partial<Conversation>): Promise<Conversation> {
@@ -172,7 +195,7 @@ export async function createMessage(params: SendMessageParams): Promise<Message>
       throw new Error("Conversation not found");
     }
 
-    creditsUsed = conversation.characters.credits_per_message;
+    creditsUsed = conversation.character.credits_per_message;
 
     // 扣除用户积分
     await deductCredits(conversation.user_id, creditsUsed);

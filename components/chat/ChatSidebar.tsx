@@ -123,7 +123,7 @@ export default function ChatSidebar({
                     className="w-8 h-8 rounded-full object-cover flex-shrink-0"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = '/api/placeholder/32/32';
+                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iMTYiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSIjOUNBM0FGIj48cGF0aCBkPSJNOCA4YzEuMSAwIDItLjkgMi0ycy0uOS0yLTItMi0yIC45LTIgMiAuOSAyIDIgMnoiLz48cGF0aCBkPSJNOCAxNGMtMi4yIDAtNCAxLjgtNCA0djFoOHYtMWMwLTIuMi0xLjgtNC00LTR6Ii8+PC9zdmc+Cjwvc3ZnPgo=';
                     }}
                   />
                   <div className="flex-1 min-w-0">
@@ -191,7 +191,7 @@ export default function ChatSidebar({
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = '/api/placeholder/40/40';
+                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIiBmaWxsPSIjOUNBM0FGIj48cGF0aCBkPSJNMTAgMTBjMS4xIDAgMi0uOSAyLTJzLS45LTItMi0yLTIgLjktMiAyIC45IDIgMiAyeiIvPjxwYXRoIGQ9Ik0xMCAxNmMtMi4yIDAtNCAxLjgtNCA0djFoMTB2LTFjMC0yLjItMS44LTQtNC00eiIvPjwvc3ZnPgo8L3N2Zz4K';
                     }}
                   />
                   <div className="flex-1 min-w-0">

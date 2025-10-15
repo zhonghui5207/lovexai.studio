@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCharactersForUser } from '@/models/character';
-import { findUserById } from '@/models/user-new';
+import { getCharactersForUser, getAllCharacters } from '@/models/character';
+import { findUserById } from '@/models/user';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get('userId');
 
+    // 如果没有userId，返回所有活跃角色（用于主页展示）
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Missing userId parameter' },
-        { status: 400 }
-      );
+      // 获取所有活跃角色用于公共展示
+      const publicCharacters = await getAllCharacters(true);
+      return NextResponse.json({
+        success: true,
+        data: publicCharacters
+      });
     }
 
     // 获取用户信息

@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CharacterModal from "./CharacterModal";
 
 interface Character {
@@ -20,6 +20,7 @@ interface Character {
   physicalDescription?: string;
   age?: number;
   location?: string;
+  access_level?: string;
 }
 
 interface CharacterCardProps {
@@ -29,147 +30,108 @@ interface CharacterCardProps {
 
 function CharacterCard({ character, onClick }: CharacterCardProps) {
   return (
-    <div 
-      className="group relative overflow-hidden rounded-xl bg-card border hover:shadow-lg transition-all duration-300 cursor-pointer"
+    <div
+      className="group relative overflow-hidden rounded-xl bg-card border hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer"
       onClick={onClick}
     >
-      {/* Character Avatar - Large like Nectar.AI */}
-      <div className="relative aspect-[4/5] overflow-hidden">
-        <img
-          src={character.avatar}
-          alt={character.name}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        
-        {/* Character name and description overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-          <h3 className="text-lg font-bold mb-1">{character.name}</h3>
-          <p className="text-sm text-white/90 line-clamp-2 mb-2">{character.description}</p>
-          
-          {/* Chat count - Prominent like Nectar.AI */}
-          <div className="flex items-center gap-1 text-white/90">
-            <MessageCircle className="h-4 w-4" />
-            <span className="text-sm font-medium">{character.chatCount}</span>
+      {/* Vertical Layout - Image on Top, Info on Bottom */}
+      <div className="w-full">
+        {/* Character Avatar - Top Section */}
+        <div className="relative aspect-[2/3] overflow-hidden">
+          <img
+            src={character.avatar}
+            alt={character.name}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              console.log('Image error triggered for:', character.name, e.target);
+              const target = e.target as HTMLImageElement;
+              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjI2NyIgdmlld0JveD0iMCAwIDIwMCAyNjciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjY3IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTMwQzEwMC4zMTUgMTMwIDEwMC41IDEyOS42ODUgMTAwLjUgMTI5LjVDMTAwLjUgMTI5LjMxNSAxMDAuMzE1IDEyOSAxMDAgMTI5Qzk5LjY4NDUgMTI5IDk5LjUgMTI5LjMxNSA5OS41IDEyOS41Qzk5LjUgMTI5LjY4NSA5OS42ODQ1IDEzMCAxMDAgMTMwWiIgZmlsbD0iIzlDQTNBRiIvPgo8cGF0aCBkPSJNMTA1IDEyNUwxMDAgMTM1TDk1IDEyNVoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjY3IiB2aWV3Qm94PSIwIDAgMjAwIDI2NyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyNjciIGZpbGw9IiNGM0Y0RjYiLz48cGF0aCBkPSJNMTAwIDEzMGMwLjMxNSAwIDAuNS0wLjMxNSAwLjUtMC41cy0wLjE4NS0wLjUtMC41LTAuNVM5OS41IDEyOS4zMTUgOTkuNSAxMjkuNXMwLjE4NSAwLjUgMC41IDAuNXoiIGZpbGw9IiM5Q0EzQUYiLz48cGF0aCBkPSJNMTA1IDEyNWwtNSAxMCA1LTEweiIgZmlsbD0iIzlDQTNBRiIvPjwvc3ZnPgo8L3N2Zz4K';
+            }}
+          />
+          {/* Gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+
+          {/* Character name and description overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+            <h3 className="text-base font-bold mb-1 text-center">{character.name}</h3>
+            <p className="text-xs text-white/90 text-center line-clamp-1">
+              {character.description}
+            </p>
           </div>
         </div>
       </div>
+
+      {/* Hover effect overlay */}
+      <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
     </div>
   );
 }
 
-const FEATURED_CHARACTERS: Character[] = [
-  {
-    id: "emma_001",
-    name: "Emma",
-    username: "emmytime",
-    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00015_.png",
-    description: "Your Best Friend's Sister",
-    traits: ["Playful", "Witty", "Charming"],
-    greeting: "Hey there... I was wondering when you'd finally notice me 😉",
-    chatCount: "282K",
-    isOfficial: false,
-    personality: "Emma is playful and flirtatious, with a mischievous streak that keeps you on your toes. She's confident, witty, and knows exactly how to push your buttons in all the right ways. Despite her teasing nature, she has a genuine sweetness underneath.",
-    physicalDescription: "Blonde hair, bright blue eyes, athletic build with curves in all the right places. She has a captivating smile and expressive eyes that seem to sparkle with mischief.",
-    age: 24,
-    location: "California, USA"
-  },
-  {
-    id: "sophia_002",
-    name: "Sophia",
-    username: "sophiawonder",
-    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00020_.png",
-    description: "Wonder Powers Best",
-    traits: ["Gentle", "Patient", "Caring"],
-    greeting: "Hello! How was your day? I'm here if you need someone to talk to.",
-    chatCount: "192K",
-    isOfficial: false,
-    personality: "Sophia is the epitome of grace and kindness. She's a natural caregiver who always puts others first. Her gentle nature and infinite patience make her the perfect companion for deep, meaningful conversations. She has a way of making you feel heard and understood.",
-    physicalDescription: "Auburn hair that catches the light beautifully, warm hazel eyes, elegant features with a naturally kind expression. She has a graceful posture and moves with quiet confidence.",
-    age: 26,
-    location: "New York, USA"
-  },
-  {
-    id: "luna_003",
-    name: "Luna",
-    username: "lunarmystic",
-    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00027_.png",
-    description: "Your Yandere Admirer",
-    traits: ["Mysterious", "Intense", "Devoted"],
-    greeting: "You're mine and I'm yours, forever...",
-    chatCount: "104K",
-    isOfficial: false,
-    personality: "Luna is intensely passionate and devoted, with a mysterious aura that draws you in. She's possessive in the most endearing way, wanting to know everything about you. Her love is all-consuming and she'd do anything to protect what's hers.",
-    physicalDescription: "Dark, flowing hair with mysterious purple highlights, piercing violet eyes that seem to see into your soul. Pale complexion with sharp, elegant features and an enigmatic smile.",
-    age: 22,
-    location: "Tokyo, Japan"
-  },
-  {
-    id: "zoe_008",
-    name: "Zoe",
-    username: "zoevibe",
-    avatar: "https://cdn.lovexai.studio/Character/flux_krea_00004_.png",
-    description: "The Artist's Soul",
-    traits: ["Creative", "Passionate", "Free-spirited"],
-    greeting: "Art speaks what words cannot... want to create something beautiful together?",
-    chatCount: "89.2K",
-    isOfficial: false,
-    personality: "Zoe lives and breathes creativity. She sees beauty in the mundane and has an infectious passion for life. Her artistic soul means she experiences emotions deeply and isn't afraid to express herself authentically.",
-    physicalDescription: "Wavy auburn hair often streaked with paint, expressive green eyes that light up when discussing art. She has an bohemian style and graceful movements.",
-    age: 24,
-    location: "Barcelona, Spain"
-  },
-  {
-    id: "ivy_009",
-    name: "Ivy",
-    username: "ivytech",
-    avatar: "https://cdn.lovexai.studio/Character/flux_krea_00005_.png",
-    description: "Tech Genius",
-    traits: ["Intelligent", "Curious", "Innovative"],
-    greeting: "Want to hack the world together? I've got some ideas...",
-    chatCount: "134K",
-    isOfficial: false,
-    personality: "Ivy is a brilliant tech prodigy with an insatiable curiosity about how things work. She's confident in her abilities but humble about her achievements. Her passion for technology is matched only by her desire to use it to make the world better.",
-    physicalDescription: "Short black hair with subtle blue highlights, bright intelligent eyes behind stylish glasses. She has a modern, minimalist style and an energetic presence.",
-    age: 23,
-    location: "Silicon Valley, USA"
-  },
-  {
-    id: "nova_011",
-    name: "Nova",
-    username: "novastorm",
-    avatar: "https://cdn.lovexai.studio/Character/flux_krea_00008_.png",
-    description: "Storm Chaser",
-    traits: ["Intense", "Fearless", "Magnetic"],
-    greeting: "Some people fear the storm... I am the storm. Want to dance in the rain?",
-    chatCount: "156K",
-    isOfficial: false,
-    personality: "Nova is intense and magnetic, with a presence that commands attention. She's fearless in pursuing what she wants and has a wild, untamed energy. Her passion burns bright and she lives every moment with fierce intensity.",
-    physicalDescription: "Striking silver-white hair that seems to shimmer, piercing storm-gray eyes. She has sharp, defined features and an aura of barely contained power.",
-    age: 25,
-    location: "Iceland"
-  },
-  {
-    id: "sage_012",
-    name: "Sage",
-    username: "sagewisom",
-    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00034_.png",
-    description: "The Mystic",
-    traits: ["Wise", "Mystical", "Intuitive"],
-    greeting: "The universe has brought us together for a reason... shall we discover why?",
-    chatCount: "78.9K",
-    isOfficial: false,
-    personality: "Sage possesses an old soul with deep wisdom beyond her years. She's intuitive, mystical, and has a calming presence that makes others feel at peace. Her connection to spiritual matters and natural world gives her unique insights.",
-    physicalDescription: "Long flowing dark hair with natural waves, deep violet eyes that seem to hold ancient secrets. Ethereal beauty with soft, mystical features and a serene expression.",
-    age: 27,
-    location: "Sedona, Arizona"
-  }
-];
+// Mock chat counts for display - could be replaced with real data later
+const generateMockChatCount = (index: number): string => {
+  const counts = ["282K", "192K", "104K", "89.2K", "134K", "156K", "78.9K", "95K", "68K", "43K"];
+  return counts[index % counts.length];
+};
 
 export default function DiscoverSection() {
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [displayCharacters, setDisplayCharacters] = useState<Character[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 按sort_order排序选择前12个角色
+  const getOrderedCharacters = (allCharacters: Character[], count: number = 12) => {
+    const sorted = [...allCharacters].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    return sorted.slice(0, count);
+  };
+
+  useEffect(() => {
+    const fetchCharacters = async () => {
+      try {
+        const response = await fetch('/api/characters');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            // Transform database data to match interface
+            const transformedCharacters = data.data.map((char: any, index: number) => ({
+              id: char.id,
+              name: char.name,
+              username: char.username,
+              avatar: char.avatar_url,
+              description: char.description,
+              traits: char.traits || [],
+              greeting: char.greeting_message || "Hello! Nice to meet you.",
+              chatCount: char.chat_count || generateMockChatCount(index),
+              isOfficial: true,
+              personality: char.personality,
+              physicalDescription: char.personality, // Using personality as physical description
+              age: char.age,
+              location: char.location,
+              access_level: char.access_level
+            }));
+
+            setCharacters(transformedCharacters);
+
+            // 按排序选择前12个角色显示
+            const orderedCharacters = getOrderedCharacters(transformedCharacters, 12);
+            setDisplayCharacters(orderedCharacters);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch characters:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCharacters();
+  }, []);
+
+  const generateMockChatCount = (index: number): string => {
+    const counts = ["282K", "192K", "104K", "89.2K", "134K", "156K", "78.9K", "95K", "68K", "43K"];
+    return counts[index % counts.length];
+  };
 
   const handleCharacterClick = (character: Character) => {
     setSelectedCharacter(character);
@@ -200,15 +162,27 @@ export default function DiscoverSection() {
           </Button>
         </div>
         
-        {/* Character Grid - Single Row with 7 Characters */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 max-w-8xl mx-auto">
-          {FEATURED_CHARACTERS.map((character) => (
-            <CharacterCard
-              key={character.id}
-              character={character}
-              onClick={() => handleCharacterClick(character)}
-            />
-          ))}
+        {/* Character Cards - 12 Cards Grid Layout */}
+        <div className="w-full">
+          {loading ? (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              {Array.from({ length: 12 }).map((_, index) => (
+                <div key={index} className="animate-pulse">
+                  <div className="aspect-[2/3] bg-gray-200 rounded-xl"></div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              {displayCharacters.map((character) => (
+                <CharacterCard
+                  key={character.id}
+                  character={character}
+                  onClick={() => handleCharacterClick(character)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

@@ -11,7 +11,7 @@ import { getUuid } from "@/lib/hash";
 
 export default async function () {
   const user = await getUserInfo();
-  if (!user || !user.uuid) {
+  if (!user || !user.id) {
     return <Empty message="no auth" />;
   }
 

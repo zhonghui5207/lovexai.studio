@@ -21,7 +21,7 @@ export default async function () {
         return (
           <div className="flex items-center gap-2">
             <img
-              src={row.user?.avatar_url || ""}
+              src={row.user?.avatar_url || null}
               className="w-8 h-8 rounded-full"
             />
             <span>{row.user?.nickname}</span>

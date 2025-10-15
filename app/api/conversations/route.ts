@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserConversations, getLastMessageForConversation } from '@/models/conversation';
-import { findUserById } from '@/models/user-new';
+import { findUserById } from '@/models/user';
 
 export async function GET(req: NextRequest) {
   try {
@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
         return {
           id: conv.id,
           characterId: conv.character_id,
-          characterName: conv.characters?.name || 'Unknown Character',
-          characterAvatar: conv.characters?.avatar_url || '',
+          characterName: conv.character?.name || 'Unknown Character',
+          characterAvatar: conv.character?.avatar_url || null,
           lastMessage: lastMessage?.content || '',
           lastMessageTime: conv.last_message_at,
           unreadCount: 0 // TODO: 实现未读消息计数

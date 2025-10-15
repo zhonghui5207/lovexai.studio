@@ -3,7 +3,7 @@ import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { NextAuthConfig } from "next-auth";
 import { Provider } from "next-auth/providers/index";
-import { findOrCreateUser } from "@/models/user-new";
+import { findOrCreateUser } from "@/models/user";
 import { getClientIp } from "@/lib/ip";
 import { getIsoTimestr } from "@/lib/time";
 

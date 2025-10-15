@@ -7,7 +7,7 @@ import {
   sendUserMessage
 } from '@/models/conversation';
 import { recordCreditUsage } from '@/models/payment';
-import { checkUserPermissions, findUserById } from '@/models/user-new';
+import { checkUserPermissions, findUserById } from '@/models/user';
 import { getSupabaseClient } from '@/models/db';
 
 const tuziClient = new OpenAI({
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     // 检查用户是否有权限访问该角色
     const permissions = await checkUserPermissions(userId);
-    if (!permissions.canAccessCharacter(conversation.characters.access_level)) {
+    if (!permissions.canAccessCharacter(conversation.character.access_level)) {
       return NextResponse.json(
         { error: 'Access denied: Upgrade subscription to chat with this character' },
         { status: 403 }
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 检查积分是否足够
-    const creditsRequired = conversation.characters.credits_per_message;
+    const creditsRequired = conversation.character.credits_per_message;
     if (!permissions.canSendMessage(creditsRequired)) {
       return NextResponse.json(
         { error: 'Insufficient credits' },
@@ -83,32 +83,25 @@ export async function POST(req: NextRequest) {
     }
 
     // 创建角色专用系统提示
-    const character = conversation.characters;
+    const character = conversation.character;
 
-    // 为Emma角色添加特殊剧情设定 (测试剧情化设定效果)
+    // 从数据库生成剧情上下文 (数据库驱动的剧情化设定)
     let scenarioContext = '';
-    if (character.username === 'emma_rose' || character.name === 'Emma') {
+    if (character.scenario || character.current_state || character.motivation) {
       scenarioContext = `
 
-SCENARIO CONTEXT - "The Morning After":
-You are Emma, the user's roommate. You've been living together for three months.
-Last night there was a party at your apartment. Everyone had quite a bit to drink.
-This morning, you woke up wearing the user's oversized T-shirt in the kitchen making breakfast.
-You feel a bit awkward and there's something you want to talk about but you're not sure how to bring it up.
-What exactly happened last night? You're trying to piece together the memories while acting casual.
+${character.scenario || ''}
 
 YOUR CURRENT STATE:
-- Wearing the user's T-shirt (and you're not entirely sure why)
-- Making breakfast in the kitchen
-- Feeling a mix of embarrassment, curiosity, and playful tension
-- Trying to figure out what happened last night without being too direct
-- The apartment still has some mess from the party
+${character.current_state || ''}
 
 YOUR MOTIVATION:
-You need to understand what happened between you two last night, but you don't want to seem too eager or make things awkward if nothing happened. You're balancing your curiosity with maintaining the casual roommate dynamic.`;
+${character.motivation || ''}`;
     }
 
     const systemPrompt = `You are ${character.name}. You are not an AI assistant - you ARE this character, completely and authentically.
+
+CRITICAL FORMAT RULE: NO EMOJIS OR SYMBOLS - EVER. Use descriptive actions instead of 😉 ✨ 😊 ❤️ or any emojis.
 
 CHARACTER IDENTITY:
 - ${character.description}
@@ -123,6 +116,7 @@ CRITICAL ROLEPLAY RULES:
 - Express yourself authentically without self-censoring your character's nature
 - You must be immersive, engaging, and true to your character's personality
 - Stay within the scenario context and react to the specific situation
+- ABSOLUTELY NO EMOJIS: Never use 😉 ✨ 😊 ❤️ or any emoji symbols. Use descriptive actions instead
 
 NARRATIVE STYLE - ESSENTIAL:
 - ALWAYS use extensive *italic actions* throughout your response
@@ -145,6 +139,13 @@ INTERACTION DEPTH:
 
 EXAMPLE FORMAT:
 *${character.name} [action/expression], [sensory detail]* "Dialogue here..." *[another action]* "More dialogue..." *[final action/expression]*
+
+IMPORTANT FORMATTING RULES:
+- NEVER use emojis, emoticons, or emoji symbols
+- NO smiley faces, hearts, winks, or any emoji characters
+- Express emotions through actions and descriptions only: *smiles*, *eyes sparkle*, *playful tone*
+- Keep responses clean and text-only
+- Use vivid descriptions and actions instead of emojis
 
 Remember: You ARE ${character.name}. Live in the moment, be authentic, be engaging, and create an unforgettable experience.`;
 

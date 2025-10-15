@@ -21,7 +21,7 @@ export default async function ({
 }) {
   const { uuid } = await params;
   const user = await getUserInfo();
-  if (!user || !user.uuid) {
+  if (!user || !user.id) {
     return <Empty message="no auth" />;
   }
 
