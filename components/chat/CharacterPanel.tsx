@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Lightbulb, Settings, Star, MessageSquare, Image } from "lucide-react";
+import { ChevronDown, ChevronUp, Lightbulb, Settings, Star, MessageSquare, Image, BookOpen, Target, Heart } from "lucide-react";
 
 interface Character {
   id: string;
@@ -16,6 +16,11 @@ interface Character {
   personality: string;
   age?: number;
   location?: string;
+  scenario?: string;
+  current_state?: string;
+  motivation?: string;
+  background?: string;
+  suggestions?: string;
 }
 
 interface CharacterPanelProps {
@@ -23,13 +28,55 @@ interface CharacterPanelProps {
   onSuggestionClick?: (suggestion: string) => void;
 }
 
-const SUGGESTIONS = [
-  "Tell me about your day",
-  "What's your favorite hobby?",
-  "Let's roleplay a scenario",
-  "What's on your mind right now?",
-  "Share something interesting about yourself"
-];
+
+// 解析scenario信息的辅助函数
+function parseScenarioInfo(scenario?: string) {
+  if (!scenario) return null;
+
+  // 提取剧情标题
+  const titleMatch = scenario.match(/"([^"]+)"/);
+  const title = titleMatch ? titleMatch[1] : 'Current Scenario';
+
+  // 提取剧情描述 (在冒号之后的内容)
+  const descriptionMatch = scenario.match(/:\s*(.+)$/);
+  const description = descriptionMatch ? descriptionMatch[1] : scenario;
+
+  return { title, description };
+}
+
+// 解析角色专属建议
+function parseCharacterSuggestions(suggestions?: string) {
+  if (!suggestions) return [];
+  try {
+    return JSON.parse(suggestions);
+  } catch {
+    return [];
+  }
+}
+
+
+// 优化状态点格式化
+function formatStatePoints(state?: string) {
+  if (!state) return [];
+
+  return state.split(' - ').map(point => {
+    const cleanPoint = point.replace(/^- /, '').trim();
+    // 为每个状态点添加适当的图标
+    if (cleanPoint.includes('wearing') || cleanPoint.includes('dress') || cleanPoint.includes('clothes')) {
+      return { icon: '👗', text: cleanPoint };
+    }
+    if (cleanPoint.includes('phone') || cleanPoint.includes('died')) {
+      return { icon: '📱', text: cleanPoint };
+    }
+    if (cleanPoint.includes('sun') || cleanPoint.includes('dark') || cleanPoint.includes('light')) {
+      return { icon: '🌅', text: cleanPoint };
+    }
+    if (cleanPoint.includes('car') || cleanPoint.includes('vehicle')) {
+      return { icon: '🚗', text: cleanPoint };
+    }
+    return { icon: '•', text: cleanPoint };
+  });
+}
 
 export default function CharacterPanel({ character, onSuggestionClick }: CharacterPanelProps) {
   // 基于对标网站的上下折叠状态管理
@@ -37,9 +84,15 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
   const [showPersona, setShowPersona] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showMemories, setShowMemories] = useState(false);
+  const [showScenario, setShowScenario] = useState(true);
 
   // 建议点击状态管理
   const [clickedSuggestion, setClickedSuggestion] = useState<string | null>(null);
+
+  // 解析剧情信息
+  const scenarioInfo = parseScenarioInfo(character.scenario);
+  const statePoints = formatStatePoints(character.current_state);
+  const characterSuggestions = parseCharacterSuggestions(character.suggestions);
 
   // 处理建议点击
   const handleSuggestionClick = (suggestion: string) => {
@@ -107,7 +160,35 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
       {/* 模块化内容区域 - 基于对标网站的设计 */}
       <div className="flex-1 overflow-y-auto">
 
-        {/* 1. Persona 模块 - 可上下折叠 */}
+        {/* 1. Background 模块 - 角色背景展示 */}
+        {character.background && (
+          <div className="border-b border-border">
+            {/* 模块标题栏 - 可点击折叠 */}
+            <button
+              onClick={() => setShowScenario(!showScenario)}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-purple-500" />
+                <span className="font-medium text-sm">Background</span>
+              </div>
+              {showScenario ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {/* 模块内容 - 数据库背景介绍 */}
+            {showScenario && (
+              <div className="px-4 pb-4">
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {character.background}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 2. Persona 模块 - 可上下折叠 */}
         <div className="border-b border-border">
           {/* 模块标题栏 - 可点击折叠 */}
           <button
@@ -185,14 +266,14 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
             {showSuggestions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
 
-          {showSuggestions && (
+          {showSuggestions && characterSuggestions.length > 0 && (
             <div className="px-4 pb-4 space-y-3">
               <p className="text-xs text-muted-foreground">
-                Not sure what to say? Generate response options.
+                Quick conversation starters
               </p>
 
               <div className="space-y-2">
-                {SUGGESTIONS.map((suggestion, index) => (
+                {characterSuggestions.map((suggestion, index) => (
                   <Card
                     key={index}
                     className={`p-3 hover:bg-muted/50 cursor-pointer transition-all ${
@@ -214,10 +295,6 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
                   </Card>
                 ))}
               </div>
-
-              <Button variant="outline" size="sm" className="w-full">
-                Generate More Suggestions
-              </Button>
             </div>
           )}
         </div>

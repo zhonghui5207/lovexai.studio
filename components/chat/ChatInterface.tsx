@@ -27,6 +27,11 @@ interface Character {
   location?: string;
   access_level: string;
   credits_per_message: number;
+  scenario?: string;
+  current_state?: string;
+  motivation?: string;
+  background?: string;
+  suggestions?: string;
 }
 
 interface Conversation {
