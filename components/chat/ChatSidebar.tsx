@@ -147,10 +147,10 @@ export default function ChatSidebar({
   // 🎯 已登录用户的主界面渲染
   return (
     // 主容器：固定宽度320px，背景色，右边框，垂直flex布局
-    <div className="w-80 bg-muted/30 border-r border-border flex flex-col">
+    <div className="w-80 bg-background border-r-2 border-border shadow-md flex flex-col">
 
       {/* 📋 顶部Header区域 */}
-      <div className="p-4 border-b border-border">
+      <div className="p-4 border-b border-border bg-muted/30">
         {/* 标题和新建按钮的横向布局 */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Conversations</h2>
@@ -208,20 +208,20 @@ export default function ChatSidebar({
         </div>
 
         {/* 🔍 搜索框区域 */}
-        <div className="relative">
+        <div className="relative bg-muted/30">
           {/* 搜索图标 */}
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)} // 输入时更新搜索状态
-            className="pl-9" // 左边距为图标留出空间
+            className="pl-9 bg-transparent" // 左边距为图标留出空间
           />
         </div>
       </div>
 
       {/* 💬 对话列表区域 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-muted/20">
         {filteredConversations.length === 0 ? (
           // 空状态：没有匹配的对话
           <div className="p-6 text-center text-muted-foreground">
@@ -303,7 +303,7 @@ export default function ChatSidebar({
       </div>
 
       {/* 👤 底部用户信息区域 */}
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-border bg-muted/30">
         <div className="flex items-center gap-3">
           {/* 用户信息文本 */}
           <div className="flex-1">

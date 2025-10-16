@@ -20,6 +20,7 @@ interface Character {
 
 interface CharacterPanelProps {
   character: Character;
+  onSuggestionClick?: (suggestion: string) => void;
 }
 
 const SUGGESTIONS = [
@@ -30,12 +31,27 @@ const SUGGESTIONS = [
   "Share something interesting about yourself"
 ];
 
-export default function CharacterPanel({ character }: CharacterPanelProps) {
+export default function CharacterPanel({ character, onSuggestionClick }: CharacterPanelProps) {
   // 基于对标网站的上下折叠状态管理
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showPersona, setShowPersona] = useState(true);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [showMemories, setShowMemories] = useState(false);
+
+  // 建议点击状态管理
+  const [clickedSuggestion, setClickedSuggestion] = useState<string | null>(null);
+
+  // 处理建议点击
+  const handleSuggestionClick = (suggestion: string) => {
+    // 设置点击状态，提供视觉反馈
+    setClickedSuggestion(suggestion);
+
+    // 调用父组件传入的回调函数
+    onSuggestionClick?.(suggestion);
+
+    // 500ms后清除高亮状态
+    setTimeout(() => setClickedSuggestion(null), 500);
+  };
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -177,8 +193,24 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
 
               <div className="space-y-2">
                 {SUGGESTIONS.map((suggestion, index) => (
-                  <Card key={index} className="p-3 hover:bg-muted/50 cursor-pointer transition-colors">
-                    <p className="text-sm">{suggestion}</p>
+                  <Card
+                    key={index}
+                    className={`p-3 hover:bg-muted/50 cursor-pointer transition-all ${
+                      clickedSuggestion === suggestion
+                        ? 'bg-primary/10 border border-primary/20'
+                        : ''
+                    }`}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm flex-1">{suggestion}</p>
+                      {clickedSuggestion === suggestion && (
+                        <div className="text-xs text-primary ml-2 flex items-center gap-1">
+                          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                          <span>Sending...</span>
+                        </div>
+                      )}
+                    </div>
                   </Card>
                 ))}
               </div>

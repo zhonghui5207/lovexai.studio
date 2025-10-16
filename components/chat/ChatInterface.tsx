@@ -340,8 +340,11 @@ export default function ChatInterface({
           </div>
 
           {/* 右侧角色面板 - 固定宽度 (15-20%) */}
-          <div className="hidden lg:block lg:w-80 xl:w-96 border-l border-border bg-background">
-            <CharacterPanel character={character} />
+          <div className="hidden lg:block lg:w-80 xl:w-96 border-l-2 border-border bg-background shadow-lg">
+            <CharacterPanel
+              character={character}
+              onSuggestionClick={handleSendMessage}
+            />
           </div>
         </div>
       </div>
