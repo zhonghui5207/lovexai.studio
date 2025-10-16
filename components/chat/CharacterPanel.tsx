@@ -23,11 +23,11 @@ interface CharacterPanelProps {
 }
 
 const SUGGESTIONS = [
-  "How do you want to play with my penis I want you to give me the specific steps",
-  "Not sure what to say? Press the lightbulb button to generate response options.",
   "Tell me about your day",
   "What's your favorite hobby?",
-  "Let's roleplay a scenario"
+  "Let's roleplay a scenario",
+  "What's on your mind right now?",
+  "Share something interesting about yourself"
 ];
 
 export default function CharacterPanel({ character }: CharacterPanelProps) {
@@ -62,7 +62,7 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
           </p>
 
   
-          <Button
+          {/* <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowFullDescription(!showFullDescription)}
@@ -70,7 +70,7 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
           >
             {showFullDescription ? "View less" : "View more"}
             <ChevronDown className={`ml-1 h-3 w-3 transition-transform ${showFullDescription ? "rotate-180" : ""}`} />
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -80,11 +80,11 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
           <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
             {character.personality}
           </p>
-          {character.location && (
+          {/* {character.location && (
             <p className="text-xs text-muted-foreground mt-2">
               📍 {character.location}
             </p>
-          )}
+          )} */}
         </div>
       )}
 
@@ -101,7 +101,9 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
             <div className="flex items-center gap-2">
               <Star className="w-4 h-4 text-primary" />
               <span className="font-medium text-sm">Persona</span>
-              <Badge variant="outline" className="text-xs">sassy</Badge>
+              <Badge variant="outline" className="text-xs">
+                {character.traits[0] || 'Friendly'}
+              </Badge>
             </div>
             {showPersona ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
           </button>
@@ -112,11 +114,11 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {character.personality}
               </p>
-              {character.location && (
+              {/* {character.location && (
                 <p className="text-xs text-muted-foreground">
                   📍 {character.location}
                 </p>
-              )}
+              )} */}
               <div className="flex flex-wrap gap-1">
                 {character.traits.slice(0, 3).map((trait, index) => (
                   <Badge key={index} variant="secondary" className="text-xs">
@@ -129,7 +131,7 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
         </div>
 
         {/* 2. Memories 模块 - 可上下折叠 */}
-        <div className="border-b border-border">
+        {/* <div className="border-b border-border">
           <button
             onClick={() => setShowMemories(!showMemories)}
             className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
@@ -152,10 +154,10 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
               </Button>
             </div>
           )}
-        </div>
+        </div> */}
 
         {/* 3. Suggestions 模块 - 可上下折叠 */}
-        <div className="border-b border-border">
+        <div>
           <button
             onClick={() => setShowSuggestions(!showSuggestions)}
             className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
@@ -174,7 +176,7 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
               </p>
 
               <div className="space-y-2">
-                {SUGGESTIONS.slice(2).map((suggestion, index) => (
+                {SUGGESTIONS.map((suggestion, index) => (
                   <Card key={index} className="p-3 hover:bg-muted/50 cursor-pointer transition-colors">
                     <p className="text-sm">{suggestion}</p>
                   </Card>
@@ -189,7 +191,7 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
         </div>
 
         {/* 4. Gallery 模块 - 可上下折叠 */}
-        <div className="border-b border-border">
+        {/* <div className="border-b border-border">
           <button className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-2">
               <Image className="w-4 h-4 text-green-500" />
@@ -197,7 +199,7 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
             </div>
             <ChevronDown className="w-4 h-4" />
           </button>
-        </div>
+        </div> */}
 
       </div>
     </div>
