@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronDown, Lightbulb } from "lucide-react";
+import { ChevronDown, ChevronUp, Lightbulb, Settings, Star, MessageSquare, Image } from "lucide-react";
 
 interface Character {
   id: string;
@@ -31,7 +31,11 @@ const SUGGESTIONS = [
 ];
 
 export default function CharacterPanel({ character }: CharacterPanelProps) {
+  // 基于对标网站的上下折叠状态管理
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showPersona, setShowPersona] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showMemories, setShowMemories] = useState(false);
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -84,33 +88,117 @@ export default function CharacterPanel({ character }: CharacterPanelProps) {
         </div>
       )}
 
-      {/* Content Area */}
+      {/* 模块化内容区域 - 基于对标网站的设计 */}
       <div className="flex-1 overflow-y-auto">
-        {/* Suggestions Content */}
-        <div className="p-4">
-          <div className="space-y-3">
-            <h3 className="font-semibold text-sm flex items-center gap-2">
-              <Lightbulb className="w-4 h-4" />
-              Suggestions
-              <Badge variant="destructive" className="text-xs">New</Badge>
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Not sure what to say? Press the lightbulb button to generate response options.
-            </p>
 
-            <div className="space-y-2">
-              {SUGGESTIONS.slice(2).map((suggestion, index) => (
-                <Card key={index} className="p-3 hover:bg-muted/50 cursor-pointer transition-colors">
-                  <p className="text-sm">{suggestion}</p>
-                </Card>
-              ))}
+        {/* 1. Persona 模块 - 可上下折叠 */}
+        <div className="border-b border-border">
+          {/* 模块标题栏 - 可点击折叠 */}
+          <button
+            onClick={() => setShowPersona(!showPersona)}
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Star className="w-4 h-4 text-primary" />
+              <span className="font-medium text-sm">Persona</span>
+              <Badge variant="outline" className="text-xs">sassy</Badge>
             </div>
+            {showPersona ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
 
-            <Button variant="outline" size="sm" className="w-full">
-              Generate More Suggestions
-            </Button>
-          </div>
+          {/* 模块内容 - 可折叠显示 */}
+          {showPersona && (
+            <div className="px-4 pb-4 space-y-3">
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {character.personality}
+              </p>
+              {character.location && (
+                <p className="text-xs text-muted-foreground">
+                  📍 {character.location}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-1">
+                {character.traits.slice(0, 3).map((trait, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {trait}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* 2. Memories 模块 - 可上下折叠 */}
+        <div className="border-b border-border">
+          <button
+            onClick={() => setShowMemories(!showMemories)}
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-blue-500" />
+              <span className="font-medium text-sm">Memories</span>
+              <Badge variant="destructive" className="text-xs">New</Badge>
+            </div>
+            {showMemories ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {showMemories && (
+            <div className="px-4 pb-4 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Shared memories and important moments in your conversation history.
+              </p>
+              <Button variant="outline" size="sm" className="w-full">
+                Manage Memories
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Suggestions 模块 - 可上下折叠 */}
+        <div className="border-b border-border">
+          <button
+            onClick={() => setShowSuggestions(!showSuggestions)}
+            className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Lightbulb className="w-4 h-4 text-yellow-500" />
+              <span className="font-medium text-sm">Suggestions</span>
+            </div>
+            {showSuggestions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+
+          {showSuggestions && (
+            <div className="px-4 pb-4 space-y-3">
+              <p className="text-xs text-muted-foreground">
+                Not sure what to say? Generate response options.
+              </p>
+
+              <div className="space-y-2">
+                {SUGGESTIONS.slice(2).map((suggestion, index) => (
+                  <Card key={index} className="p-3 hover:bg-muted/50 cursor-pointer transition-colors">
+                    <p className="text-sm">{suggestion}</p>
+                  </Card>
+                ))}
+              </div>
+
+              <Button variant="outline" size="sm" className="w-full">
+                Generate More Suggestions
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Gallery 模块 - 可上下折叠 */}
+        <div className="border-b border-border">
+          <button className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors">
+            <div className="flex items-center gap-2">
+              <Image className="w-4 h-4 text-green-500" />
+              <span className="font-medium text-sm">Gallery</span>
+            </div>
+            <ChevronDown className="w-4 h-4" />
+          </button>
+        </div>
+
       </div>
     </div>
   );

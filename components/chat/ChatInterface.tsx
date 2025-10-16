@@ -326,16 +326,23 @@ export default function ChatInterface({
           }}
         />
 
-        {/* Content layer */}
+        {/* Content layer - 基于对标网站的固定宽度布局 */}
         <div className="relative z-10 flex w-full">
-          <ChatWindow
-            messages={messages}
-            onSendMessage={handleSendMessage}
-            character={character}
-            isTyping={isTyping}
-            isLoading={isLoading}
-          />
-          <CharacterPanel character={character} />
+          {/* 中间聊天窗口 - 占据核心空间 (60-70%) */}
+          <div className="flex-1 min-w-0">
+            <ChatWindow
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              character={character}
+              isTyping={isTyping}
+              isLoading={isLoading}
+            />
+          </div>
+
+          {/* 右侧角色面板 - 固定宽度 (15-20%) */}
+          <div className="hidden lg:block lg:w-80 xl:w-96 border-l border-border bg-background">
+            <CharacterPanel character={character} />
+          </div>
         </div>
       </div>
     </div>
