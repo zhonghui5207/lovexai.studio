@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog";
 import { X, MessageCircle, ChevronDown, Loader2 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
@@ -34,6 +34,15 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
   const [createError, setCreateError] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
+
+  // 当模态框关闭时重置状态
+  React.useEffect(() => {
+    if (!isOpen) {
+      setCreateError(null);
+      setIsCreatingChat(false);
+      setShowCreateOptions(false);
+    }
+  }, [isOpen]);
 
   if (!character) return null;
 
