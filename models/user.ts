@@ -148,15 +148,7 @@ export async function checkUserPermissions(userId: string) {
       const userLevel = tierLevels[user.subscription_tier as keyof typeof tierLevels] || 0;
       const requiredLevel = tierLevels[characterAccessLevel as keyof typeof tierLevels] || 0;
 
-      // 调试信息
-      console.log('Character Access Debug:', {
-        userSubscriptionTier: user.subscription_tier,
-        userLevel,
-        characterAccessLevel,
-        requiredLevel,
-        canAccess: userLevel >= requiredLevel
-      });
-
+      
       return userLevel >= requiredLevel;
     },
 

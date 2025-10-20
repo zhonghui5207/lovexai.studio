@@ -11,6 +11,7 @@ import { MessageCircle, Search, Plus, User } from "lucide-react";
 import { Input } from "@/components/ui/input"; // 输入框组件
 import { Badge } from "@/components/ui/badge"; // 徽章/标签组件
 import { Button } from "@/components/ui/button"; // 按钮组件
+import FormattedMessage from "./FormattedMessage"; // 消息格式化组件
 import {
   DropdownMenu,           // 下拉菜单容器
   DropdownMenuContent,    // 下拉菜单内容区域
@@ -292,7 +293,7 @@ export default function ChatSidebar({
                     </div>
                     {/* 第二行：最后一条消息内容 */}
                     <p className="text-sm text-muted-foreground truncate">
-                      {conversation.lastMessage || "No messages yet"}
+                      <FormattedMessage content={conversation.lastMessage || "No messages yet"} />
                     </p>
                   </div>
                 </div>

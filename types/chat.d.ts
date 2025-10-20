@@ -111,6 +111,12 @@ export interface Character {
   age?: number;
   location?: string;
   sort_order: number;
+  // 剧情化字段
+  scenario?: string;        // 剧情情景设定
+  current_state?: string;  // 当前状态/进展
+  motivation?: string;      // 角色动机
+  background?: string;      // 简洁背景介绍
+  suggestions?: string;     // 冷启动建议(JSON格式)
   created_at: string;
   updated_at: string;
 }

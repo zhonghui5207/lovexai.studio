@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Send, Smile, MoreVertical, ArrowLeft, Settings } from "lucide-react";
+import { Send, Smile, MoreVertical, ArrowLeft, Settings, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import GenerationSettingsModal from "./GenerationSettingsModal";
 import FormattedMessage from "./FormattedMessage";
+import ErrorDisplay from "./ErrorDisplay";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +33,7 @@ interface Character {
   description: string;
   traits: string[];
   chat_count: string;
+  credits_per_message: number;
 }
 
 interface GenerationSettings {
@@ -48,8 +51,11 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ character, messages, onSendMessage, isTyping = false }: ChatWindowProps) {
+  const { data: session } = useSession();
   const [newMessage, setNewMessage] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<'network' | 'server' | 'credits' | 'permission' | 'general' | 'timeout' | 'empty_message'>('general');
   const [generationSettings, setGenerationSettings] = useState<GenerationSettings>({
     responseLength: "default",
     includeNarrator: true,
@@ -59,45 +65,24 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // 预加载并缓存头像，避免重复加载
-  const [avatarLoaded, setAvatarLoaded] = useState(false);
-  const avatarImageRef = useRef<HTMLImageElement | null>(null);
+  // 渲染头像 - 简化版本，让浏览器处理缓存
+  const renderAvatar = () => {
+    const fallbackUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
 
-  // 预创建头像元素
-  useEffect(() => {
-    const img = new Image();
-    img.src = character.avatar_url;
-    img.onload = () => {
-      setAvatarLoaded(true);
-      avatarImageRef.current = img;
-    };
-    img.onerror = () => {
-      const fallbackImg = new Image();
-      fallbackImg.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
-      fallbackImg.onload = () => {
-        setAvatarLoaded(true);
-        avatarImageRef.current = fallbackImg;
-      };
-    };
-  }, [character.avatar_url]);
-
-  // 渲染缓存的头像
-  const renderAvatar = () => (
-    <div className="relative flex-shrink-0">
-      <img
-        src={avatarLoaded ? (avatarImageRef.current?.src || character.avatar_url) : character.avatar_url}
-        alt={character.name}
-        className="w-8 h-8 rounded-full object-cover"
-        style={{
-          imageRendering: 'optimizeSpeed',
-          transform: 'translateZ(0)',
-          opacity: avatarLoaded ? 1 : 0.8
-        }}
-        loading="eager"
-        decoding="sync"
-      />
-    </div>
-  );
+    return (
+      <div className="relative flex-shrink-0">
+        <img
+          src={character.avatar_url}
+          alt={character.name}
+          className="w-8 h-8 rounded-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = fallbackUrl;
+          }}
+          loading="lazy"
+        />
+      </div>
+    );
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -107,11 +92,49 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = () => {
-    if (newMessage.trim()) {
-      onSendMessage(newMessage.trim(), generationSettings);
-      setNewMessage("");
+  const handleSend = async () => {
+    if (!newMessage.trim()) {
+      setError("Message cannot be empty. Please type something before sending.");
+      setErrorType('empty_message');
+      return;
     }
+
+    // 清除之前的错误
+    setError(null);
+
+    // 发送消息
+    try {
+      await onSendMessage(newMessage.trim(), generationSettings);
+      setNewMessage("");
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+
+      // 解析错误类型
+      if (error.status === 402) {
+        setError('Insufficient credits! Please top up your account to continue chatting.');
+        setErrorType('credits');
+      } else if (error.status === 403) {
+        setError('Access denied. Please upgrade your subscription to chat with this character.');
+        setErrorType('permission');
+      } else if (error.status >= 500) {
+        setError('Server error occurred. Please try again in a moment.');
+        setErrorType('server');
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        setError('Network connection failed. Please check your internet connection.');
+        setErrorType('network');
+      } else if (error.name === 'AbortError') {
+        setError('Request timeout. Please try again.');
+        setErrorType('timeout');
+      } else {
+        setError('Failed to send message. Please try again.');
+        setErrorType('general');
+      }
+    }
+  };
+
+  const handleRetry = async () => {
+    if (!newMessage.trim()) return;
+    await handleSend();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -204,6 +227,15 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
           </DropdownMenu>
         </div>
       </div>
+
+  
+      {/* Error Display */}
+      <ErrorDisplay
+        error={error}
+        type={errorType}
+        onRetry={handleRetry}
+        onDismiss={() => setError(null)}
+      />
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto relative">

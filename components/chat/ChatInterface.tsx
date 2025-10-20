@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 import CharacterPanel from "./CharacterPanel";
+import { CreditsProvider, useCredits } from "../../contexts/CreditsContext";
 
 interface Message {
   id: string;
@@ -54,7 +55,33 @@ interface ChatInterfaceProps {
   onConversationsUpdate: (conversations: Conversation[]) => void;
 }
 
-export default function ChatInterface({
+// 包装器组件，提供CreditsContext
+export default function ChatInterfaceWrapper({
+  character,
+  conversationId,
+  conversations,
+  onConversationSwitch,
+  onNewChatWithCharacter,
+  availableCharacters,
+  onConversationsUpdate
+}: ChatInterfaceProps) {
+  return (
+    <CreditsProvider>
+      <ChatInterface
+        character={character}
+        conversationId={conversationId}
+        conversations={conversations}
+        onConversationSwitch={onConversationSwitch}
+        onNewChatWithCharacter={onNewChatWithCharacter}
+        availableCharacters={availableCharacters}
+        onConversationsUpdate={onConversationsUpdate}
+      />
+    </CreditsProvider>
+  );
+}
+
+// 实际的ChatInterface组件
+function ChatInterface({
   character,
   conversationId,
   conversations,
@@ -64,6 +91,7 @@ export default function ChatInterface({
   onConversationsUpdate
 }: ChatInterfaceProps) {
   const { data: session } = useSession();
+  const { credits, updateCredits } = useCredits();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(conversationId || null);
@@ -290,6 +318,9 @@ export default function ChatInterface({
 
       // Refresh conversations to update last message
       refreshConversations();
+
+      // 立即更新积分显示（事件驱动）
+      updateCredits(credits - character.credits_per_message);
 
     } catch (error) {
       console.error('Error sending message:', error);

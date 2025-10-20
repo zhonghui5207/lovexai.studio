@@ -187,7 +187,8 @@ export async function updateConversationStats(conversationId: string, messageCre
 export async function createMessage(params: SendMessageParams): Promise<Message> {
   const supabase = getSupabaseClient();
 
-  // 如果是用户消息，需要扣除积分
+  // 积分扣除已移至AI回复成功后统一处理
+  // 这里不再扣除积分，避免重复扣费问题
   let creditsUsed = 0;
   if (params.sender_type === 'user') {
     const conversation = await getConversationWithCharacter(params.conversation_id);
@@ -196,9 +197,7 @@ export async function createMessage(params: SendMessageParams): Promise<Message>
     }
 
     creditsUsed = conversation.character.credits_per_message;
-
-    // 扣除用户积分
-    await deductCredits(conversation.user_id, creditsUsed);
+    // 注意：积分扣除已在app/api/chat/route.ts中AI回复成功后处理
   }
 
   const { data, error } = await supabase

@@ -119,13 +119,7 @@ export const authOptions: NextAuthConfig = {
   },
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
-      console.log("SignIn callback called with:", {
-        hasUser: !!user,
-        hasAccount: !!account,
-        userEmail: user?.email,
-        provider: account?.provider
-      });
-
+      
       const isAllowedToSignIn = true;
       if (isAllowedToSignIn) {
         return true;
@@ -134,13 +128,11 @@ export const authOptions: NextAuthConfig = {
       }
     },
     async redirect({ url, baseUrl }) {
-      console.log("Redirect callback:", { url, baseUrl });
-
+      
       // Fix port mismatch - if baseUrl is 3000 but we're running on 3001
       if (baseUrl.includes('localhost:3000') && process.env.NODE_ENV === 'development') {
         baseUrl = baseUrl.replace('localhost:3000', 'localhost:3001');
-        console.log("Fixed baseUrl to:", baseUrl);
-      }
+              }
 
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
