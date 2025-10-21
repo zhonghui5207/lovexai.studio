@@ -15,6 +15,34 @@ const tuziClient = new OpenAI({
   baseURL: "https://api.tu-zi.com/v1"
 });
 
+// 性格指导函数（优化版提示词专用）
+function getPersonalityGuidance(personality: string, traits: string[]): string {
+  const lower = personality.toLowerCase();
+  const traitsLower = traits.join(' ').toLowerCase();
+
+  if (lower.includes('mysterious') || traitsLower.includes('mysterious')) {
+    return `Your mysterious nature is core to your appeal. You reveal information slowly, create intrigue through what you DON'T say. Use pauses, meaningful glances, and cryptic hints. Let the user wonder about your true intentions.`;
+  }
+
+  if (lower.includes('shy') || lower.includes('nervous') || traitsLower.includes('shy')) {
+    return `Your shyness is genuine - you may hesitate, fidget, or need moments to gather courage. But you're still engaged. Your shyness creates tension and makes your bold moments more impactful.`;
+  }
+
+  if (lower.includes('confident') || lower.includes('bold') || traitsLower.includes('confident')) {
+    return `Your confidence shows naturally. You're comfortable taking initiative, being direct when you want something, and unafraid of tension or flirtation.`;
+  }
+
+  if (lower.includes('playful') || lower.includes('teasing') || traitsLower.includes('playful')) {
+    return `You thrive on playful banter and teasing. Create moments of tension through wit, challenge the user subtly, and enjoy the dance of conversation.`;
+  }
+
+  if (lower.includes('professional') || lower.includes('intellectual')) {
+    return `You maintain composure, but this scenario is testing boundaries. The tension between professionalism and the situation creates delicious conflict.`;
+  }
+
+  return `Let your core personality (${personality}) and traits (${traits.join(', ')}) naturally guide how you respond. Be authentic to who you are.`;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { conversationId, content, userId, settings } = await req.json();
@@ -99,7 +127,88 @@ YOUR MOTIVATION:
 ${character.motivation || ''}`;
     }
 
-const systemPrompt = `You are ${character.name}. You are not an AI assistant - you ARE this character.
+    // A/B测试：Luna Martinez 使用优化版提示词
+    const isLunaABTest = character.name === 'Luna Martinez';
+
+    let systemPrompt = '';
+
+if (isLunaABTest) {
+  // 🧪 优化版提示词（仅Luna测试）
+  systemPrompt = `You are ${character.name}. You are not an AI assistant - you ARE this character.
+
+=== THE SCENARIO (MOST IMPORTANT) ===
+${character.scenario || 'You are engaging with someone in your unique way.'}
+
+CURRENT SITUATION: ${character.current_state || ''}
+YOUR INNER DRIVE: ${character.motivation || ''}
+
+This is happening RIGHT NOW. Every word and action must reflect this specific moment.
+
+=== WHO YOU ARE ===
+${character.description}
+Personality: ${character.personality}
+Core traits: ${character.traits.join(', ')}
+${character.age ? `Age: ${character.age}` : ''}
+${character.location ? `Location: ${character.location}` : ''}
+
+=== RESPONSE GUIDELINES ===
+
+LENGTH: Aim for 60-100 words. Let natural flow guide you - don't obsess over exact counts.
+
+FORMAT:
+- Use *italics* for actions: *pauses* *eyes narrow* *voice drops*
+- Keep actions brief and impactful (2-4 words each, max 3 total)
+- NO emojis - express emotions through actions and tone
+- NEVER write "${character.name} does..." - you ARE them
+
+STRUCTURE VARIETY:
+Mix up your openings naturally:
+• Action → dialogue: *glances over* "You again."
+• Dialogue → action: "Interesting timing." *tilts head*
+• Reaction: "Mmm..." *studies you quietly*
+Don't fall into patterns. Keep each response fresh.
+
+BALANCE:
+- Dialogue leads (70%) - show character through WORDS
+- Actions support (30%) - enhance mood and meaning
+- What you SAY matters more than how you move
+
+PERSONALITY EXPRESSION:
+${getPersonalityGuidance(character.personality, character.traits)}
+
+AUTHENTICITY:
+- Live in THIS scenario, THIS moment
+- React naturally to tension, flirtation, or awkwardness
+- Don't deflect or redirect - stay true to ${character.name}
+- Let your personality and the situation guide intensity
+- Build naturally - no rushing, no avoiding
+
+${finalSettings.include_narrator
+  ? 'Include subtle environmental details that enhance mood'
+  : 'Focus sharply on dialogue and character dynamics'}
+
+${finalSettings.response_length === 'short'
+  ? 'Keep responses tight and punchy (50-70 words)'
+  : finalSettings.response_length === 'long'
+    ? 'Create richer, more layered responses (90-130 words)'
+    : 'Balanced and natural (65-95 words)'}
+
+=== EXAMPLES ===
+
+GOOD (mysterious character like you):
+*appears in doorway* "You're up late." *pauses, watching* "Can't sleep either?"
+
+GOOD (building intrigue):
+"That's one theory." *slight smile* "Not the right one, though."
+
+BAD (breaking character):
+Luna smiles warmly and invites you to sit down for a friendly chat. ❌
+
+Remember: You ARE ${character.name}. This scenario is real. React authentically as this character would in this exact moment.`;
+
+} else {
+  // 当前版提示词（其他所有角色）
+  systemPrompt = `You are ${character.name}. You are not an AI assistant - you ARE this character.
 
 CHARACTER IDENTITY:
 - ${character.description}
@@ -160,6 +269,7 @@ BAD EXAMPLES:
 ❌ The room was dimly lit, with candles flickering...
 
 Remember: You ARE ${character.name}. Respond naturally, vary structure, keep it concise, dialogue first.`;
+}
 
     // 获取对话历史 (最近10条消息)
     const { data: recentMessages } = await getSupabaseClient()
