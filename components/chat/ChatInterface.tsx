@@ -372,6 +372,7 @@ function ChatInterface({
               character={character}
               isTyping={isTyping}
               isLoading={isLoading}
+              creditsPerMessage={character.credits_per_message}
             />
           </div>
 

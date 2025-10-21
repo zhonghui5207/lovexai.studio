@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import GenerationSettingsModal from "./GenerationSettingsModal";
 import FormattedMessage from "./FormattedMessage";
+import CreditDisplay from "./CreditDisplay";
 import ErrorDisplay from "./ErrorDisplay";
 import {
   DropdownMenu,
@@ -48,9 +49,11 @@ interface ChatWindowProps {
   messages: Message[];
   onSendMessage: (content: string, settings?: GenerationSettings) => void;
   isTyping?: boolean;
+  isLoading?: boolean;
+  creditsPerMessage?: number;
 }
 
-export default function ChatWindow({ character, messages, onSendMessage, isTyping = false }: ChatWindowProps) {
+export default function ChatWindow({ character, messages, onSendMessage, isTyping = false, isLoading = false, creditsPerMessage = 1 }: ChatWindowProps) {
   const { data: session } = useSession();
   const [newMessage, setNewMessage] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -229,6 +232,9 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       </div>
 
   
+      {/* Credit Display */}
+      <CreditDisplay creditsPerMessage={creditsPerMessage} />
+
       {/* Error Display */}
       <ErrorDisplay
         error={error}
