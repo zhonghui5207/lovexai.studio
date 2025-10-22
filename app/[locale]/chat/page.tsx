@@ -47,7 +47,10 @@ export default function ChatPage() {
   // 预加载所有数据
   useEffect(() => {
     if (status === "loading") return;
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      setLoading(false); // Fix: Set loading to false for unauthenticated users
+      return;
+    }
 
     const loadAllData = async () => {
       try {
