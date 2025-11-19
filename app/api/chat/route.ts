@@ -127,8 +127,15 @@ YOUR MOTIVATION:
 ${character.motivation || ''}`;
     }
 
-    // A/B测试：Luna Martinez 使用优化版提示词
-    const isLunaABTest = character.name === 'Luna Martinez';
+    // A/B测试：Luna 使用优化版提示词
+    const isLunaABTest = character.name === 'Sage';
+
+    // 添加A/B测试日志
+    if (isLunaABTest) {
+      console.log('🧪 Sage A/B Test: Using OPTIMIZED prompt version');
+      console.log('🎭 Sage scenario:', character.scenario);
+      console.log('💫 Sage motivation:', character.motivation);
+    }
 
     let systemPrompt = '';
 
@@ -297,19 +304,19 @@ Remember: You ARE ${character.name}. Respond naturally, vary structure, keep it 
       case 'fuchsia':
       case 'deepseek_v3':
         model = 'gpt-4o-all';
-        maxTokens = finalSettings.response_length === 'short' ? 300 :
-                   finalSettings.response_length === 'long' ? 800 : 500;
+        maxTokens = finalSettings.response_length === 'short' ? 400 :
+                   finalSettings.response_length === 'long' ? 1200 : 800;
         break;
       case 'orchid':
         model = 'gpt-4o-all';
-        maxTokens = finalSettings.response_length === 'short' ? 350 :
-                   finalSettings.response_length === 'long' ? 1000 : 600;
+        maxTokens = finalSettings.response_length === 'short' ? 500 :
+                   finalSettings.response_length === 'long' ? 1500 : 1000;
         break;
       case 'nectar_basic':
       default:
         model = 'gpt-4o-mini';
-        maxTokens = finalSettings.response_length === 'short' ? 250 :
-                   finalSettings.response_length === 'long' ? 600 : 400;
+        maxTokens = finalSettings.response_length === 'short' ? 300 :
+                   finalSettings.response_length === 'long' ? 800 : 600;
         break;
     }
 
