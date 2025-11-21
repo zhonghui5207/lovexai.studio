@@ -1,0 +1,132 @@
+/* 
+ * LoveXAI Theme: Luxury Desire (方案B)
+ * 设计理念：奢华成人品牌，对标高端情欲产品（OnlyFans Premium）
+ * 核心色：香槟金(#d4af37) + 深红酒色(#8b0000)
+ */
+
+:root {
+  /* ----- 背景色系（暖色调深色）----- */
+  --background: 15 10% 9%;               /* #1a1514 深棕黑 */
+  --foreground: 40 20% 96%;              /* #f5f5dc 米白色文字 */
+  
+  --card: 15 8% 17%;                     /* #2d2625 暖灰卡片 */
+  --card-foreground: 40 20% 96%;
+  
+  --popover: 15 8% 17%;
+  --popover-foreground: 40 20% 96%;
+  
+  /* ----- 强调色系（奢华金+深红）----- */
+  --primary: 43 65% 52%;                 /* #d4af37 香槟金（主色）*/
+  --primary-foreground: 15 10% 9%;       /* 深色文字在金色上 */
+  
+  --secondary: 0 100% 27%;               /* #8b0000 深红酒色（次要色）*/
+  --secondary-foreground: 40 20% 96%;
+  
+  --accent: 40 50% 83%;                  /* #e8d5b7 米白金（点缀）*/
+  --accent-foreground: 15 10% 9%;
+  
+  /* ----- 功能色 ----- */
+  --muted: 15 8% 25%;                    /* 弱化背景 */
+  --muted-foreground: 35 12% 65%;        /* #a89f91 暖灰文字 */
+  
+  --destructive: 0 100% 27%;
+  --destructive-foreground: 40 20% 96%;
+  
+  /* ----- 边框与输入 ----- */
+  --border: 15 8% 22%;                   /* 深棕色边框 */
+  --input: 15 8% 22%;
+  --ring: 43 65% 52%;                    /* 聚焦环：金色 */
+  
+  /* ----- 侧边栏 ----- */
+  --sidebar: 15 15% 7%;                  /* 更深的棕黑 */
+  --sidebar-foreground: 40 20% 96%;
+  --sidebar-primary: 43 65% 52%;
+  --sidebar-primary-foreground: 15 10% 9%;
+  --sidebar-accent: 0 100% 27%;
+  --sidebar-accent-foreground: 40 20% 96%;
+  --sidebar-border: 15 8% 22%;
+  --sidebar-ring: 43 65% 52%;
+  
+  /* ----- 字体（优雅衬线体）----- */
+  --font-sans: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Cormorant Garamond', 'Georgia', serif;  /* 奢华衬线标题 */
+  --font-display: 'Playfair Display', serif;  /* 装饰字体 */
+  --font-mono: 'Source Code Pro', monospace;
+  
+  /* ----- 圆角（较小，更正式）----- */
+  --radius: 0.5rem;  /* 8px */
+  
+  /* ----- 阴影系统（柔和、温暖）----- */
+  --shadow-xs: 0 1px 2px 0 rgb(26 21 20 / 0.08);
+  --shadow-sm: 0 2px 4px 0 rgb(26 21 20 / 0.12), 0 1px 2px -1px rgb(26 21 20 / 0.08);
+  --shadow-md: 0 4px 8px -1px rgb(26 21 20 / 0.15), 0 2px 4px -2px rgb(26 21 20 / 0.1);
+  --shadow-lg: 0 10px 20px -3px rgb(26 21 20 / 0.18), 0 4px 6px -4px rgb(26 21 20 / 0.12);
+  --shadow-xl: 0 20px 30px -5px rgb(26 21 20 / 0.22), 0 8px 10px -6px rgb(26 21 20 / 0.15);
+  
+  /* 金色光晕效果 */
+  --glow-gold: 0 0 20px rgba(212, 175, 55, 0.3), 0 0 40px rgba(212, 175, 55, 0.15);
+  --glow-red: 0 0 20px rgba(139, 0, 0, 0.4);
+  
+  /* ----- 渐变效果 ----- */
+  --gradient-luxury: linear-gradient(135deg, hsl(43 65% 52%) 0%, hsl(0 100% 27%) 100%);
+  --gradient-card-overlay: linear-gradient(to bottom, rgba(212, 175, 55, 0.03), transparent);
+  --gradient-hero: radial-gradient(ellipse at top, rgba(212, 175, 55, 0.06) 0%, transparent 60%);
+}
+
+.dark {
+  --background: 15 10% 9%;
+  --foreground: 40 20% 96%;
+  --card: 15 8% 17%;
+  --card-foreground: 40 20% 96%;
+  --popover: 15 8% 17%;
+  --popover-foreground: 40 20% 96%;
+  --primary: 43 65% 52%;
+  --primary-foreground: 15 10% 9%;
+  --secondary: 0 100% 27%;
+  --secondary-foreground: 40 20% 96%;
+  --accent: 40 50% 83%;
+  --accent-foreground: 15 10% 9%;
+  --muted: 15 8% 25%;
+  --muted-foreground: 35 12% 65%;
+  --destructive: 0 100% 27%;
+  --destructive-foreground: 40 20% 96%;
+  --border: 15 8% 22%;
+  --input: 15 8% 22%;
+  --ring: 43 65% 52%;
+  --sidebar: 15 15% 7%;
+  --sidebar-foreground: 40 20% 96%;
+  --sidebar-primary: 43 65% 52%;
+  --sidebar-primary-foreground: 15 10% 9%;
+  --sidebar-accent: 0 100% 27%;
+  --sidebar-accent-foreground: 40 20% 96%;
+  --sidebar-border: 15 8% 22%;
+  --sidebar-ring: 43 65% 52%;
+}
+
+/* 奢华主题专属增强 */
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  position: relative;
+}
+
+/* 微妙的纹理背景 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    var(--gradient-hero),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(212, 175, 55, 0.02) 2px,
+      rgba(212, 175, 55, 0.02) 4px
+    );
+  z-index: -1;
+}
+

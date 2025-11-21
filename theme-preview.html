@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoveXAI Theme Preview - 主题预览对比工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: #fff;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ff006e, #8338ec);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .description {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 60px;
+            font-size: 1.1rem;
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .theme-card {
+            background: #111;
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #222;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .theme-card:hover {
+            transform: translateY(-5px);
+            border-color: #444;
+        }
+
+        .theme-card.active {
+            border-color: #ff006e;
+            box-shadow: 0 0 30px rgba(255, 0, 110, 0.3);
+        }
+
+        .theme-header {
+            margin-bottom: 20px;
+        }
+
+        .theme-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .theme-subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .color-swatch {
+            flex: 1;
+            height: 80px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-label {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .theme-features {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .theme-features li {
+            padding: 8px 0;
+            color: #aaa;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .theme-features li:last-child {
+            border-bottom: none;
+        }
+
+        .apply-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #ff006e, #8338ec);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+
+        .apply-button:hover {
+            transform: scale(1.05);
+        }
+
+        .instructions {
+            background: #111;
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #222;
+        }
+
+        .instructions h2 {
+            margin-bottom: 20px;
+            color: #ff006e;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+            color: #aaa;
+        }
+
+        .instructions code {
+            background: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #ff006e;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* 方案A：浪漫赛博朋克 */
+        .romantic-cyberpunk .color-swatch:nth-child(1) {
+            background: linear-gradient(135deg, #0a0a0f, #1a1a2e);
+        }
+        .romantic-cyberpunk .color-swatch:nth-child(2) {
+            background: #ff006e;
+        }
+        .romantic-cyberpunk .color-swatch:nth-child(3) {
+            background: #8338ec;
+        }
+        .romantic-cyberpunk .color-swatch:nth-child(4) {
+            background: #fb5607;
+        }
+
+        /* 方案B：奢华情欲系 */
+        .luxury-desire .color-swatch:nth-child(1) {
+            background: linear-gradient(135deg, #1a1514, #2d2625);
+        }
+        .luxury-desire .color-swatch:nth-child(2) {
+            background: #d4af37;
+        }
+        .luxury-desire .color-swatch:nth-child(3) {
+            background: #8b0000;
+        }
+        .luxury-desire .color-swatch:nth-child(4) {
+            background: #e8d5b7;
+        }
+
+        /* 方案C：柔和粉色系 */
+        .soft-sensual .color-swatch:nth-child(1) {
+            background: linear-gradient(135deg, #1a1625, #2a2535);
+        }
+        .soft-sensual .color-swatch:nth-child(2) {
+            background: #ff85c0;
+        }
+        .soft-sensual .color-swatch:nth-child(3) {
+            background: #9d4edd;
+        }
+        .soft-sensual .color-swatch:nth-child(4) {
+            background: #ffc2d1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 LoveXAI 主题配色方案预览</h1>
+        <p class="description">三种独特的设计方向，选择最适合您品牌定位的配色方案</p>
+
+        <div class="theme-grid">
+            <!-- 方案A：浪漫赛博朋克 -->
+            <div class="theme-card romantic-cyberpunk active" data-theme="romantic-cyberpunk">
+                <div class="theme-header">
+                    <h2 class="theme-title">🌹 方案A：浪漫赛博朋克</h2>
+                    <p class="theme-subtitle">Romantic Cyberpunk - 科技感 + 浪漫情欲</p>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch">
+                        <span class="color-label">背景</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">玫瑰红</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">霓虹紫</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">活力橙</span>
+                    </div>
+                </div>
+                <ul class="theme-features">
+                    <li>✨ 深蓝黑背景 + 双色霓虹光效</li>
+                    <li>🎯 目标用户：25-40岁，高审美人群</li>
+                    <li>💡 情感调性：未来感、性感、神秘</li>
+                    <li>🔥 适合：NSFW + 浪漫剧情双向内容</li>
+                    <li>📊 差异化：介于 Nectar 和 Character.AI 之间</li>
+                </ul>
+                <button class="apply-button" onclick="copyThemeCode('romantic-cyberpunk')">
+                    选择此方案
+                </button>
+            </div>
+
+            <!-- 方案B：奢华情欲系 -->
+            <div class="theme-card luxury-desire" data-theme="luxury-desire">
+                <div class="theme-header">
+                    <h2 class="theme-title">💎 方案B：奢华情欲系</h2>
+                    <p class="theme-subtitle">Luxury Desire - 高端成人品牌定位</p>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch">
+                        <span class="color-label">背景</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">香槟金</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">深红酒</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">米白金</span>
+                    </div>
+                </div>
+                <ul class="theme-features">
+                    <li>✨ 暖色调深色背景 + 金色点缀</li>
+                    <li>🎯 目标用户：30-50岁，高消费力</li>
+                    <li>💡 情感调性：奢华、私密、成熟</li>
+                    <li>🔥 适合：高端 NSFW 内容</li>
+                    <li>📊 差异化：对标 OnlyFans Premium</li>
+                </ul>
+                <button class="apply-button" onclick="copyThemeCode('luxury-desire')">
+                    选择此方案
+                </button>
+            </div>
+
+            <!-- 方案C：柔和粉色系 -->
+            <div class="theme-card soft-sensual" data-theme="soft-sensual">
+                <div class="theme-header">
+                    <h2 class="theme-title">🎀 方案C：柔和粉色系</h2>
+                    <p class="theme-subtitle">Soft & Sensual - 浪漫梦幻，吸引女性用户</p>
+                </div>
+                <div class="color-palette">
+                    <div class="color-swatch">
+                        <span class="color-label">背景</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">柔粉</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">薰衣草紫</span>
+                    </div>
+                    <div class="color-swatch">
+                        <span class="color-label">浅粉</span>
+                    </div>
+                </div>
+                <ul class="theme-features">
+                    <li>✨ 深紫灰背景 + 粉色柔光</li>
+                    <li>🎯 目标用户：18-35岁，男女混合</li>
+                    <li>💡 情感调性：浪漫、温柔、梦幻</li>
+                    <li>🔥 适合：浪漫向 + 轻度 NSFW</li>
+                    <li>📊 差异化：打破暗黑刻板印象</li>
+                </ul>
+                <button class="apply-button" onclick="copyThemeCode('soft-sensual')">
+                    选择此方案
+                </button>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h2>📖 使用说明</h2>
+            <ol>
+                <li>点击任意方案的 <strong>"选择此方案"</strong> 按钮</li>
+                <li>系统会自动复制对应的主题文件路径到剪贴板</li>
+                <li>在项目中，打开 <code>app/[locale]/layout.tsx</code></li>
+                <li>将第 1 行的导入语句修改为：<br>
+                    <code>import "@/app/theme-[方案名].css";</code>
+                </li>
+                <li>保存文件，浏览器会自动刷新显示新主题</li>
+            </ol>
+            <p style="margin-top: 20px; color: #666;">
+                <strong>建议：</strong>先在浏览器中测试所有三个方案的视觉效果，然后选择最适合品牌定位的一个。
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function copyThemeCode(themeName) {
+            const themeMap = {
+                'romantic-cyberpunk': '@/app/theme-romantic-cyberpunk.css',
+                'luxury-desire': '@/app/theme-luxury-desire.css',
+                'soft-sensual': '@/app/theme-soft-sensual.css'
+            };
+
+            const code = `import "${themeMap[themeName]}";`;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                alert(`✅ 已复制！\n\n请在 app/[locale]/layout.tsx 第1行替换为：\n${code}`);
+            });
+
+            // 高亮当前选中的主题
+            document.querySelectorAll('.theme-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`[data-theme="${themeName}"]`).classList.add('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,9 +1,10 @@
 import "@/app/globals.css";
+import "@/app/theme-romantic-cyberpunk.css";
 
 import { getMessages, getTranslations } from "next-intl/server";
 
 import { AppContextProvider } from "@/contexts/app";
-import { Inter as FontSans } from "next/font/google";
+import { Space_Grotesk as FontHeading, Inter as FontSans } from "next/font/google";
 import { Metadata } from "next";
 import { NextAuthSessionProvider } from "@/auth/session";
 import { NextIntlClientProvider } from "next-intl";
@@ -13,6 +14,12 @@ import { cn } from "@/lib/utils";
 const fontSans = FontSans({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const fontHeading = FontHeading({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  weight: ["400", "600", "700"],
 });
 
 export async function generateMetadata({
@@ -58,8 +65,10 @@ export default async function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased overflow-x-hidden",
-          fontSans.variable
+          fontSans.variable,
+          fontHeading.variable
         )}
+        suppressHydrationWarning
       >
         <NextIntlClientProvider messages={messages}>
           <NextAuthSessionProvider>

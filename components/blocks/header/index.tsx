@@ -39,17 +39,20 @@ export default function Header({ header }: { header: HeaderType }) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
+    <header className="absolute top-0 left-0 right-0 z-50 w-full bg-transparent backdrop-blur-[2px]">
+      <div className="container flex h-20 max-w-screen-2xl items-center justify-between">
         {/* Left: Logo */}
         <div className="flex items-center">
           <a
             href={header.brand?.url || "/"}
             className="flex items-center gap-3 group transition-all duration-300"
           >
-            <LovexaiLogo className="w-8 h-8 transition-transform group-hover:scale-110" />
+            <div className="relative">
+              <div className="absolute inset-0 bg-primary blur-md opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <LovexaiLogo className="relative w-10 h-10 transition-transform group-hover:scale-110 z-10" />
+            </div>
             {header.brand?.title && (
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:via-purple-300 group-hover:to-pink-300 transition-all duration-300">
+              <span className="font-heading text-2xl font-bold text-white tracking-tight group-hover:text-primary transition-colors duration-300">
                 {header.brand?.title || ""}
               </span>
             )}
@@ -57,43 +60,24 @@ export default function Header({ header }: { header: HeaderType }) {
         </div>
 
         {/* Center: Navigation Menu - Strict Nectar.AI Style */}
-        <nav className="hidden md:flex items-center space-x-8">
-          <a
-            href="/"
-            className="text-sm font-medium text-foreground hover:text-foreground/80 transition-colors"
-          >
-            Home
-          </a>
-          <a
-            href="/chat"
-            className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-          >
-            Messages
-          </a>
-          <a
-            href="/discover"
-            className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-          >
-            Discover
-          </a>
-          <a
-            href="/create"
-            className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-          >
-            Create
-          </a>
-          <a
-            href="/generate"
-            className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-          >
-            Generate
-          </a>
-          <a
-            href="/pricing"
-            className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
-          >
-            Pricing
-          </a>
+        <nav className="hidden md:flex items-center space-x-1">
+          {[
+            { name: 'Home', href: '/' },
+            { name: 'Messages', href: '/chat' },
+            { name: 'Discover', href: '/discover' },
+            { name: 'Create', href: '/create' },
+            { name: 'Generate', href: '/generate' },
+            { name: 'Pricing', href: '/pricing' },
+          ].map((item) => (
+            <a
+              key={item.name}
+              href={item.href}
+              className="relative px-4 py-2 text-sm font-medium text-white/70 hover:text-white transition-colors group overflow-hidden rounded-full"
+            >
+              <span className="relative z-10">{item.name}</span>
+              <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+            </a>
+          ))}
         </nav>
 
         {/* Right: Language Toggle & User Profile */}
@@ -109,35 +93,45 @@ export default function Header({ header }: { header: HeaderType }) {
       </div>
       
       {/* Mobile Navigation */}
-      <div className="md:hidden">
+      <div className="md:hidden absolute right-4 top-4">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="ml-auto">
-              <Menu className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+              <Menu className="h-6 w-6" />
               <span className="sr-only">Toggle navigation menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-full sm:w-80">
+          <SheetContent side="left" className="w-full sm:w-80 bg-background/95 backdrop-blur-xl border-r border-white/10">
             <SheetHeader>
               <SheetTitle>
                 <div className="flex items-center gap-3">
                   <LovexaiLogo className="w-8 h-8" />
                   {header.brand?.title && (
-                    <span className="text-lg font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                    <span className="text-lg font-bold text-white">
                       {header.brand?.title || ""}
                     </span>
                   )}
                 </div>
               </SheetTitle>
             </SheetHeader>
-            <div className="flex flex-col space-y-4 mt-8">
-              <a href="/" className="text-lg font-medium px-2 py-3 border-b">Home</a>
-              <a href="/chat" className="text-lg font-medium px-2 py-3 border-b">Messages</a>
-              <a href="/discover" className="text-lg font-medium px-2 py-3 border-b">Discover</a>
-              <a href="/create" className="text-lg font-medium px-2 py-3 border-b">Create</a>
-              <a href="/generate" className="text-lg font-medium px-2 py-3 border-b">Generate</a>
-              <a href="/pricing" className="text-lg font-medium px-2 py-3 border-b">Pricing</a>
-              <div className="flex items-center justify-between pt-6">
+            <div className="flex flex-col space-y-2 mt-8">
+              {[
+                { name: 'Home', href: '/' },
+                { name: 'Messages', href: '/chat' },
+                { name: 'Discover', href: '/discover' },
+                { name: 'Create', href: '/create' },
+                { name: 'Generate', href: '/generate' },
+                { name: 'Pricing', href: '/pricing' },
+              ].map((item) => (
+                <a 
+                  key={item.name}
+                  href={item.href} 
+                  className="text-lg font-medium px-4 py-3 rounded-xl hover:bg-white/5 text-white/80 hover:text-white transition-all"
+                >
+                  {item.name}
+                </a>
+              ))}
+              <div className="flex items-center justify-between pt-6 px-4">
                 {header.show_locale && <LocaleToggle />}
                 {header.show_sign && <SignToggle />}
               </div>

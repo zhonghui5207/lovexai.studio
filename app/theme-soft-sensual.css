@@ -1,0 +1,138 @@
+/* 
+ * LoveXAI Theme: Soft & Sensual (方案C)
+ * 设计理念：打破暗黑刻板印象，吸引女性用户和浪漫向受众
+ * 核心色：柔粉(#ff85c0) + 薰衣草紫(#9d4edd)
+ */
+
+:root {
+  /* ----- 背景色系（深紫灰）----- */
+  --background: 270 20% 12%;             /* #1a1625 深紫灰 */
+  --foreground: 0 0% 100%;               /* #ffffff 纯白文字 */
+  
+  --card: 270 18% 16%;                   /* #2a2535 紫灰卡片 */
+  --card-foreground: 0 0% 100%;
+  
+  --popover: 270 18% 16%;
+  --popover-foreground: 0 0% 100%;
+  
+  /* ----- 强调色系（柔美双色）----- */
+  --primary: 330 100% 76%;               /* #ff85c0 柔粉（主色）*/
+  --primary-foreground: 270 20% 12%;     /* 深色文字 */
+  
+  --secondary: 274 73% 59%;              /* #9d4edd 薰衣草紫（次要色）*/
+  --secondary-foreground: 0 0% 100%;
+  
+  --accent: 345 100% 90%;                /* #ffc2d1 浅粉（点缀）*/
+  --accent-foreground: 270 20% 12%;
+  
+  /* ----- 功能色 ----- */
+  --muted: 270 15% 22%;                  /* 弱化背景 */
+  --muted-foreground: 270 10% 75%;       /* #c8b7d3 紫灰文字 */
+  
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  
+  /* ----- 边框与输入 ----- */
+  --border: 270 15% 25%;                 /* 紫灰边框 */
+  --input: 270 15% 25%;
+  --ring: 330 100% 76%;                  /* 聚焦环：柔粉 */
+  
+  /* ----- 侧边栏 ----- */
+  --sidebar: 270 22% 10%;                /* 更深的紫黑 */
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 330 100% 76%;
+  --sidebar-primary-foreground: 270 20% 12%;
+  --sidebar-accent: 274 73% 59%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 270 15% 25%;
+  --sidebar-ring: 330 100% 76%;
+  
+  /* ----- 字体（圆润友好）----- */
+  --font-sans: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Poppins', 'Nunito', sans-serif;  /* 圆润标题 */
+  --font-display: 'Playfair Display', serif;  /* 装饰字体 */
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* ----- 圆角（更圆润）----- */
+  --radius: 1rem;  /* 16px - 明显圆润 */
+  
+  /* ----- 阴影系统（柔和、轻盈）----- */
+  --shadow-xs: 0 1px 3px 0 rgb(157 78 221 / 0.06);
+  --shadow-sm: 0 2px 5px 0 rgb(157 78 221 / 0.1), 0 1px 2px -1px rgb(157 78 221 / 0.08);
+  --shadow-md: 0 4px 10px -1px rgb(157 78 221 / 0.12), 0 2px 5px -2px rgb(157 78 221 / 0.1);
+  --shadow-lg: 0 10px 20px -3px rgb(157 78 221 / 0.15), 0 5px 8px -4px rgb(157 78 221 / 0.12);
+  --shadow-xl: 0 20px 30px -5px rgb(157 78 221 / 0.18), 0 10px 15px -6px rgb(157 78 221 / 0.15);
+  
+  /* 柔光效果 */
+  --glow-pink: 0 0 25px rgba(255, 133, 192, 0.25), 0 0 50px rgba(255, 133, 192, 0.12);
+  --glow-purple: 0 0 25px rgba(157, 78, 221, 0.25), 0 0 50px rgba(157, 78, 221, 0.12);
+  
+  /* ----- 渐变效果 ----- */
+  --gradient-dreamy: linear-gradient(135deg, hsl(330 100% 76%) 0%, hsl(274 73% 59%) 100%);
+  --gradient-card-overlay: linear-gradient(to bottom, rgba(157, 78, 221, 0.08), transparent);
+  --gradient-hero: radial-gradient(circle at 30% 40%, rgba(255, 133, 192, 0.1) 0%, transparent 50%),
+                   radial-gradient(circle at 70% 70%, rgba(157, 78, 221, 0.08) 0%, transparent 50%);
+}
+
+.dark {
+  --background: 270 20% 12%;
+  --foreground: 0 0% 100%;
+  --card: 270 18% 16%;
+  --card-foreground: 0 0% 100%;
+  --popover: 270 18% 16%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 330 100% 76%;
+  --primary-foreground: 270 20% 12%;
+  --secondary: 274 73% 59%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 345 100% 90%;
+  --accent-foreground: 270 20% 12%;
+  --muted: 270 15% 22%;
+  --muted-foreground: 270 10% 75%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 270 15% 25%;
+  --input: 270 15% 25%;
+  --ring: 330 100% 76%;
+  --sidebar: 270 22% 10%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 330 100% 76%;
+  --sidebar-primary-foreground: 270 20% 12%;
+  --sidebar-accent: 274 73% 59%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 270 15% 25%;
+  --sidebar-ring: 330 100% 76%;
+}
+
+/* 柔和主题专属增强 */
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  position: relative;
+}
+
+/* 梦幻渐变背景 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-hero);
+  opacity: 0.5;
+  z-index: -1;
+  animation: dreamyFloat 25s ease-in-out infinite;
+}
+
+@keyframes dreamyFloat {
+  0%, 100% { 
+    opacity: 0.5; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+

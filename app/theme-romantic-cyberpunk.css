@@ -1,0 +1,134 @@
+/* 
+ * LoveXAI Theme: Romantic Cyberpunk (方案A)
+ * 设计理念：赛博朋克 + 浪漫情欲，融合科技感与性感
+ * 核心色：玫瑰红(#ff006e) + 霓虹紫(#8338ec)
+ */
+
+:root {
+  /* ----- 背景色系 ----- */
+  --background: 240 25% 6%;              /* #0a0a0f 深蓝黑 */
+  --foreground: 0 0% 100%;               /* #ffffff 纯白文字 */
+  
+  --card: 240 28% 11%;                   /* #1a1a2e 深蓝灰卡片 */
+  --card-foreground: 0 0% 100%;
+  
+  --popover: 240 28% 11%;
+  --popover-foreground: 0 0% 100%;
+  
+  /* ----- 强调色系（核心品牌色）----- */
+  --primary: 328 100% 50%;               /* #ff006e 玫瑰红（主色）*/
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 264 81% 57%;              /* #8338ec 霓虹紫（次要色）*/
+  --secondary-foreground: 0 0% 100%;
+  
+  --accent: 18 100% 50%;                 /* #fb5607 活力橙（点缀）*/
+  --accent-foreground: 0 0% 100%;
+  
+  /* ----- 功能色 ----- */
+  --muted: 240 20% 20%;                  /* 弱化背景 */
+  --muted-foreground: 240 5% 65%;        /* #a0a0b2 灰色文字 */
+  
+  --destructive: 0 84% 60%;              /* 删除/警告色 */
+  --destructive-foreground: 0 0% 100%;
+  
+  /* ----- 边框与输入 ----- */
+  --border: 240 20% 18%;                 /* 深色边框 */
+  --input: 240 20% 18%;
+  --ring: 328 100% 50%;                  /* 聚焦环：玫瑰红 */
+  
+  /* ----- 侧边栏 ----- */
+  --sidebar: 240 30% 8%;                 /* #0f0f1a 更深的紫黑 */
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 328 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 264 81% 57%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 240 20% 18%;
+  --sidebar-ring: 328 100% 50%;
+  
+  /* ----- 字体 ----- */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Space Grotesk', 'Inter', sans-serif;  /* 标题字体 */
+  --font-display: 'Cinzel', serif;  /* 装饰字体（角色名）*/
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* ----- 圆角 ----- */
+  --radius: 0.75rem;  /* 12px - 比默认更圆润 */
+  
+  /* ----- 阴影系统（增强版：带霓虹光晕）----- */
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  
+  /* 霓虹发光效果 */
+  --glow-primary: 0 0 20px rgba(255, 0, 110, 0.3), 0 0 40px rgba(255, 0, 110, 0.1);
+  --glow-secondary: 0 0 20px rgba(131, 56, 236, 0.3), 0 0 40px rgba(131, 56, 236, 0.1);
+  --glow-accent: 0 0 15px rgba(251, 86, 7, 0.3);
+  
+  /* ----- 渐变效果 ----- */
+  --gradient-romantic: linear-gradient(135deg, hsl(328 100% 50%) 0%, hsl(264 81% 57%) 100%);
+  --gradient-card-overlay: linear-gradient(to bottom, rgba(131, 56, 236, 0.05), transparent);
+  --gradient-hero: radial-gradient(circle at 20% 50%, rgba(255, 0, 110, 0.08) 0%, transparent 50%),
+                   radial-gradient(circle at 80% 80%, rgba(131, 56, 236, 0.06) 0%, transparent 50%);
+}
+
+/* 暗黑模式（默认即为暗黑）*/
+.dark {
+  --background: 240 25% 6%;
+  --foreground: 0 0% 100%;
+  --card: 240 28% 11%;
+  --card-foreground: 0 0% 100%;
+  --popover: 240 28% 11%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 328 100% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 264 81% 57%;
+  --secondary-foreground: 0 0% 100%;
+  --accent: 18 100% 50%;
+  --accent-foreground: 0 0% 100%;
+  --muted: 240 20% 20%;
+  --muted-foreground: 240 5% 65%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 240 20% 18%;
+  --input: 240 20% 18%;
+  --ring: 328 100% 50%;
+  --sidebar: 240 30% 8%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 328 100% 50%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 264 81% 57%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 240 20% 18%;
+  --sidebar-ring: 328 100% 50%;
+}
+
+/* 浪漫赛博朋克专属样式增强 */
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  position: relative;
+}
+
+/* 动态渐变背景 */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-hero);
+  opacity: 0.4;
+  z-index: -1;
+  animation: subtlePulse 20s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.6; }
+}
+

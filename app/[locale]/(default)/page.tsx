@@ -1,7 +1,8 @@
-import GenderSelector from "@/components/blocks/preferences/GenderSelector";
+
 import HeroBanner from "@/components/blocks/characters/HeroBanner";
 import DiscoverSection from "@/components/blocks/characters/DiscoverSection";
-import Pricing from "@/components/blocks/pricing";
+import ImageGenSection from "@/components/blocks/home/ImageGenSection";
+import Testimonials from "@/components/blocks/home/Testimonials";
 import { getLandingPage } from "@/services/page";
 
 export async function generateMetadata({
@@ -33,17 +34,17 @@ export default async function LandingPage({
 
   return (
     <>
-      {/* Gender Preference Selector - Nectar.AI Style */}
-      <GenderSelector />
-      
       {/* Hero Banner - New AI Companion Focus */}
       <HeroBanner />
       
       {/* Character Discovery Section */}
       <DiscoverSection />
 
-      {/* Keep existing pricing */}
-      {page.pricing && <Pricing pricing={page.pricing} />}
+      {/* AI Image Generation Showcase */}
+      <ImageGenSection />
+
+      {/* User Testimonials */}
+      <Testimonials />
     </>
   );
 }

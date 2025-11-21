@@ -2,50 +2,63 @@ export default function LovexaiLogo({ className = "w-8 h-8" }: { className?: str
   return (
     <svg
       className={className}
-      viewBox="0 0 32 32"
+      viewBox="0 0 40 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Background gradient circle */}
       <defs>
-        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#60a5fa" />
-          <stop offset="50%" stopColor="#a855f7" />
-          <stop offset="100%" stopColor="#ec4899" />
+        <linearGradient id="love-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#ff006e" />
+          <stop offset="100%" stopColor="#ff5c8d" />
         </linearGradient>
-        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-          <feMerge> 
+        <linearGradient id="ai-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8338ec" />
+          <stop offset="100%" stopColor="#3a86ff" />
+        </linearGradient>
+        <filter id="glow-strong" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge>
             <feMergeNode in="coloredBlur"/>
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
       </defs>
+
+      {/* The "Love" Curve (Bottom-Left to Top-Right) */}
+      {/* Organic, smooth S-curve representing human emotion */}
+      <path
+        d="M8 32 C8 32 16 32 20 20 C24 8 32 8 32 8"
+        stroke="url(#love-gradient)"
+        strokeWidth="4"
+        strokeLinecap="round"
+        filter="url(#glow-strong)"
+      />
+
+      {/* The "AI" Beam (Top-Left to Bottom-Right) */}
+      {/* Digital, segmented line representing technology */}
+      <path
+        d="M8 8 L16 16"
+        stroke="url(#ai-gradient)"
+        strokeWidth="4"
+        strokeLinecap="round"
+        filter="url(#glow-strong)"
+      />
+      <path
+        d="M24 24 L32 32"
+        stroke="url(#ai-gradient)"
+        strokeWidth="4"
+        strokeLinecap="round"
+        filter="url(#glow-strong)"
+      />
       
-      {/* Main circle background */}
-      <circle cx="16" cy="16" r="15" fill="url(#logoGradient)" opacity="0.9" filter="url(#glow)" />
+      {/* The Intersection (The "X" Core) */}
+      {/* A bright spark where Love meets AI */}
+      <circle cx="20" cy="20" r="3" fill="white" filter="url(#glow-strong)" />
       
-      {/* AI-inspired geometric pattern */}
-      <g transform="translate(16,16)">
-        {/* Central diamond */}
-        <path d="M0,-6 L4,-2 L0,2 L-4,-2 Z" fill="white" opacity="0.9" />
-        
-        {/* Neural network nodes */}
-        <circle cx="-6" cy="-4" r="1.5" fill="white" opacity="0.7" />
-        <circle cx="6" cy="-4" r="1.5" fill="white" opacity="0.7" />
-        <circle cx="-6" cy="4" r="1.5" fill="white" opacity="0.7" />
-        <circle cx="6" cy="4" r="1.5" fill="white" opacity="0.7" />
-        
-        {/* Connection lines */}
-        <line x1="-6" y1="-4" x2="-2" y2="-3" stroke="white" strokeWidth="0.8" opacity="0.6" />
-        <line x1="6" y1="-4" x2="2" y2="-3" stroke="white" strokeWidth="0.8" opacity="0.6" />
-        <line x1="-6" y1="4" x2="-2" y2="1" stroke="white" strokeWidth="0.8" opacity="0.6" />
-        <line x1="6" y1="4" x2="2" y2="1" stroke="white" strokeWidth="0.8" opacity="0.6" />
-        
-        {/* Love heart symbol (subtle) */}
-        <path d="M-1,-1 C-1,-2 0,-2 0,-1 C0,-2 1,-2 1,-1 C1,0 0,1.5 0,1.5 C0,1.5 -1,0 -1,-1 Z" 
-              fill="white" opacity="0.4" transform="scale(0.8)" />
-      </g>
+      {/* Subtle Tech Accents */}
+      <rect x="22" y="22" width="2" height="2" fill="white" opacity="0.8" />
+      <rect x="26" y="26" width="2" height="2" fill="white" opacity="0.6" />
+      
     </svg>
   );
 }

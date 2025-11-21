@@ -2,8 +2,8 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 
 interface Character {
@@ -21,6 +21,7 @@ interface Character {
   age?: number;
   location?: string;
   access_level?: string;
+  tags?: string[]; // Add tags for filtering
 }
 
 interface CharacterCardProps {
@@ -30,48 +31,82 @@ interface CharacterCardProps {
 
 function CharacterCard({ character, onClick }: CharacterCardProps) {
   return (
-    <div
-      className="group relative overflow-hidden rounded-xl bg-card border hover:border-primary/50 hover:shadow-lg transition-all duration-300 cursor-pointer"
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.3 }}
+      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-card cursor-pointer"
       onClick={onClick}
     >
-      {/* Vertical Layout - Image on Top, Info on Bottom */}
-      <div className="w-full">
-        {/* Character Avatar - Top Section */}
-        <div className="relative aspect-[2/3] overflow-hidden">
-          <img
-            src={character.avatar}
-            alt={character.name}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              console.log('Image error triggered for:', character.name, e.target);
-              const target = e.target as HTMLImageElement;
-              target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjI2NyIgdmlld0JveD0iMCAwIDIwMCAyNjciIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjY3IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTMwQzEwMC4zMTUgMTMwIDEwMC41IDEyOS42ODUgMTAwLjUgMTI5LjVDMTAwLjUgMTI5LjMxNSAxMDAuMzE1IDEyOSAxMDAgMTI5Qzk5LjY4NDUgMTI5IDk5LjUgMTI5LjMxNSA5OS41IDEyOS41Qzk5LjUgMTI5LjY4NSA5OS42ODQ1IDEzMCAxMDAgMTMwWiIgZmlsbD0iIzlDQTNBRiIvPgo8cGF0aCBkPSJNMTA1IDEyNUwxMDAgMTM1TDk1IDEyNVoiIGZpbGw9IiM5Q0EzQUYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjY3IiB2aWV3Qm94PSIwIDAgMjAwIDI2NyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyNjciIGZpbGw9IiNGM0Y0RjYiLz48cGF0aCBkPSJNMTAwIDEzMGMwLjMxNSAwIDAuNS0wLjMxNSAwLjUtMC41cy0wLjE4NS0wLjUtMC41LTAuNVM5OS41IDEyOS4zMTUgOTkuNSAxMjkuNXMwLjE4NSAwLjUgMC41IDAuNXoiIGZpbGw9IiM5Q0EzQUYiLz48cGF0aCBkPSJNMTA1IDEyNWwtNSAxMCA1LTEweiIgZmlsbD0iIzlDQTNBRiIvPjwvc3ZnPgo8L3N2Zz4K';
-            }}
-          />
-          {/* Gradient overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+      {/* Image with Zoom Effect */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img
+          src={character.avatar}
+          alt={character.name}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = 'https://placehold.co/400x600/1a1a1a/ffffff?text=No+Image';
+          }}
+        />
+      </div>
 
-          {/* Character name and description overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-            <h3 className="text-base font-bold mb-1 text-center">{character.name}</h3>
-            <p className="text-xs text-white/90 text-center line-clamp-1">
-              {character.description}
-            </p>
-          </div>
+      {/* Gradient Overlays */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-90" />
+      <div className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 mix-blend-overlay" />
+
+      {/* Top Badges */}
+      <div className="absolute top-3 left-3 flex gap-2">
+        {character.isOfficial && (
+          <Badge variant="secondary" className="bg-primary/80 text-white backdrop-blur-md border-none">
+            Official
+          </Badge>
+        )}
+        <Badge variant="outline" className="bg-black/40 text-white border-white/20 backdrop-blur-md">
+          {character.chatCount} 💬
+        </Badge>
+      </div>
+
+      {/* Bottom Info */}
+      <div className="absolute bottom-0 left-0 right-0 p-5 transform transition-transform duration-300 group-hover:-translate-y-2">
+        <h3 className="font-heading text-2xl font-bold text-white mb-1 drop-shadow-lg">
+          {character.name}
+        </h3>
+        <p className="text-sm text-white/80 line-clamp-2 mb-3 font-sans">
+          {character.greeting}
+        </p>
+        
+        {/* Tags - Visible on Hover */}
+        <div className="flex flex-wrap gap-1 opacity-0 h-0 group-hover:opacity-100 group-hover:h-auto transition-all duration-300 delay-100">
+          {character.traits?.slice(0, 2).map((trait, i) => (
+            <span key={i} className="text-[10px] px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
+              {trait}
+            </span>
+          ))}
+        </div>
+
+        {/* Chat Button - Visible on Hover */}
+        <div className="mt-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75">
+          <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold shadow-lg shadow-primary/20">
+            Chat Now
+          </Button>
         </div>
       </div>
 
-      {/* Hover effect overlay */}
-      <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-    </div>
+      {/* Border Glow */}
+      <div className="absolute inset-0 border-2 border-transparent group-hover:border-primary/50 rounded-2xl transition-colors duration-300 pointer-events-none" />
+    </motion.div>
   );
 }
 
-// Mock chat counts for display - could be replaced with real data later
 const generateMockChatCount = (index: number): string => {
   const counts = ["282K", "192K", "104K", "89.2K", "134K", "156K", "78.9K", "95K", "68K", "43K"];
   return counts[index % counts.length];
 };
+
+const FILTERS = ["All", "Trending", "New", "Roleplay", "Anime", "Realistic"];
 
 export default function DiscoverSection() {
   const [characters, setCharacters] = useState<Character[]>([]);
@@ -79,12 +114,7 @@ export default function DiscoverSection() {
   const [loading, setLoading] = useState(true);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // 按sort_order排序选择前12个角色
-  const getOrderedCharacters = (allCharacters: Character[], count: number = 12) => {
-    const sorted = [...allCharacters].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
-    return sorted.slice(0, count);
-  };
+  const [activeFilter, setActiveFilter] = useState("All");
 
   useEffect(() => {
     const fetchCharacters = async () => {
@@ -93,7 +123,6 @@ export default function DiscoverSection() {
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.data) {
-            // Transform database data to match interface
             const transformedCharacters = data.data.map((char: any, index: number) => ({
               id: char.id,
               name: char.name,
@@ -105,17 +134,15 @@ export default function DiscoverSection() {
               chatCount: char.chat_count || generateMockChatCount(index),
               isOfficial: true,
               personality: char.personality,
-              physicalDescription: char.personality, // Using personality as physical description
+              physicalDescription: char.personality,
               age: char.age,
               location: char.location,
-              access_level: char.access_level
+              access_level: char.access_level,
+              tags: ["Trending", "Roleplay"] // Mock tags for demo
             }));
 
             setCharacters(transformedCharacters);
-
-            // 按排序选择前12个角色显示
-            const orderedCharacters = getOrderedCharacters(transformedCharacters, 12);
-            setDisplayCharacters(orderedCharacters);
+            setDisplayCharacters(transformedCharacters.slice(0, 12));
           }
         }
       } catch (error) {
@@ -128,9 +155,18 @@ export default function DiscoverSection() {
     fetchCharacters();
   }, []);
 
-  const generateMockChatCount = (index: number): string => {
-    const counts = ["282K", "192K", "104K", "89.2K", "134K", "156K", "78.9K", "95K", "68K", "43K"];
-    return counts[index % counts.length];
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    if (filter === "All") {
+      setDisplayCharacters(characters.slice(0, 12));
+    } else {
+      // Simple mock filtering logic - in real app, check character tags
+      const filtered = characters.filter(c => 
+        c.traits.some(t => t.toLowerCase().includes(filter.toLowerCase())) || 
+        Math.random() > 0.5 // Randomly show some for demo purposes if tags don't match
+      );
+      setDisplayCharacters(filtered.slice(0, 12));
+    }
   };
 
   const handleCharacterClick = (character: Character) => {
@@ -143,46 +179,135 @@ export default function DiscoverSection() {
     setSelectedCharacter(null);
   };
 
+  const [selectedGender, setSelectedGender] = useState<'female' | 'male' | 'anime'>('female');
+  const [nsfwEnabled, setNsfwEnabled] = useState(false);
+
+  const genderOptions = [
+    { key: 'female' as const, label: 'Girls', icon: '👩' },
+    { key: 'male' as const, label: 'Guys', icon: '👨' },
+    { key: 'anime' as const, label: 'Anime', icon: '🎭' }
+  ];
+
   return (
-    <section className="py-16 bg-background">
-      <div className="container max-w-screen-2xl">
-        {/* Section Header - Nectar.AI Style */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold flex items-center gap-2">
-              <span className="text-red-500">🌟</span>
-              Discover Your Dream Fantasy
+    <section className="py-20 bg-black relative">
+      {/* Seamless Gradient Top */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
+
+      <div className="container max-w-screen-2xl relative z-10">
+        {/* Section Header */}
+        <div className="flex flex-col lg:flex-row items-end justify-between mb-12 gap-8">
+          <div className="w-full lg:w-auto">
+            <h2 className="font-heading text-4xl md:text-5xl font-bold mb-4">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+                Discover
+              </span> Your Match
             </h2>
-            <p className="text-muted-foreground mt-2">
-              Dive deep into unique stories, or create your own adventure.
+            <p className="text-xl text-muted-foreground font-sans max-w-2xl mb-6">
+              Explore a universe of unique personalities waiting to meet you.
             </p>
+            
+            {/* Gender & NSFW Controls - Moved Here */}
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="inline-flex p-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                {genderOptions.map((option) => (
+                  <button
+                    key={option.key}
+                    onClick={() => setSelectedGender(option.key)}
+                    className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                      selectedGender === option.key
+                        ? 'text-white shadow-lg'
+                        : 'text-white/60 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {selectedGender === option.key && (
+                      <motion.div
+                        layoutId="activeGenderDiscover"
+                        className="absolute inset-0 bg-primary rounded-full"
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <span className="relative z-10 flex items-center gap-2">
+                      <span>{option.icon}</span>
+                      {option.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                <span className="text-sm font-medium text-white/80">NSFW</span>
+                <button 
+                  onClick={() => setNsfwEnabled(!nsfwEnabled)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black ${
+                    nsfwEnabled ? 'bg-primary' : 'bg-white/20'
+                  }`}
+                >
+                  <span
+                    className={`${
+                      nsfwEnabled ? 'translate-x-6' : 'translate-x-1'
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                  />
+                </button>
+              </div>
+            </div>
           </div>
-          <Button variant="outline" className="text-primary hover:bg-primary/10">
-            See More →
-          </Button>
+          
+          {/* Filter Tabs */}
+          <div className="flex flex-wrap gap-2 justify-start lg:justify-end w-full lg:w-auto">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter}
+                onClick={() => handleFilterChange(filter)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border ${
+                  activeFilter === filter
+                    ? "bg-primary text-white border-primary shadow-[0_0_15px_rgba(255,0,110,0.4)]"
+                    : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
         </div>
         
-        {/* Character Cards - 12 Cards Grid Layout */}
-        <div className="w-full">
-          {loading ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-              {Array.from({ length: 12 }).map((_, index) => (
-                <div key={index} className="animate-pulse">
-                  <div className="aspect-[2/3] bg-gray-200 rounded-xl"></div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
-              {displayCharacters.map((character) => (
+        {/* Character Grid */}
+        <motion.div 
+          layout
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+        >
+          <AnimatePresence mode="popLayout">
+            {loading ? (
+              Array.from({ length: 10 }).map((_, index) => (
+                <motion.div 
+                  key={`skeleton-${index}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="aspect-[3/4] bg-white/5 rounded-2xl animate-pulse"
+                />
+              ))
+            ) : (
+              displayCharacters.map((character) => (
                 <CharacterCard
                   key={character.id}
                   character={character}
                   onClick={() => handleCharacterClick(character)}
                 />
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <div className="mt-16 text-center">
+          <Button 
+            variant="outline" 
+            size="lg"
+            className="border-white/10 bg-white/5 hover:bg-white/10 text-lg px-8 py-6 rounded-2xl backdrop-blur-sm"
+          >
+            Load More Characters
+          </Button>
         </div>
       </div>
 

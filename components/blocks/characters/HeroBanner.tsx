@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 
 // Import the same character data structure from DiscoverSection
@@ -75,13 +76,15 @@ export default function HeroBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedGender, setSelectedGender] = useState<'female' | 'male' | 'anime'>('female');
+  const [nsfwEnabled, setNsfwEnabled] = useState(false);
   const router = useRouter();
 
   // Auto-play carousel
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % heroCharacters.length);
-    }, 4000);
+    }, 5000); // Slower interval for better viewing
     return () => clearInterval(timer);
   }, []);
 
@@ -99,161 +102,195 @@ export default function HeroBanner() {
     setSelectedCharacter(null);
   };
 
+  const genderOptions = [
+    { key: 'female' as const, label: 'Girls', icon: '👩' },
+    { key: 'male' as const, label: 'Guys', icon: '👨' },
+    { key: 'anime' as const, label: 'Anime', icon: '🎭' }
+  ];
+
   return (
-    <section className="relative py-16 lg:py-24 overflow-hidden bg-background">
-      {/* Background with subtle gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-muted/20"></div>
+    <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-black pt-20 lg:pt-0">
+      {/* Seamless Gradient Bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
+
+      {/* Dynamic Background Glows */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full pointer-events-none" />
       
-      <div className="container relative z-10 max-w-screen-2xl">
-        <div className="rounded-3xl bg-muted/30 border border-border/50 backdrop-blur-sm p-8 lg:p-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div>
-              <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold mb-6 leading-tight text-foreground">
-                Craft Your Perfect
-                <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
-                  AI Companion
-                </span>
-              </h1>
-              
-              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-                Create intelligent, engaging, and personalized AI characters 
-                that understand you and grow with every conversation.
-              </p>
-              
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white font-semibold px-8 py-4 text-base shadow-lg"
-                  onClick={() => handleStartChat(heroCharacters[currentIndex])}
-                >
-                  Start Chatting
-                </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline"
-                  className="border-2 border-border hover:bg-muted font-semibold px-8 py-4 text-base"
-                >
-                  Discover More
-                </Button>
-              </div>
+      <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+        {/* Left Content: Immersive Text */}
+        <div className="text-center lg:text-left space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+
+
+            <h1 className="font-heading text-5xl lg:text-7xl font-bold leading-tight text-foreground tracking-tight">
+              Craft Your <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-secondary drop-shadow-[0_0_25px_rgba(255,0,110,0.4)]">
+                Perfect Fantasy
+              </span>
+            </h1>
+          </motion.div>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 font-sans leading-relaxed"
+          >
+            Dive into a world where AI characters feel alive. Create, chat, and connect with companions that understand your deepest desires.
+          </motion.p>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+          >
+            <Button
+              size="lg"
+              className="relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-bold px-10 py-6 text-lg rounded-2xl shadow-[0_0_20px_rgba(255,0,110,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,0,110,0.6)]"
+              onClick={() => handleStartChat(heroCharacters[currentIndex])}
+            >
+              <span className="relative z-10">Start Chatting Now</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]"></div>
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 font-semibold px-8 py-6 text-lg rounded-2xl backdrop-blur-sm transition-all"
+            >
+              Explore Characters
+            </Button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="flex items-center gap-6 justify-center lg:justify-start pt-4"
+          >
+            <div className="flex -space-x-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted overflow-hidden">
+                  <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-full h-full object-cover" />
+                </div>
+              ))}
             </div>
-            
-            {/* Right Content - Character Carousel */}
-            <div className="relative w-full max-w-lg mx-auto">
-              {/* Fixed container to prevent shaking */}
-              <div className="relative w-full h-[480px] overflow-hidden rounded-2xl">
-                {heroCharacters.map((character, index) => {
-                  const isActive = index === currentIndex;
-                  const isNext = index === (currentIndex + 1) % heroCharacters.length;
-                  const isPrev = index === (currentIndex - 1 + heroCharacters.length) % heroCharacters.length;
+            <div className="text-sm text-muted-foreground">
+              <span className="text-foreground font-bold">10,000+</span> users online
+            </div>
+          </motion.div>
+        </div>
+        
+        {/* Right Content: 3D Card Stack */}
+        <div className="relative h-[500px] lg:h-[600px] flex items-center justify-center perspective-1000">
+          <AnimatePresence mode="popLayout">
+            {heroCharacters.map((character, index) => {
+              // Calculate relative position for stack effect
+              const offset = (index - currentIndex + heroCharacters.length) % heroCharacters.length;
+              
+              // Only show 3 cards: current, next, and previous (as last)
+              if (offset > 2 && offset !== heroCharacters.length - 1) return null;
 
-                  let translateX = '100%'; // Default: off-screen right
-                  let opacity = 0;
-                  let scale = 0.9;
+              let zIndex = 0;
+              let scale = 0.8;
+              let opacity = 0;
+              let x = 0;
+              let rotateY = 0;
 
-                  if (isActive) {
-                    translateX = '0%';
-                    opacity = 1;
-                    scale = 1;
-                  } else if (isNext) {
-                    translateX = '50%';
-                    opacity = 0.6;
-                    scale = 0.95;
-                  } else if (isPrev) {
-                    translateX = '-50%';
-                    opacity = 0.6;
-                    scale = 0.95;
-                  }
+              if (offset === 0) { // Active card
+                zIndex = 30;
+                scale = 1;
+                opacity = 1;
+                x = 0;
+                rotateY = 0;
+              } else if (offset === 1) { // Next card (Right)
+                zIndex = 20;
+                scale = 0.85;
+                opacity = 0.6;
+                x = 180; // px
+                rotateY = -15; // deg
+              } else { // Previous/Last card (Left)
+                zIndex = 10;
+                scale = 0.85;
+                opacity = 0.6;
+                x = -180; // px
+                rotateY = 15; // deg
+              }
 
-                  return (
-                    <div
-                      key={character.id}
-                      className="absolute inset-0 w-full transition-all duration-700 ease-in-out cursor-pointer"
-                      style={{
-                        transform: `translateX(${translateX}) scale(${scale})`,
-                        opacity: opacity,
-                        zIndex: isActive ? 10 : isPrev || isNext ? 5 : 0
-                      }}
-                      onClick={() => handleCharacterClick(character)}
-                    >
-                      <div className="relative w-full h-full rounded-2xl overflow-hidden bg-gradient-to-br from-muted/50 to-muted/80 border border-border backdrop-blur-sm shadow-2xl">
-                        <img
-                          src={character.avatar}
-                          alt={character.name}
-                          className="w-full h-full object-cover"
-                        />
-                        {/* Overlay gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-
-                        {/* Character info overlay */}
-                        <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                          <h3 className="text-xl font-bold mb-2">{character.name}</h3>
-                          <p className="text-sm text-white/90 mb-4 line-clamp-2">
-                            {character.greeting}
-                          </p>
-
-                          <div className="flex items-center justify-between">
-                            <Button
-                              size="sm"
-                              className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white font-semibold px-4 py-2 rounded-lg"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleStartChat(character);
-                              }}
-                            >
-                              Chat
-                            </Button>
-                            <div className="flex items-center gap-1 text-sm text-white/80">
-                              <span className="text-white/60">💬</span>
-                              <span>{character.chatCount}</span>
-                            </div>
-                          </div>
-                        </div>
+              return (
+                <motion.div
+                  key={character.id}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ 
+                    scale, 
+                    opacity, 
+                    x, 
+                    rotateY,
+                    zIndex 
+                  }}
+                  exit={{ scale: 0.5, opacity: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="absolute w-[280px] sm:w-[320px] aspect-[3/4] cursor-pointer"
+                  onClick={() => {
+                    if (offset === 0) handleCharacterClick(character);
+                    else setCurrentIndex(index);
+                  }}
+                  style={{ transformStyle: 'preserve-3d' }}
+                >
+                  <div className={`relative h-full w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-300 ${offset === 0 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/20' : ''}`}>
+                    <img
+                      src={character.avatar}
+                      alt={character.name}
+                      className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+                    />
+                    
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    
+                    {/* Content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-1 rounded-md bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider">
+                          {character.traits[0]}
+                        </span>
+                        {character.isOfficial && (
+                          <span className="px-2 py-1 rounded-md bg-primary/80 backdrop-blur-md text-xs font-bold uppercase tracking-wider">
+                            Official
+                          </span>
+                        )}
                       </div>
+                      
+                      <h3 className="font-heading text-3xl font-bold mb-1">{character.name}</h3>
+                      <p className="text-sm text-white/80 line-clamp-2 font-sans mb-4">
+                        {character.greeting}
+                      </p>
+                      
+                      {offset === 0 && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="flex items-center justify-between pt-4 border-t border-white/10"
+                        >
+                          <div className="flex items-center gap-1 text-xs text-white/60">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            Online Now
+                          </div>
+                          <div className="flex items-center gap-1 text-xs font-mono text-primary-foreground">
+                            <span>❤</span> {character.chatCount}
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
-                  );
-                })}
-              </div>
-              
-              {/* Navigation arrows */}
-              <div className="absolute top-1/2 -translate-y-1/2 left-4 z-20">
-                <button
-                  onClick={() => setCurrentIndex((prev) => (prev - 1 + heroCharacters.length) % heroCharacters.length)}
-                  className="p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition-all backdrop-blur-sm"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="absolute top-1/2 -translate-y-1/2 right-4 z-20">
-                <button
-                  onClick={() => setCurrentIndex((prev) => (prev + 1) % heroCharacters.length)}
-                  className="p-2 rounded-full bg-black/20 hover:bg-black/40 text-white transition-all backdrop-blur-sm"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Dots indicator */}
-              <div className="flex justify-center mt-6 gap-2">
-                {heroCharacters.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentIndex(index)}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentIndex ? 'bg-gradient-to-r from-purple-400 to-pink-400' : 'bg-muted-foreground/40'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       </div>
 
