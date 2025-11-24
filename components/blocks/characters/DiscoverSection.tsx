@@ -191,7 +191,7 @@ export default function DiscoverSection() {
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
 
-      <div className="w-full px-6 md:px-8 relative z-10">
+      <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto relative z-10">
         {/* Section Header */}
         <div className="flex flex-col xl:flex-row items-start xl:items-end justify-between mb-8 gap-6">
           <div className="w-full xl:w-auto max-w-3xl">

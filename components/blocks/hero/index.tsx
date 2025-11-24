@@ -40,7 +40,7 @@ export default function Hero({ hero }: { hero: HeroType }) {
               </div>
             </div>
           )}
-          <div className="text-center max-w-6xl mx-auto">
+          <div className="text-center w-full px-6 md:px-8 max-w-[1400px] mx-auto">
             {hero.announcement && (
               <div className="mb-8">
                 <a

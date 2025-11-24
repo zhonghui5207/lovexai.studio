@@ -117,7 +117,7 @@ export default function HeroBanner() {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full pointer-events-none" />
       
-      <div className="w-full px-6 md:px-8 grid lg:grid-cols-12 gap-8 items-center relative z-10">
+      <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-8 items-center relative z-10">
         {/* Left Content: Text */}
         <div className="lg:col-span-6 text-center lg:text-left space-y-8 pt-12 lg:pt-0 relative z-20">
           <motion.div
@@ -187,7 +187,7 @@ export default function HeroBanner() {
         </div>
         
         {/* Right Content: 3D Card Stack */}
-        <div className="lg:col-span-6 relative h-[500px] lg:h-[600px] flex items-center justify-center lg:justify-start lg:-ml-12 perspective-1000 z-10">
+        <div className="lg:col-span-6 relative h-[500px] lg:h-[600px] flex items-center justify-center perspective-1000 z-10">
           <AnimatePresence mode="popLayout">
             {heroCharacters.map((character, index) => {
               // Calculate relative position for stack effect

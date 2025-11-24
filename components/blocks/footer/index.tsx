@@ -8,90 +8,97 @@ export default function Footer({ footer }: { footer: FooterType }) {
   }
 
   return (
-    <section id={footer.name} className="relative py-20 overflow-hidden bg-black">
-      <div className="w-full px-6 md:px-8">
+    <section id={footer.name} className="relative bg-black py-12 lg:py-20 overflow-hidden">
+      <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto">
         <footer>
-          <div className="flex flex-col items-center justify-between gap-12 text-center lg:flex-row lg:items-start lg:text-left">
-            <div className="flex w-full lg:max-w-md shrink flex-col items-center justify-between gap-8 lg:items-start">
+          {/* Grid Layout: Left Brand (2 cols) | Right Links (3 cols) */}
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
+            
+            {/* Brand Column */}
+            <div className="flex flex-col gap-6 lg:col-span-4 xl:col-span-5">
               {footer.brand && (
-                <div>
-                  <div className="flex items-center justify-center gap-3 lg:justify-start group">
-                    <LovexaiLogo className="h-10 w-10 transition-transform group-hover:scale-110 duration-300" />
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-center gap-3 group w-fit">
+                    <LovexaiLogo className="h-10 w-10 transition-transform duration-300 group-hover:scale-110" />
                     {footer.brand.title && (
-                      <p className="text-2xl font-bold text-white tracking-tight">
+                      <span className="text-2xl font-bold tracking-tight text-white">
                         {footer.brand.title}
-                      </p>
+                      </span>
                     )}
                   </div>
-                  <p className="mt-6 text-base text-white/60 font-light leading-relaxed">
+                  <p className="text-base font-light leading-relaxed text-white/60">
                     Experience the next generation of AI companionship. Dive into immersive roleplay, create your dream characters, and explore a universe of limitless possibilities. Your fantasy, your rules.
                   </p>
                 </div>
               )}
+              
               {footer.social && (
-                <ul className="flex items-center space-x-4">
+                <ul className="flex items-center gap-4">
                   {footer.social.items?.map((item, i) => (
-                    <li 
-                      key={i} 
-                      className="font-medium transition-all duration-300 transform hover:scale-110"
-                    >
+                    <li key={i}>
                       <a 
                         href={item.url} 
                         target={item.target}
-                        className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-primary hover:border-primary/50 hover:bg-primary/10 transition-all duration-300"
+                        className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/60 transition-colors duration-300 hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
                       >
-                        {item.icon && (
-                          <Icon name={item.icon} className="size-4" />
-                        )}
+                        {item.icon && <Icon name={item.icon} className="h-4 w-4" />}
                       </a>
                     </li>
                   ))}
                 </ul>
               )}
+            </div>
+
+            {/* Links Columns */}
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-8 lg:col-start-6 xl:col-span-6 xl:col-start-7">
+              {/* Column 1 */}
+              <div className="flex flex-col gap-4">
+                <h4 className="text-lg font-bold text-white">Explore</h4>
+                <ul className="flex flex-col gap-2">
+                  <li><a href="/characters" className="text-sm text-white/60 transition-colors hover:text-primary">Characters</a></li>
+                  <li><a href="/generate" className="text-sm text-white/60 transition-colors hover:text-primary">Image Gen</a></li>
+                  <li><a href="/pricing" className="text-sm text-white/60 transition-colors hover:text-primary">Pricing</a></li>
+                </ul>
               </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-12 w-full lg:w-auto">
-              <div className="text-center md:text-left">
-                <p className="mb-4 font-bold text-lg text-white">Explore</p>
-                <ul className="space-y-2">
-                  <li><a href="/characters" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Characters</a></li>
-                  <li><a href="/generate" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Image Gen</a></li>
-                  <li><a href="/pricing" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Pricing</a></li>
+              {/* Column 2 */}
+              <div className="flex flex-col gap-4">
+                <h4 className="text-lg font-bold text-white">Support</h4>
+                <ul className="flex flex-col gap-2">
+                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Help Center</a></li>
+                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Community</a></li>
+                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Contact</a></li>
                 </ul>
               </div>
-              <div className="text-center md:text-left">
-                <p className="mb-4 font-bold text-lg text-white">Support</p>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Help Center</a></li>
-                  <li><a href="#" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Community</a></li>
-                  <li><a href="#" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Contact</a></li>
-                </ul>
-              </div>
-              <div className="text-center md:text-left">
-                <p className="mb-4 font-bold text-lg text-white">Legal</p>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Terms</a></li>
-                  <li><a href="#" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Privacy</a></li>
-                  <li><a href="#" className="text-white/60 hover:text-primary text-sm hover:translate-x-1 inline-block transition-all">Guidelines</a></li>
+
+              {/* Column 3 */}
+              <div className="flex flex-col gap-4">
+                <h4 className="text-lg font-bold text-white">Legal</h4>
+                <ul className="flex flex-col gap-2">
+                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Terms</a></li>
+                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Privacy</a></li>
+                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Guidelines</a></li>
                 </ul>
               </div>
             </div>
           </div>
-          <div className="mt-16 flex flex-col justify-between gap-6 pt-8 text-center text-sm font-medium lg:flex-row lg:items-center lg:text-left">
+
+          {/* Bottom Bar */}
+          <div className="mt-16 flex flex-col items-center justify-between gap-6 border-t border-white/10 pt-8 text-sm font-medium lg:flex-row">
             {footer.copyright && (
-              <p className="text-white/40">
+              <p className="text-white/40 text-center lg:text-left">
                 {footer.copyright}
               </p>
             )}
 
             {footer.agreement && (
-              <ul className="flex justify-center gap-6 lg:justify-start">
+              <ul className="flex flex-wrap justify-center gap-6">
                 {footer.agreement.items?.map((item, i) => (
-                  <li key={i} className="transition-all duration-300">
+                  <li key={i}>
                     <a 
                       href={item.url} 
                       target={item.target}
-                      className="text-white/40 hover:text-white font-medium transition-all duration-300"
+                      className="text-white/40 transition-colors hover:text-white"
                     >
                       {item.title}
                     </a>

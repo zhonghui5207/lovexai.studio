@@ -92,12 +92,8 @@ export default function Testimonials() {
       {/* Background Elements */}
       <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-secondary/5 blur-[120px] pointer-events-none" />
       
-      {/* Gradient Masks for smooth fade out sides */}
-      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
-
-      <div className="w-full px-6 md:px-8 relative z-10 mb-12">
-        <div className="text-left">
+      <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto relative z-10">
+        <div className="text-left mb-12">
           <h2 className="font-heading text-4xl md:text-5xl font-bold mb-4">
             Loved by <span className="text-primary">Thousands</span>
           </h2>
@@ -105,35 +101,42 @@ export default function Testimonials() {
             Join our community and see why users are addicted to the experience.
           </p>
         </div>
-      </div>
 
-      <div className="flex flex-col gap-6">
-        {/* Row 1: Left Scroll */}
-        <div className="flex overflow-hidden">
-          <motion.div
-            key="scroll-left-slow"
-            className="flex"
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ repeat: Infinity, ease: "linear", duration: 200 }}
-          >
-            {[...REVIEWS, ...REVIEWS].map((review, index) => (
-              <ReviewCard key={`r1-${index}`} review={review} />
-            ))}
-          </motion.div>
-        </div>
+        {/* Scroll Container with Masks */}
+        <div className="relative">
+           {/* Local Gradient Masks */}
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-20 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-20 pointer-events-none" />
+          
+          <div className="flex flex-col gap-6">
+            {/* Row 1: Left Scroll */}
+            <div className="flex overflow-hidden mask-image-linear-gradient">
+              <motion.div
+                key="scroll-left-slow"
+                className="flex"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ repeat: Infinity, ease: "linear", duration: 200 }}
+              >
+                {[...REVIEWS, ...REVIEWS].map((review, index) => (
+                  <ReviewCard key={`r1-${index}`} review={review} />
+                ))}
+              </motion.div>
+            </div>
 
-        {/* Row 2: Right Scroll */}
-        <div className="flex overflow-hidden">
-          <motion.div
-            key="scroll-right-slow"
-            className="flex"
-            animate={{ x: ["-50%", "0%"] }}
-            transition={{ repeat: Infinity, ease: "linear", duration: 240 }}
-          >
-            {[...REVIEWS, ...REVIEWS].reverse().map((review, index) => (
-              <ReviewCard key={`r2-${index}`} review={review} />
-            ))}
-          </motion.div>
+            {/* Row 2: Right Scroll */}
+            <div className="flex overflow-hidden">
+              <motion.div
+                key="scroll-right-slow"
+                className="flex"
+                animate={{ x: ["-50%", "0%"] }}
+                transition={{ repeat: Infinity, ease: "linear", duration: 240 }}
+              >
+                {[...REVIEWS, ...REVIEWS].reverse().map((review, index) => (
+                  <ReviewCard key={`r2-${index}`} review={review} />
+                ))}
+              </motion.div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
