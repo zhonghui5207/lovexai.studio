@@ -185,28 +185,28 @@ export default function DiscoverSection() {
   };
 
   return (
-    <section className="py-12 bg-black relative">
+    <section className="py-6 md:py-10 bg-black relative">
       {/* Seamless Gradient Top */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
 
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="w-full px-6 md:px-8 relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col lg:flex-row items-end justify-between mb-12 gap-8">
-          <div className="w-full lg:w-auto">
+        <div className="flex flex-col xl:flex-row items-start xl:items-end justify-between mb-8 gap-6">
+          <div className="w-full xl:w-auto max-w-3xl">
             <h2 className="font-heading text-4xl md:text-5xl font-bold mb-4">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
                 Discover
               </span> Your Match
             </h2>
-            <p className="text-xl text-muted-foreground font-sans max-w-2xl mb-6">
+            <p className="text-xl text-muted-foreground font-sans mb-0">
               Explore a universe of unique personalities waiting to meet you.
             </p>
           </div>
           
           {/* Filter Tabs */}
-          <div className="flex flex-wrap gap-2 justify-start lg:justify-end w-full lg:w-auto">
+          <div className="flex flex-wrap gap-2 justify-start xl:justify-end w-full xl:w-auto">
             {FILTERS.map((filter) => (
               <button
                 key={filter}
@@ -226,7 +226,7 @@ export default function DiscoverSection() {
         {/* Character Grid */}
         <motion.div 
           layout
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full"
         >
           <AnimatePresence mode="popLayout">
             {loading ? (

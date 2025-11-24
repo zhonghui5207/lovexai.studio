@@ -109,7 +109,7 @@ export default function HeroBanner() {
   ];
 
   return (
-    <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-black pt-20 lg:pt-0">
+    <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-black pt-10 lg:pt-0">
       {/* Seamless Gradient Bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 
@@ -117,9 +117,9 @@ export default function HeroBanner() {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full pointer-events-none" />
       
-      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center relative z-10">
-        {/* Left Content: Immersive Text */}
-        <div className="text-center lg:text-left space-y-8">
+      <div className="w-full px-6 md:px-8 grid lg:grid-cols-12 gap-8 items-center relative z-10">
+        {/* Left Content: Text */}
+        <div className="lg:col-span-6 text-center lg:text-left space-y-8 pt-12 lg:pt-0 relative z-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -187,7 +187,7 @@ export default function HeroBanner() {
         </div>
         
         {/* Right Content: 3D Card Stack */}
-        <div className="relative h-[500px] lg:h-[600px] flex items-center justify-center perspective-1000">
+        <div className="lg:col-span-6 relative h-[500px] lg:h-[600px] flex items-center justify-center lg:justify-start lg:-ml-12 perspective-1000 z-10">
           <AnimatePresence mode="popLayout">
             {heroCharacters.map((character, index) => {
               // Calculate relative position for stack effect
