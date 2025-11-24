@@ -117,7 +117,7 @@ export default function HeroBanner() {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full pointer-events-none" />
       
-      <div className="container mx-auto px-4 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center relative z-10">
         {/* Left Content: Immersive Text */}
         <div className="text-center lg:text-left space-y-8">
           <motion.div

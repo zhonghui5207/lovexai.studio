@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
+import { useSearchParams } from "next/navigation";
 
 interface Character {
   id: string;
@@ -116,6 +117,10 @@ export default function DiscoverSection() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
 
+  const searchParams = useSearchParams();
+  const activeGender = searchParams.get("gender") || "female";
+  const nsfwEnabled = searchParams.get("nsfw") === "true";
+
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
@@ -153,7 +158,7 @@ export default function DiscoverSection() {
     };
 
     fetchCharacters();
-  }, []);
+  }, [activeGender, nsfwEnabled]); // Re-fetch when filters change (mock behavior)
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
@@ -179,23 +184,14 @@ export default function DiscoverSection() {
     setSelectedCharacter(null);
   };
 
-  const [selectedGender, setSelectedGender] = useState<'female' | 'male' | 'anime'>('female');
-  const [nsfwEnabled, setNsfwEnabled] = useState(false);
-
-  const genderOptions = [
-    { key: 'female' as const, label: 'Girls', icon: '👩' },
-    { key: 'male' as const, label: 'Guys', icon: '👨' },
-    { key: 'anime' as const, label: 'Anime', icon: '🎭' }
-  ];
-
   return (
-    <section className="py-20 bg-black relative">
+    <section className="py-12 bg-black relative">
       {/* Seamless Gradient Top */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
 
-      <div className="container max-w-screen-2xl relative z-10">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="flex flex-col lg:flex-row items-end justify-between mb-12 gap-8">
           <div className="w-full lg:w-auto">
@@ -207,51 +203,6 @@ export default function DiscoverSection() {
             <p className="text-xl text-muted-foreground font-sans max-w-2xl mb-6">
               Explore a universe of unique personalities waiting to meet you.
             </p>
-            
-            {/* Gender & NSFW Controls - Moved Here */}
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="inline-flex p-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                {genderOptions.map((option) => (
-                  <button
-                    key={option.key}
-                    onClick={() => setSelectedGender(option.key)}
-                    className={`relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                      selectedGender === option.key
-                        ? 'text-white shadow-lg'
-                        : 'text-white/60 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    {selectedGender === option.key && (
-                      <motion.div
-                        layoutId="activeGenderDiscover"
-                        className="absolute inset-0 bg-primary rounded-full"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    <span className="relative z-10 flex items-center gap-2">
-                      <span>{option.icon}</span>
-                      {option.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                <span className="text-sm font-medium text-white/80">NSFW</span>
-                <button 
-                  onClick={() => setNsfwEnabled(!nsfwEnabled)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black ${
-                    nsfwEnabled ? 'bg-primary' : 'bg-white/20'
-                  }`}
-                >
-                  <span
-                    className={`${
-                      nsfwEnabled ? 'translate-x-6' : 'translate-x-1'
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                  />
-                </button>
-              </div>
-            </div>
           </div>
           
           {/* Filter Tabs */}

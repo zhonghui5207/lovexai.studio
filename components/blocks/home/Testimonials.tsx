@@ -96,12 +96,12 @@ export default function Testimonials() {
       <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
       <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
 
-      <div className="container max-w-screen-xl relative z-10 mb-12">
-        <div className="text-center">
+      <div className="container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 mb-12">
+        <div className="text-left">
           <h2 className="font-heading text-4xl md:text-5xl font-bold mb-4">
             Loved by <span className="text-primary">Thousands</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground max-w-2xl">
             Join our community and see why users are addicted to the experience.
           </p>
         </div>

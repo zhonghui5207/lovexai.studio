@@ -9,7 +9,7 @@ export default function Footer({ footer }: { footer: FooterType }) {
 
   return (
     <section id={footer.name} className="relative py-20 overflow-hidden bg-black">
-      <div className="max-w-7xl mx-auto px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <footer>
           <div className="flex flex-col items-center justify-between gap-12 text-center lg:flex-row lg:items-start lg:text-left">
             <div className="flex w-full max-w-96 shrink flex-col items-center justify-between gap-8 lg:items-start">

@@ -55,11 +55,11 @@ export default function ImageGenSection() {
                 <div className="p-2 rounded-lg bg-primary/10 text-primary">
                   <Sparkles className="w-6 h-6" />
                 </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white">
+                <h2 className="font-heading text-4xl md:text-5xl font-bold text-white">
                   AI Image <span className="text-primary">Generator</span>
                 </h2>
               </div>
-              <p className="text-white/60 text-lg leading-relaxed">
+              <p className="text-xl text-muted-foreground font-sans leading-relaxed">
                 Describe your fantasy and watch it come to life. Use our advanced models to create stunning, high-fidelity images in seconds.
               </p>
             </div>
