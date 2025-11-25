@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Sparkles } from "lucide-react";
+import { AlertTriangle, Sparkles, Coins } from "lucide-react";
 import { useCredits } from "../../contexts/CreditsContext";
 
 export default function CreditDisplay({ 
@@ -17,7 +17,7 @@ export default function CreditDisplay({
 
   if (simpleMode) {
     return (
-      <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-sm font-semibold text-white">
         <Sparkles className="w-3.5 h-3.5 fill-current" />
         <span>{isLoading ? "..." : credits}</span>
       </div>

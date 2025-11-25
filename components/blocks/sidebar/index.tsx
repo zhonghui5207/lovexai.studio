@@ -50,10 +50,10 @@ export default function Sidebar() {
             <LovexaiLogo className="relative w-8 h-8 transition-transform group-hover:scale-110 z-10" />
           </div>
           <span className={cn(
-            "font-heading text-xl font-bold text-white tracking-tight transition-all duration-300 whitespace-nowrap overflow-hidden",
+            "font-heading text-xl font-bold text-white tracking-widest transition-all duration-300 whitespace-nowrap overflow-hidden drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]",
             isHovered ? "opacity-100 max-w-[150px]" : "opacity-0 max-w-0"
           )}>
-            LoveXAI
+            LOVEXAI
           </span>
         </Link>
       </div>

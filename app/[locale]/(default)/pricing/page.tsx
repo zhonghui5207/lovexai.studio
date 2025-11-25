@@ -123,8 +123,14 @@ const CREDIT_PACKS = [
   }
 ];
 
+import { useSearchParams } from "next/navigation";
+
+// ...
+
 export default function PricingPage() {
-  const [activeTab, setActiveTab] = useState<'subscriptions' | 'credits'>('subscriptions');
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'credits' ? 'credits' : 'subscriptions';
+  const [activeTab, setActiveTab] = useState<'subscriptions' | 'credits'>(initialTab);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const { user, setShowSignModal } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, Heart, User, Star } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -32,39 +32,44 @@ export default function TopFilterBar() {
   };
 
   const genderOptions = [
-    { key: 'female', label: 'Girls', icon: '👩' },
-    { key: 'male', label: 'Guys', icon: '👨' },
-    { key: 'anime', label: 'Anime', icon: '🎭' }
+    { key: 'female', label: 'Girls', icon: Heart },
+    { key: 'male', label: 'Guys', icon: User },
+    { key: 'anime', label: 'Anime', icon: Star }
   ];
 
   return (
     <div className="sticky top-0 z-40 w-full bg-background/20 backdrop-blur-xl border-b border-white/5 px-6 md:px-8 py-3 flex items-center justify-between">
       {/* Left: Gender Tabs */}
       <div className="flex items-center gap-2">
-        <div className="inline-flex p-1 rounded-full bg-white/5 border border-white/10">
-          {genderOptions.map((option) => (
-            <button
-              key={option.key}
-              onClick={() => updateFilter('gender', option.key)}
-              className={`relative px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                gender === option.key
-                  ? 'text-white shadow-lg'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              {gender === option.key && (
-                <motion.div
-                  layoutId="activeGenderTop"
-                  className="absolute inset-0 bg-primary rounded-full"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                <span>{option.icon}</span>
-                {option.label}
-              </span>
-            </button>
-          ))}
+        <div className="flex items-center">
+          {genderOptions.map((option) => {
+            const Icon = option.icon;
+            const isActive = gender === option.key;
+            return (
+              <button
+                key={option.key}
+                onClick={() => updateFilter('gender', option.key)}
+                className={`relative px-6 py-3 text-sm font-medium transition-all duration-300 ${
+                  isActive
+                    ? 'text-white'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2 translate-y-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? 'fill-current' : ''}`} />
+                  <span>{option.label}</span>
+                </div>
+                
+                {isActive && (
+                  <motion.div
+                    layoutId="activeGenderTop"
+                    className="absolute -bottom-[13px] left-0 right-0 h-[2px] bg-primary"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 

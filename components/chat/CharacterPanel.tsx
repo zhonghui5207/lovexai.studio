@@ -158,7 +158,7 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
       )}
 
       {/* 模块化内容区域 - 基于对标网站的设计 */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
 
         {/* 1. Background 模块 - 角色背景展示 */}
         {character.background && (

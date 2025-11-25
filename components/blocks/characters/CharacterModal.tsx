@@ -108,7 +108,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
             {/* Official Badge */}
             {character.isOfficial && (
               <div className="absolute top-4 left-4">
-                <Badge className="bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-1">
+                <Badge className="bg-primary hover:bg-primary/90 text-white font-semibold px-3 py-1">
                   Official
                 </Badge>
               </div>
@@ -116,20 +116,17 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
           </div>
 
           {/* Right side - Character Details */}
-          <div className="w-1/2 bg-gray-900 text-white flex flex-col h-full relative">
-            {/* Close Button - Top Right */}
-            <DialogClose className="absolute top-4 right-4 p-2 rounded-full bg-gray-800/50 hover:bg-gray-700 text-white backdrop-blur-sm transition-all z-10">
-              <X className="h-5 w-5" />
-            </DialogClose>
+          <div className="w-1/2 bg-[#0f1117] text-white flex flex-col h-full relative">
 
-            <div className="p-6 flex-1 flex flex-col pb-2">
+
+            <div className="p-6 flex-1 flex flex-col pb-2 overflow-hidden">
               {/* Header */}
               <div className="mb-6 flex-shrink-0">
                 <div className="flex items-center justify-between mb-2 pr-12">
-                  <h2 className="text-2xl font-bold">{character.name}</h2>
+                  <h2 className="text-2xl font-bold text-white">{character.name}</h2>
                 </div>
 
-                <div className="flex items-center gap-3 text-gray-300">
+                <div className="flex items-center gap-3 text-white/60">
                   <span>@{character.username || character.name.toLowerCase()}</span>
                   <span className="flex items-center gap-1">
                     <MessageCircle className="h-4 w-4" />
@@ -140,18 +137,18 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
 
               {/* Character Description */}
               <div className="mb-6 flex-shrink-0">
-                <p className="text-gray-200 leading-relaxed">
+                <p className="text-white/80 leading-relaxed">
                   {character.greeting}
                 </p>
               </div>
 
               {/* Character Details - Scrollable */}
-              <div className="flex-1 overflow-y-auto mb-4 pr-2">
-                <div className="space-y-4">
+              <div className="flex-1 overflow-y-auto mb-4 pr-2 custom-scrollbar">
+                <div className="space-y-6">
                   {character.personality && (
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-400 mb-2">PERSONALITY & DESCRIPTION</h3>
-                      <p className="text-gray-200 text-sm leading-relaxed">
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">PERSONALITY & DESCRIPTION</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
                         {character.personality}
                       </p>
                     </div>
@@ -159,8 +156,8 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
 
                   {character.physicalDescription && (
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-400 mb-2">PHYSICAL DESCRIPTION</h3>
-                      <p className="text-gray-200 text-sm leading-relaxed">
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">PHYSICAL DESCRIPTION</h3>
+                      <p className="text-white/70 text-sm leading-relaxed">
                         {character.physicalDescription}
                       </p>
                     </div>
@@ -168,8 +165,8 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
 
                   {(character.age || character.location) && (
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-400 mb-2">DETAILS</h3>
-                      <div className="text-gray-200 text-sm space-y-1">
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">DETAILS</h3>
+                      <div className="text-white/70 text-sm space-y-1">
                         {character.age && <p>Age: {character.age}</p>}
                         {character.location && <p>Location: {character.location}</p>}
                       </div>
@@ -178,13 +175,13 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
 
                   {character.traits && character.traits.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-400 mb-2">TRAITS</h3>
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">TRAITS</h3>
                       <div className="flex flex-wrap gap-2">
                         {character.traits.map((trait, index) => (
                           <Badge
                             key={index}
                             variant="outline"
-                            className="border-gray-600 text-gray-300 bg-gray-800/50"
+                            className="border-white/10 text-white/70 bg-white/5 hover:bg-white/10 transition-colors"
                           >
                             {trait}
                           </Badge>
@@ -197,17 +194,17 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
             </div>
 
             {/* Action Buttons - Fixed at bottom */}
-            <div className="p-6 pt-0 bg-gray-900">
+            <div className="p-6 pt-0 bg-[#0f1117]">
               {/* Error Message */}
               {createError && (
-                <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
                   <p className="text-red-400 text-sm">{createError}</p>
                 </div>
               )}
 
               <div className="flex gap-3">
                 <Button
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleStartChat}
                   disabled={isCreatingChat}
                 >
@@ -224,7 +221,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
                 <div className="relative">
                   <Button
                     variant="outline"
-                    className="border-gray-600 text-gray-300 hover:bg-gray-800 px-6 py-3 rounded-lg flex items-center gap-2"
+                    className="border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white px-6 py-6 rounded-xl flex items-center gap-2 font-medium transition-all"
                     onClick={() => setShowCreateOptions(!showCreateOptions)}
                   >
                     Create
@@ -232,11 +229,11 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
                   </Button>
 
                   {showCreateOptions && (
-                    <div className="absolute bottom-full mb-2 right-0 bg-gray-800 border border-gray-600 rounded-lg p-2 min-w-[120px]">
-                      <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded">
+                    <div className="absolute bottom-full mb-2 right-0 bg-[#1a1d26] border border-white/10 rounded-xl p-1.5 min-w-[140px] shadow-xl z-50">
+                      <button className="w-full text-left px-3 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                         Remix
                       </button>
-                      <button className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded">
+                      <button className="w-full text-left px-3 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors">
                         Similar
                       </button>
                     </div>

@@ -151,78 +151,68 @@ export default function ChatSidebar({
     <div className="w-80 bg-background/20 border-r-2 border-border shadow-md flex flex-col">
 
       {/* 📋 顶部Header区域 */}
-      <div className="p-4 border-b border-border bg-muted/30">
+      <div className="p-5 pt-6 border-b border-white/5 bg-transparent">
         {/* 标题和新建按钮的横向布局 */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Conversations</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-white tracking-tight">Chats</h2>
 
-          {/* 🆕 新建聊天下拉菜单 */}
-          <DropdownMenu>
-            {/* 触发下拉菜单的按钮 */}
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:bg-primary/20 hover:text-primary rounded-xl transition-colors">
-                <Plus className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
+          <div className="flex items-center gap-1">
+            {/* 🆕 新建聊天下拉菜单 */}
+            <DropdownMenu>
+              {/* 触发下拉菜单的按钮 */}
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors">
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
 
-            {/* 下拉菜单内容区域 */}
-            <DropdownMenuContent align="end" className="w-64">
-              {/* 遍历所有可用角色，为每个角色创建菜单项 */}
-              {availableCharacters.map((character) => (
-                <DropdownMenuItem
-                  key={character.id} // React需要的唯一key
-                  onClick={() => handleNewChatClick(character)} // 点击时调用处理函数
-                  className="flex items-center gap-3 p-3"
-                >
-                  {/* 角色头像 */}
-                  <img
-                    src={character.avatar_url}
-                    alt={character.name}
-                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                    // 图片加载失败时的fallback处理
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      // 使用base64编码的SVG作为默认头像
-                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iMTYiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSIjOUNBM0FGIj48cGF0aCBkPSJNOCA4YzEuMSAwIDItLjkgMi0ycy0uOS0yLTItMi0yIC45LTIgMiAuOSAyIDIgMnoiLz48cGF0aCBkPSJNOCAxNGMtMi4yIDAtNCAxLjgtNCA0djFoOHYtMWMwLTIuMi0xLjgtNC00LTR6Ii8+PC9zdmc+Cjwvc3ZnPgo=';
-                    }}
-                  />
+              {/* 下拉菜单内容区域 */}
+              <DropdownMenuContent align="end" className="w-64 bg-[#1a1d26] border-white/10 text-white">
+                {/* 遍历所有可用角色，为每个角色创建菜单项 */}
+                {availableCharacters.map((character) => (
+                  <DropdownMenuItem
+                    key={character.id} // React需要的唯一key
+                    onClick={() => handleNewChatClick(character)} // 点击时调用处理函数
+                    className="flex items-center gap-3 p-3 hover:bg-white/5 focus:bg-white/5 cursor-pointer"
+                  >
+                    {/* 角色头像 */}
+                    <img
+                      src={character.avatar_url}
+                      alt={character.name}
+                      className="w-8 h-8 rounded-lg object-cover flex-shrink-0"
+                      // 图片加载失败时的fallback处理
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        // 使用base64编码的SVG作为默认头像
+                        target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iMTYiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2IiBmaWxsPSIjOUNBM0FGIj48cGF0aCBkPSJNOCA4YzEuMSAwIDItLjkgMi0ycy0uOS0yLTItMi0yIC45LTIgMiAuOSAyIDIgMnoiLz48cGF0aCBkPSJNOCAxNGMtMi4yIDAtNCAxLjgtNCA0djFoOHYtMWMwLTIuMi0xLjgtNC00LTR6Ii8+PC9zdmc+Cjwvc3ZnPgo=';
+                      }}
+                    />
 
-                  {/* 角色信息区域 */}
-                  <div className="flex-1 min-w-0">
-                    {/* 角色名和徽章 */}
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-sm truncate">{character.name}</p>
-                      {/* 如果角色是高级订阅，显示Pro徽章 */}
-                      {character.access_level === 'premium' && (
-                        <Badge variant="secondary" className="text-xs">Pro</Badge>
-                      )}
+                    {/* 角色信息区域 */}
+                    <div className="flex-1 min-w-0">
+                      {/* 角色名和徽章 */}
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-sm truncate text-white/90">{character.name}</p>
+                        {/* 如果角色是高级订阅，显示Pro徽章 */}
+                        {character.access_level === 'premium' && (
+                          <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-primary/20 text-primary border-primary/20">Pro</Badge>
+                        )}
+                      </div>
+                      {/* 角色描述 */}
+                      <p className="text-xs text-white/50 truncate">
+                        {character.description}
+                      </p>
                     </div>
-                    {/* 角色描述 */}
-                    <p className="text-xs text-muted-foreground truncate">
-                      {character.description}
-                    </p>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* 🔍 搜索框区域 */}
-        <div className="relative bg-muted/30">
-          {/* 搜索图标 */}
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)} // 输入时更新搜索状态
-            className="pl-9 bg-transparent" // 左边距为图标留出空间
-          />
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
 
       {/* 💬 对话列表区域 */}
-      <div className="flex-1 overflow-y-auto bg-muted/20">
+      <div className="flex-1 overflow-y-auto bg-transparent custom-scrollbar">
         {filteredConversations.length === 0 ? (
           // 空状态：没有匹配的对话
           <div className="p-6 text-center text-muted-foreground">
@@ -243,7 +233,7 @@ export default function ChatSidebar({
           </div>
         ) : (
           // 有对话内容，渲染对话列表
-          <div className="space-y-1 p-2">
+          <div className="space-y-2 p-3">
             {/* 遍历过滤后的对话列表 */}
             {filteredConversations.map((conversation) => (
               // 每个对话的可点击按钮
@@ -251,31 +241,33 @@ export default function ChatSidebar({
                 key={conversation.id} // React需要的唯一key
                 onClick={() => handleConversationClick(conversation)} // 点击切换对话
                 // 动态样式：当前对话高亮显示
-                className={`w-full text-left p-3 rounded-lg transition-all duration-200 hover:bg-muted/50 ${
+                className={`w-full text-left p-3 rounded-xl transition-all duration-200 group ${
                   conversation.id === currentConversationId
-                    ? 'bg-primary/10 border border-primary/20' // 当前选中状态
-                    : 'hover:bg-muted' // 悬停状态
+                    ? 'bg-white/10 shadow-lg shadow-black/20' // 当前选中状态
+                    : 'hover:bg-white/5' // 悬停状态
                 }`}
               >
                 {/* 对话内容：头像 + 信息 */}
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-4">
                   {/* 角色头像 */}
                   <img
                     src={conversation.characterAvatar}
                     alt={conversation.characterName}
-                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                    className="w-12 h-12 rounded-xl object-cover flex-shrink-0 shadow-sm"
                     // 图片加载失败时的fallback处理
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIiBmaWxsPSIjOUNBM0FGIj48cGF0aCBkPSJNMTAgMTBjMS4xIDAgMi0uOSAyLTJzLS45LTItMi0yLTIgLjktMiAyIC45IDIgMiAyeiIvPjxwYXRoIGQ9Ik0xMCAxNmMtMi4yIDAtNCAxLjgtNCA0djFoMTB2LTFjMC0yLjItMS44LTQtNC00eiIvPjwvc3ZnPgo8L3N2Zz4K';
+                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiByeD0iMjAiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDIwIDIwIiBmaWxsPSIjOUNBM0FGIj48cGF0aCBkPSJNMTAgMTBjMS4xIDAgMi0uOSAyLTJzLS45LTItMi0yLTIgLjktMiAyIC45IDIgMiAyeiIvPjxwYXRoIGQ9Ik0xMCAxNmMtMi4yIDAtNCAxLjgtNCA0djFoMTB2LTFjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+Cjwvc3ZnPgo=';
                     }}
                   />
 
                   {/* 对话信息文本区域 */}
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 py-0.5">
                     {/* 第一行：角色名 + 徽章 + 时间 */}
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="font-medium text-sm truncate">
+                      <h3 className={`font-semibold text-sm truncate ${
+                        conversation.id === currentConversationId ? 'text-white' : 'text-white/90'
+                      }`}>
                         {conversation.characterName}
                       </h3>
                       <div className="flex items-center gap-1">
@@ -286,13 +278,15 @@ export default function ChatSidebar({
                           </Badge>
                         )}
                         {/* 相对时间显示 */}
-                        <span className="text-xs text-muted-foreground flex-shrink-0">
+                        <span className="text-[10px] text-white/40 flex-shrink-0">
                           {formatTimeAgo(conversation.lastMessageTime)}
                         </span>
                       </div>
                     </div>
                     {/* 第二行：最后一条消息内容 */}
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className={`text-sm truncate italic ${
+                      conversation.id === currentConversationId ? 'text-white/70' : 'text-white/50'
+                    }`}>
                       <FormattedMessage content={conversation.lastMessage || "No messages yet"} />
                     </p>
                   </div>

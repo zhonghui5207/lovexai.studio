@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import GenerationSettingsModal from "./GenerationSettingsModal";
 import FormattedMessage from "./FormattedMessage";
@@ -187,9 +188,11 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-2">
-          <div className="bg-secondary/50 px-3 py-1 rounded-md flex items-center gap-1">
-            <CreditDisplay creditsPerMessage={creditsPerMessage} simpleMode={true} />
-          </div>
+          <Link href="/pricing?tab=credits">
+            <div className="bg-primary px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-primary/90 transition-all cursor-pointer shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95">
+              <CreditDisplay creditsPerMessage={creditsPerMessage} simpleMode={true} />
+            </div>
+          </Link>
           
           <Badge
             variant="outline"
@@ -248,7 +251,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       />
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto relative">
+      <div className="flex-1 overflow-y-auto relative custom-scrollbar">
         {/* Messages content */}
         <div className="relative z-10 p-4 space-y-4 min-h-full">
         {messages.map((message) => (
