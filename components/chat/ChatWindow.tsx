@@ -273,7 +273,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                     : "bg-black/40 border border-white/5 text-white/90"
                 }`}
               >
-                <p className="text-sm leading-relaxed">
+                <p className="text-[15px] leading-7 tracking-wide font-medium">
                   <FormattedMessage content={message.content} />
                 </p>
               </div>

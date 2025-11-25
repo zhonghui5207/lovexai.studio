@@ -4,7 +4,7 @@ import "@/app/theme-romantic-cyberpunk.css";
 import { getMessages, getTranslations } from "next-intl/server";
 
 import { AppContextProvider } from "@/contexts/app";
-import { Space_Grotesk as FontHeading, Inter as FontSans } from "next/font/google";
+import { Space_Grotesk as FontHeading, Plus_Jakarta_Sans as FontSans } from "next/font/google";
 import { Metadata } from "next";
 import { NextAuthSessionProvider } from "@/auth/session";
 import { NextIntlClientProvider } from "next-intl";
