@@ -5,13 +5,15 @@ import User from "./user";
 import { useAppContext } from "@/contexts/app";
 import { useTranslations } from "next-intl";
 
-export default function SignToggle() {
+import { ReactNode } from "react";
+
+export default function SignToggle({ children }: { children?: ReactNode }) {
   const t = useTranslations();
   const { user } = useAppContext();
 
   return (
-    <div className="flex items-center">
-      {user ? <User user={user} /> : <SignIn />}
+    <div className="flex items-center w-full justify-center">
+      {user ? <User user={user}>{children}</User> : <SignIn />}
     </div>
   );
 }
