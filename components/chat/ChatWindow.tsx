@@ -154,7 +154,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   return (
     <div className="flex flex-col h-full">
       {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border bg-background">
+      <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/20 backdrop-blur-md z-20">
         {/* Left side - Back button and character info */}
         <div className="flex items-center gap-3">
           <Button
@@ -180,13 +180,17 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
           <div>
             <h3 className="font-semibold">{character.name}</h3>
             <p className="text-sm text-muted-foreground">
-              {character.chatCount} chats • Online
+              {character.chat_count} chats • Online
             </p>
           </div>
         </div>
 
         {/* Right side - Actions */}
         <div className="flex items-center gap-2">
+          <div className="bg-secondary/50 px-3 py-1 rounded-md flex items-center gap-1">
+            <CreditDisplay creditsPerMessage={creditsPerMessage} simpleMode={true} />
+          </div>
+          
           <Badge
             variant="outline"
             className="text-xs flex items-center gap-1 cursor-pointer hover:bg-muted"
@@ -232,8 +236,8 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       </div>
 
   
-      {/* Credit Display */}
-      <CreditDisplay creditsPerMessage={creditsPerMessage} />
+      {/* Credit Display (Old - Removed) */}
+      {/* <CreditDisplay creditsPerMessage={creditsPerMessage} /> */}
 
       {/* Error Display */}
       <ErrorDisplay
@@ -263,10 +267,10 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
               }`}
             >
               <div
-                className={`rounded-2xl px-4 py-2 ${
+                className={`rounded-2xl px-4 py-3 shadow-sm backdrop-blur-sm ${
                   message.sender === "user"
-                    ? "bg-primary text-primary-foreground ml-auto"
-                    : "bg-muted"
+                    ? "bg-primary/80 text-white ml-auto border border-primary/20"
+                    : "bg-black/40 border border-white/5 text-white/90"
                 }`}
               >
                 <p className="text-sm leading-relaxed">
@@ -292,11 +296,11 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
         {isTyping && (
           <div className="flex items-start gap-3">
             {renderAvatar()}
-            <div className="bg-muted rounded-2xl px-4 py-2">
+            <div className="bg-black/40 backdrop-blur-sm border border-white/5 rounded-2xl px-4 py-3 shadow-sm">
               <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
               </div>
             </div>
           </div>
@@ -307,7 +311,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-border bg-background">
+      <div className="p-4 border-t border-white/10 bg-black/20 backdrop-blur-md z-20">
         <div className="flex items-end gap-2">
           <div className="flex-1">
             <Input
@@ -315,7 +319,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Write a message..."
-              className="resize-none border-0 bg-muted focus-visible:ring-1"
+              className="resize-none border-0 bg-white/5 focus-visible:ring-1 focus-visible:ring-white/20 rounded-xl shadow-inner text-white placeholder:text-white/40 h-12"
             />
           </div>
 

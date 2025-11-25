@@ -350,14 +350,14 @@ function ChatInterface({
       <div className="flex-1 flex relative">
         {/* Fixed background image for main chat area only */}
         <div
-          className="absolute inset-0 opacity-50 pointer-events-none transition-opacity duration-500"
+          className="absolute inset-0 pointer-events-none transition-opacity duration-500"
           style={{
             backgroundImage: `url(${character.avatar_url})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
             backgroundAttachment: 'fixed',
-            filter: 'blur(5px) contrast(1.1) brightness(0.8)',
+            filter: 'brightness(0.3)',
             zIndex: 0,
           }}
         />

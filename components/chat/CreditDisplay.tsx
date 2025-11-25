@@ -1,14 +1,28 @@
 "use client";
 
-import { AlertTriangle, Coins } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { useCredits } from "../../contexts/CreditsContext";
 
-export default function CreditDisplay({ creditsPerMessage }: { creditsPerMessage: number }) {
+export default function CreditDisplay({ 
+  creditsPerMessage, 
+  simpleMode = false 
+}: { 
+  creditsPerMessage: number;
+  simpleMode?: boolean;
+}) {
   const { credits, isLoading } = useCredits();
 
-  const isLowCredits = credits < creditsPerMessage * 3; // 少于3条消息的积分
+  const isLowCredits = credits < creditsPerMessage * 3;
   const cannotAffordMessage = credits < creditsPerMessage;
+
+  if (simpleMode) {
+    return (
+      <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+        <Sparkles className="w-3.5 h-3.5 fill-current" />
+        <span>{isLoading ? "..." : credits}</span>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

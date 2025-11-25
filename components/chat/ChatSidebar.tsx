@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"; // useState: 管理组件状态, us
 import { useSession } from "next-auth/react"; // 获取用户认证状态
 
 // 图标库导入 - lucide-react 是现代化的图标库
-import { MessageCircle, Search, Plus, User } from "lucide-react";
+import { MessageCircle, Search, Plus } from "lucide-react";
 
 // UI组件导入 - 来自项目自定义的UI组件库
 import { Input } from "@/components/ui/input"; // 输入框组件
@@ -303,24 +303,6 @@ export default function ChatSidebar({
         )}
       </div>
 
-      {/* 👤 底部用户信息区域 */}
-      <div className="p-4 border-t border-border bg-muted/30">
-        <div className="flex items-center gap-3">
-          {/* 用户信息文本 */}
-          <div className="flex-1">
-            {/* 用户名或邮箱 */}
-            <p className="font-medium text-sm">{session.user?.name || session.user?.email}</p>
-            {/* 对话统计 */}
-            <p className="text-xs text-muted-foreground">
-              {(conversations || []).length} conversation{(conversations || []).length !== 1 ? 's' : ''}
-            </p>
-          </div>
-          {/* 用户操作按钮 */}
-          <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-            <User className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
     </div>
   );
 } // 组件结束

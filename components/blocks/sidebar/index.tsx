@@ -10,7 +10,7 @@ import {
   Compass, 
   PlusCircle, 
   Image as ImageIcon, 
-  CreditCard,
+  CreditCard, 
   ChevronDown
 } from "lucide-react";
 import SignToggle from "@/components/sign/toggle";
@@ -98,7 +98,7 @@ export default function Sidebar() {
       {/* Bottom Actions */}
       <div className="p-3 border-t border-white/10 flex-shrink-0">
         {/* Extended Footer Content - Only visible when hovered */}
-        {isHovered && (
+          {isHovered && (
           <div className="mb-4 space-y-4 px-2">
             {/* Links */}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground font-medium px-1">

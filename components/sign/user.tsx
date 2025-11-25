@@ -25,12 +25,12 @@ export default function SignUser({ user, children }: { user: User, children?: Re
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {children || (
-          <Avatar className="cursor-pointer hover:ring-2 hover:ring-white/20 transition-all duration-200">
-            <AvatarImage src={user.avatar_url} alt={user.nickname} />
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
-              {user.nickname?.charAt(0)?.toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+        <Avatar className="cursor-pointer hover:ring-2 hover:ring-white/20 transition-all duration-200">
+          <AvatarImage src={user.avatar_url} alt={user.nickname} />
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">
+            {user.nickname?.charAt(0)?.toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mx-4 bg-slate-800/95 backdrop-blur-sm border-white/10 text-white">

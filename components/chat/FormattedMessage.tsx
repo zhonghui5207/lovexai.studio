@@ -18,7 +18,7 @@ export default function FormattedMessage({ content }: FormattedMessageProps) {
         return (
           <em
             key={index}
-            className="text-muted-foreground not-italic font-normal"
+            className="text-white/60 not-italic font-normal"
             style={{ fontStyle: 'italic' }}
           >
             {narrativeText}
