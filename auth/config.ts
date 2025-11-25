@@ -129,11 +129,6 @@ export const authOptions: NextAuthConfig = {
     },
     async redirect({ url, baseUrl }) {
       
-      // Fix port mismatch - if baseUrl is 3000 but we're running on 3001
-      if (baseUrl.includes('localhost:3000') && process.env.NODE_ENV === 'development') {
-        baseUrl = baseUrl.replace('localhost:3000', 'localhost:3001');
-              }
-
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       // Allows callback URLs on the same origin
