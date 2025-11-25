@@ -36,7 +36,7 @@ export default function Sidebar() {
   return (
     <aside 
       className={cn(
-        "hidden md:flex flex-col h-screen fixed left-0 top-0 bg-black/95 border-r border-white/10 z-50 backdrop-blur-xl transition-all duration-300 ease-in-out overflow-hidden",
+        "hidden md:flex flex-col h-screen fixed left-0 top-0 bg-background/20 border-r border-white/5 z-50 backdrop-blur-xl transition-all duration-300 ease-in-out overflow-hidden",
         isHovered ? "w-64 shadow-[10px_0_30px_rgba(0,0,0,0.5)]" : "w-20"
       )}
       onMouseEnter={() => setIsHovered(true)}

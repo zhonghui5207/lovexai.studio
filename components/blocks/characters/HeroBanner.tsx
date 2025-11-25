@@ -109,7 +109,7 @@ export default function HeroBanner() {
   ];
 
   return (
-    <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-black pt-10 lg:pt-0">
+    <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-transparent pt-10 lg:pt-0">
       {/* Seamless Gradient Bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 

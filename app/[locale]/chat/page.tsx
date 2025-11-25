@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChatInterface from "@/components/chat/ChatInterface";
+import LoadingHeartbeat from "@/components/ui/LoadingHeartbeat";
 
 interface Character {
   id: string;
@@ -202,11 +203,7 @@ export default function ChatPage() {
 
   // Loading状态
   if (status === "loading" || loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <LoadingHeartbeat />;
   }
 
   // 未登录状态

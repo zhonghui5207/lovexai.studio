@@ -38,7 +38,7 @@ export default function TopFilterBar() {
   ];
 
   return (
-    <div className="sticky top-0 z-40 w-full bg-black/80 backdrop-blur-xl border-b border-white/5 px-6 md:px-8 py-3 flex items-center justify-between">
+    <div className="sticky top-0 z-40 w-full bg-background/20 backdrop-blur-xl border-b border-white/5 px-6 md:px-8 py-3 flex items-center justify-between">
       {/* Left: Gender Tabs */}
       <div className="flex items-center gap-2">
         <div className="inline-flex p-1 rounded-full bg-white/5 border border-white/10">

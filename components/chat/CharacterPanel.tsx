@@ -107,7 +107,7 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
+    <div className="flex flex-col h-full bg-background/20">
       {/* Character Header */}
       <div className="relative">
         {/* Large Character Image */}

@@ -154,14 +154,14 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   return (
     <div className="flex flex-col h-full">
       {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/20 backdrop-blur-md z-20">
+      <div className="flex items-center justify-between p-4 border-b border-white/10 bg-background/20 backdrop-blur-md z-20">
         {/* Left side - Back button and character info */}
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => router.push("/")}
-            className="mr-2"
+            className="mr-2 h-9 w-9 hover:bg-primary/20 hover:text-primary rounded-xl transition-colors"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
@@ -202,8 +202,8 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
+              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-primary/20 hover:text-primary rounded-xl transition-colors">
+                <MoreVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -311,7 +311,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-white/10 bg-black/20 backdrop-blur-md z-20">
+      <div className="p-4 border-t border-white/10 bg-background/20 backdrop-blur-md z-20">
         <div className="flex items-end gap-2">
           <div className="flex-1">
             <Input

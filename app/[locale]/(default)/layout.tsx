@@ -27,7 +27,7 @@ export default async function DefaultLayout({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col md:ml-20 pl-0 md:pl-14 transition-all duration-300 w-full relative">
+      <div className="flex-1 flex flex-col md:ml-20 transition-all duration-300 w-full relative">
         {/* Top Filter Bar (Sticky) */}
         <div className="hidden md:block sticky top-0 z-40">
           <TopFilterBar />

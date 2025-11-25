@@ -148,7 +148,7 @@ export default function ChatSidebar({
   // 🎯 已登录用户的主界面渲染
   return (
     // 主容器：固定宽度320px，背景色，右边框，垂直flex布局
-    <div className="w-80 bg-background border-r-2 border-border shadow-md flex flex-col">
+    <div className="w-80 bg-background/20 border-r-2 border-border shadow-md flex flex-col">
 
       {/* 📋 顶部Header区域 */}
       <div className="p-4 border-b border-border bg-muted/30">
@@ -160,8 +160,8 @@ export default function ChatSidebar({
           <DropdownMenu>
             {/* 触发下拉菜单的按钮 */}
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline" className="h-8 w-8 p-0">
-                <Plus className="h-4 w-4" />
+              <Button size="sm" variant="ghost" className="h-9 w-9 p-0 hover:bg-primary/20 hover:text-primary rounded-xl transition-colors">
+                <Plus className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
 
