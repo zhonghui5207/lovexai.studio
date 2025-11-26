@@ -3,12 +3,16 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Search, Heart, User, Star } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function TopFilterBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
+  
+  // Only show on home page
+  if (pathname !== '/') return null;
   
   const currentGender = searchParams.get("gender") || "female";
   const currentNsfw = searchParams.get("nsfw") === "true";

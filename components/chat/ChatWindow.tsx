@@ -257,22 +257,19 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
             {/* Avatar - only show for character messages */}
             {message.sender === "character" && renderAvatar()}
 
-            <div
-              className={`max-w-[70%] ${
-                message.sender === "user" ? "text-right" : ""
-              }`}
-            >
+            <div className="flex flex-col w-full max-w-[60%]">
               <div
-                className={`rounded-2xl px-4 py-3 shadow-sm backdrop-blur-sm ${
+                className={`rounded-2xl px-5 py-3 shadow-sm ${
                   message.sender === "user"
-                    ? "bg-primary/80 text-white ml-auto border border-primary/20"
-                    : "bg-black/40 border border-white/5 text-white/90"
+                    ? "bg-primary text-primary-foreground rounded-br-none ml-auto"
+                    : "bg-[#1a1d26] text-foreground rounded-bl-none border border-white/5 mr-auto"
                 }`}
               >
                 <p className="text-[15px] leading-7 tracking-wide font-medium">
                   <FormattedMessage content={message.content} />
                 </p>
               </div>
+              
               <div
                 className={`mt-1 text-xs text-muted-foreground flex items-center gap-1 ${
                   message.sender === "user" ? "justify-end" : ""

@@ -31,9 +31,9 @@ const SUBSCRIPTION_PLANS = [
     id: "premium",
     name: "PREMIUM",
     description: "Create Your Dreams",
-    price: { monthly: 9.99, yearly: 4.99 },
-    originalPrice: { monthly: 14.99, yearly: 9.99 },
-    save: "$60/year",
+    price: { monthly: 9.99, yearly: 6.99 },
+    originalPrice: { monthly: 9.99, yearly: 9.99 },
+    save: "$36/year",
     features: [
       "100 Generations / Day",
       "45+ addt'l customizations",
@@ -49,9 +49,9 @@ const SUBSCRIPTION_PLANS = [
     id: "pro",
     name: "PRO",
     description: "Fuel Your Fantasy",
-    price: { monthly: 19.99, yearly: 9.99 },
-    originalPrice: { monthly: 29.99, yearly: 19.99 },
-    save: "$120/year",
+    price: { monthly: 19.99, yearly: 13.99 },
+    originalPrice: { monthly: 19.99, yearly: 19.99 },
+    save: "$72/year",
     features: [
       "Unlimited Generations",
       "95+ addt'l customizations",
@@ -67,9 +67,9 @@ const SUBSCRIPTION_PLANS = [
     id: "ultimate",
     name: "ULTIMATE",
     description: "Limitless Creativity",
-    price: { monthly: 29.99, yearly: 14.99 },
-    originalPrice: { monthly: 49.99, yearly: 29.99 },
-    save: "$180/year",
+    price: { monthly: 29.99, yearly: 20.99 },
+    originalPrice: { monthly: 29.99, yearly: 29.99 },
+    save: "$108/year",
     features: [
       "Unlimited HD Generations",
       "Create Unlimited Photos of Custom Girls",
@@ -132,6 +132,7 @@ export default function PricingPage() {
   const initialTab = searchParams.get('tab') === 'credits' ? 'credits' : 'subscriptions';
   const [activeTab, setActiveTab] = useState<'subscriptions' | 'credits'>(initialTab);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('ultimate');
   const { user, setShowSignModal } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -172,7 +173,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-32 pb-20 px-4">
+    <div className="min-h-screen bg-background pt-8 pb-20 px-4">
       <div className="container max-w-screen-xl mx-auto">
         
         {/* Page Header */}
@@ -228,7 +229,7 @@ export default function PricingPage() {
                       billingCycle === 'yearly' ? 'bg-white/10 text-white shadow-sm' : 'text-white/60 hover:text-white'
                     }`}
                   >
-                    Yearly <span className="text-primary text-xs ml-1">Extra 50% off</span>
+                    Yearly <span className="text-primary text-xs ml-1">30% off</span>
                   </button>
                   <button
                     onClick={() => setBillingCycle('monthly')}
@@ -243,71 +244,79 @@ export default function PricingPage() {
 
               {/* Subscription Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                {SUBSCRIPTION_PLANS.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className={`relative p-6 rounded-3xl border transition-all duration-300 flex flex-col ${
-                      plan.highlight
-                        ? 'bg-gradient-to-b from-primary/10 to-background border-primary shadow-[0_0_30px_rgba(255,0,110,0.15)]'
-                        : 'bg-card border-white/5 hover:border-white/10'
-                    }`}
-                  >
-                    {plan.highlight && (
-                      <div className="absolute -top-3 right-6 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
-                        MOST POPULAR
-                      </div>
-                    )}
-
-                    <div className="mb-6">
-                      <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
-                      <p className="text-sm text-white/60 mb-4">{plan.description}</p>
-                      
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-white">
-                          ${plan.price[billingCycle]}
-                        </span>
-                        <span className="text-white/40 text-sm">/mo</span>
-                      </div>
-                      
-                      {billingCycle === 'yearly' && plan.price.yearly > 0 && (
-                        <div className="text-xs mt-1 space-y-1">
-                          <div className="text-white/40">Billed annually at ${plan.price.yearly * 12}</div>
-                          {plan.originalPrice && (
-                            <div className="text-primary font-medium">
-                              <span className="line-through text-white/30 mr-2">${plan.originalPrice.yearly * 12}</span>
-                              Save ${(plan.originalPrice.yearly - plan.price.yearly) * 12}/year
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-grow space-y-3 mb-8">
-                      {plan.features.map((feature, i) => (
-                        <div key={i} className="flex items-start gap-3 text-sm text-white/80">
-                          <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                          <span>{feature}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <Button
-                      onClick={() => plan.product_id && handleCheckout(plan.product_id, plan.price[billingCycle])}
-                      disabled={plan.disabled || isLoading}
-                      className={`w-full py-6 rounded-xl font-bold text-base ${
-                        plan.highlight
-                          ? 'bg-primary hover:bg-primary/90 text-white'
-                          : 'bg-white/10 hover:bg-white/20 text-white'
-                      }`}
+                {SUBSCRIPTION_PLANS.map((plan) => {
+                  const isSelected = selectedPlanId === plan.id;
+                  
+                  return (
+                    <div
+                      key={plan.id}
+                      onClick={() => !plan.disabled && setSelectedPlanId(plan.id)}
+                      className={`relative p-6 rounded-3xl border transition-all duration-300 flex flex-col cursor-pointer ${
+                        isSelected
+                          ? 'bg-gradient-to-b from-primary/10 to-background border-primary shadow-[0_0_30px_rgba(255,0,110,0.15)] scale-[1.02]'
+                          : 'bg-card border-white/5 hover:border-white/10 hover:bg-white/5'
+                      } ${plan.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                      {isLoading && processingId === plan.product_id ? (
-                        <Loader className="w-5 h-5 animate-spin" />
-                      ) : (
-                        plan.buttonText
+                      {isSelected && (
+                        <div className="absolute -top-3 right-6 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                          SELECTED
+                        </div>
                       )}
-                    </Button>
-                  </div>
-                ))}
+
+                      <div className="mb-6">
+                        <h3 className={`text-lg font-bold mb-1 ${isSelected ? 'text-primary' : 'text-white'}`}>{plan.name}</h3>
+                        <p className="text-sm text-white/60 mb-4">{plan.description}</p>
+                        
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-bold text-white">
+                            ${plan.price[billingCycle]}
+                          </span>
+                          <span className="text-white/40 text-sm">/mo</span>
+                        </div>
+                        
+                        {billingCycle === 'yearly' && plan.price.yearly > 0 && (
+                          <div className="text-xs mt-1 space-y-1">
+                            <div className="text-white/40">Billed annually at ${(plan.price.yearly * 12).toFixed(2)}</div>
+                            {plan.originalPrice && (
+                              <div className="text-primary font-medium">
+                                <span className="line-through text-white/30 mr-2">${(plan.originalPrice.yearly * 12).toFixed(2)}</span>
+                                Save ${((plan.originalPrice.yearly - plan.price.yearly) * 12).toFixed(2)}/year
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-grow space-y-3 mb-8">
+                        {plan.features.map((feature, i) => (
+                          <div key={i} className="flex items-start gap-3 text-sm text-white/80">
+                            <Check className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-primary' : 'text-white/40'}`} />
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (plan.product_id) handleCheckout(plan.product_id, plan.price[billingCycle]);
+                        }}
+                        disabled={plan.disabled || isLoading}
+                        className={`w-full py-6 rounded-xl font-bold text-base transition-all ${
+                          isSelected
+                            ? 'bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25'
+                            : 'bg-white/10 hover:bg-white/20 text-white'
+                        }`}
+                      >
+                        {isLoading && processingId === plan.product_id ? (
+                          <Loader className="w-5 h-5 animate-spin" />
+                        ) : (
+                          plan.buttonText
+                        )}
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
           ) : (

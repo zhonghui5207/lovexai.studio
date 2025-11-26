@@ -18,15 +18,15 @@ export default function FormattedMessage({ content }: FormattedMessageProps) {
         return (
           <em
             key={index}
-            className="text-white/60 not-italic font-normal"
+            className="text-white/50 not-italic font-medium"
             style={{ fontStyle: 'italic' }}
           >
             {narrativeText}
           </em>
         );
       }
-      // 普通文本部分
-      return <span key={index}>{part}</span>;
+      // 普通文本部分 - 增加字重
+      return <span key={index} className="font-medium text-white/95">{part}</span>;
     });
   };
 

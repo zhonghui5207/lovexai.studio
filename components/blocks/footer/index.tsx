@@ -1,9 +1,14 @@
+"use client";
+
 import { Footer as FooterType } from "@/types/blocks/footer";
 import Icon from "@/components/icon";
 import LovexaiLogo from "@/components/ui/logo";
+import { usePathname } from "next/navigation";
 
 export default function Footer({ footer }: { footer: FooterType }) {
-  if (footer.disabled) {
+  const pathname = usePathname();
+
+  if (footer.disabled || pathname !== '/') {
     return null;
   }
 
