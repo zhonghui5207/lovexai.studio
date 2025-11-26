@@ -40,9 +40,9 @@ interface Character {
 
 interface GenerationSettings {
   responseLength: "short" | "default" | "long";
-  includeNarrator: boolean;
-  narratorVoice: string;
   selectedModel: string;
+  pov: "first_person" | "third_person";
+  creativity: "precise" | "balanced" | "creative";
 }
 
 interface ChatWindowProps {
@@ -62,9 +62,9 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   const [errorType, setErrorType] = useState<'network' | 'server' | 'credits' | 'permission' | 'general' | 'timeout' | 'empty_message'>('general');
   const [generationSettings, setGenerationSettings] = useState<GenerationSettings>({
     responseLength: "default",
-    includeNarrator: true,
-    narratorVoice: "male",
-    selectedModel: "nectar_basic"
+    selectedModel: "nova",
+    pov: "first_person",
+    creativity: "balanced"
   });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -196,11 +196,11 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
           
           <Badge
             variant="outline"
-            className="text-xs flex items-center gap-1 cursor-pointer hover:bg-muted"
+            className="text-xs flex items-center gap-1 cursor-pointer hover:bg-muted px-3 py-1.5 h-9 rounded-xl border-white/10 bg-white/5 transition-all"
             onClick={() => setIsSettingsOpen(true)}
           >
-            <Settings className="h-3 w-3" />
-            Basic Roleplay
+            <Settings className="h-3.5 w-3.5" />
+            Settings
           </Badge>
 
           <DropdownMenu>
@@ -209,29 +209,22 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                 <MoreVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem className="text-white bg-red-500 hover:bg-red-600">
-                ↑ Upgrade Experience
+            <DropdownMenuContent align="end" className="w-48 bg-[#0B0E14] border-white/10 text-gray-200">
+              <DropdownMenuItem className="hover:bg-white/5 cursor-pointer focus:bg-white/5 focus:text-white">
+                <span className="flex items-center gap-2">
+                  <span>🔄</span> Reset Conversation
+                </span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                👤 Change Persona
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem className="hover:bg-white/5 cursor-pointer focus:bg-white/5 focus:text-white">
+                <span className="flex items-center gap-2">
+                  <span>�</span> Report Character
+                </span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsSettingsOpen(true)}>
-                ⚙️ Generation Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                📁 Archive Conversation
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                🔄 Reset Conversation
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                🚩 Report
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
-                🗑️ Delete Conversation
+              <DropdownMenuItem className="text-red-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer focus:bg-red-500/10 focus:text-red-400">
+                <span className="flex items-center gap-2">
+                  <span>🗑️</span> Delete Conversation
+                </span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

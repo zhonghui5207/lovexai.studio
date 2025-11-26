@@ -52,7 +52,7 @@ export default function ({ nav }: { nav: NavType }) {
                         <SidebarMenuSubButton
                           asChild
                           className={`${
-                            subItem.is_active ? "text-primary" : ""
+                            subItem.is_active ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""
                           }`}
                         >
                           <Link
@@ -76,7 +76,7 @@ export default function ({ nav }: { nav: NavType }) {
               <SidebarMenuButton
                 asChild
                 tooltip={item.title}
-                className={`${item.is_active ? "text-primary" : ""}`}
+                className={`${item.is_active ? "bg-sidebar-accent text-sidebar-accent-foreground" : ""}`}
               >
                 <Link href={item.url || ""} className="flex items-center gap-1">
                   {item.icon && <Icon name={item.icon} className="text-xl" />}

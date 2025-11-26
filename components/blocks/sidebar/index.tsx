@@ -69,27 +69,20 @@ export default function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden whitespace-nowrap",
+                "flex items-center gap-3 px-3 py-3 text-sm font-medium transition-all duration-300 group relative overflow-hidden whitespace-nowrap",
+                !isHovered ? "rounded-full justify-center px-0 w-10 h-10 mx-auto" : "rounded-xl",
                 isActive 
                   ? "text-white bg-primary/10" 
-                  : "text-muted-foreground hover:text-white hover:bg-white/5",
-                !isHovered && "justify-center px-0"
+                  : "text-muted-foreground hover:text-white hover:bg-white/5"
               )}
             >
-              {isActive && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
-              )}
               <Icon className={cn("w-5 h-5 flex-shrink-0 transition-colors", isActive ? "text-primary" : "group-hover:text-white")} />
               <span className={cn(
                 "relative z-10 transition-all duration-300 overflow-hidden whitespace-nowrap",
-                isHovered ? "opacity-100 max-w-[150px]" : "opacity-0 max-w-0"
+                isHovered ? "opacity-100 max-w-[150px]" : "opacity-0 max-w-0 hidden"
               )}>
                 {item.name}
               </span>
-              
-              {!isHovered && isActive && (
-                <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-primary" />
-              )}
             </Link>
           );
         })}
