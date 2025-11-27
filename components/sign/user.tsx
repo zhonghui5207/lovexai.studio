@@ -5,7 +5,6 @@ import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
@@ -18,11 +17,18 @@ import { User } from "@/types/user";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 
-export default function SignUser({ user, children }: { user: User, children?: React.ReactNode }) {
+interface SignUserProps {
+  user: User;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export default function SignUser({ user, children, open, onOpenChange }: SignUserProps) {
   const t = useTranslations();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={onOpenChange} modal={false}>
       <DropdownMenuTrigger asChild>
         {children || (
         <Avatar className="cursor-pointer hover:ring-2 hover:ring-white/20 transition-all duration-200">
@@ -33,43 +39,28 @@ export default function SignUser({ user, children }: { user: User, children?: Re
         </Avatar>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="mx-4 bg-slate-800/95 backdrop-blur-sm border-white/10 text-white">
-        <DropdownMenuLabel className="text-center truncate text-white">
+      <DropdownMenuContent usePortal={false} className="mx-4 bg-popover border-border text-popover-foreground w-56 shadow-2xl z-[100]">
+        <DropdownMenuLabel className="text-center truncate text-muted-foreground font-normal">
           {user.nickname}
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator />
 
-        <DropdownMenuItem className="flex justify-center cursor-pointer hover:bg-white/5 text-white/90 focus:text-white">
-          <Link href="/my-credits">{t("my_credits.title")}</Link>
+        <DropdownMenuItem className="flex justify-center cursor-pointer text-muted-foreground focus:text-foreground focus:bg-white/10 transition-colors">
+          <Link href="/profile" className="w-full text-center py-1">Profile</Link>
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="flex justify-center cursor-pointer hover:bg-white/5 text-white/90 focus:text-white">
-          <Link href="/my-images">{t("user.my_images")}</Link>
+        <DropdownMenuItem className="flex justify-center cursor-pointer text-muted-foreground focus:text-foreground focus:bg-white/10 transition-colors">
+          <Link href="/favorites" className="w-full text-center py-1">My Favorites</Link>
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="flex justify-center cursor-pointer hover:bg-white/5 text-white/90 focus:text-white">
-          <Link href="/my-orders">{t("user.my_orders")}</Link>
+        <DropdownMenuItem className="flex justify-center cursor-pointer text-muted-foreground focus:text-foreground focus:bg-white/10 transition-colors">
+          <Link href="/preferences" className="w-full text-center py-1">Preferences</Link>
         </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-white/10" />
         
-        <DropdownMenuItem className="flex justify-center cursor-pointer hover:bg-white/5 text-white/90 focus:text-white">
-          <Link href="/api-keys">{t("api_keys.title")}</Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-white/10" />
-
-        <DropdownMenuItem className="flex justify-center cursor-pointer hover:bg-white/5 text-white/90 focus:text-white">
-          <Link href="/my-orders">{t("user.user_center")}</Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem className="flex justify-center cursor-pointer hover:bg-white/5 text-white/90 focus:text-white">
-          <Link href="/admin/users" target="_blank">
-            {t("user.admin_system")}
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator />
 
         <DropdownMenuItem
-          className="flex justify-center cursor-pointer hover:bg-white/5 text-red-400 focus:text-red-300"
+          className="flex justify-center cursor-pointer text-muted-foreground/70 focus:text-foreground focus:bg-white/10 transition-colors"
           onClick={() => signOut()}
         >
           {t("user.sign_out")}

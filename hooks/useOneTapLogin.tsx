@@ -9,6 +9,9 @@ export default function () {
   const isInitialized = useRef(false);
   const isPrompting = useRef(false);
 
+  const isEnabled = process.env.NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED === "true" && 
+                    !!process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID;
+
   const oneTapLogin = async function () {
     if (typeof window === 'undefined' || !window.google || !window.google.accounts) {
       console.log("Google One Tap SDK not available");
@@ -58,6 +61,8 @@ export default function () {
 
   useEffect(() => {
     console.log("one tap login status", status, session);
+
+    if (!isEnabled) return;
 
     if (status === "unauthenticated") {
       // 重置状态

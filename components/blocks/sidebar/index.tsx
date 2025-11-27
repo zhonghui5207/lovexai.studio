@@ -14,7 +14,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import SignToggle from "@/components/sign/toggle";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAppContext } from "@/contexts/app";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -32,11 +32,19 @@ export default function Sidebar() {
   const [isHovered, setIsHovered] = useState(false);
   const { user } = useAppContext();
   const [gender, setGender] = useState<'girls' | 'guys' | 'anime'>('girls');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // 当侧边栏收起时，强制关闭下拉菜单
+  useEffect(() => {
+    if (!isHovered) {
+      setDropdownOpen(false);
+    }
+  }, [isHovered]);
 
   return (
     <aside 
       className={cn(
-        "hidden md:flex flex-col h-screen fixed left-0 top-0 bg-background/20 border-r border-white/5 z-50 backdrop-blur-xl transition-all duration-300 ease-in-out overflow-hidden",
+        "hidden md:flex flex-col h-screen fixed left-0 top-0 bg-background/20 border-r border-white/5 z-50 backdrop-blur-xl transition-all duration-300 ease-in-out",
         isHovered ? "w-64 shadow-[10px_0_30px_rgba(0,0,0,0.5)]" : "w-20"
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -123,7 +131,10 @@ export default function Sidebar() {
         )}
 
         <div className={cn("flex items-center justify-center", isHovered ? "px-0" : "")}>
-          <SignToggle>
+          <SignToggle
+            dropdownOpen={dropdownOpen}
+            onDropdownOpenChange={setDropdownOpen}
+          >
             {isHovered && user && (
               <div className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group border border-transparent hover:border-white/10">
                 <Avatar className="h-9 w-9 border border-white/10">

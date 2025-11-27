@@ -7,13 +7,29 @@ import { useTranslations } from "next-intl";
 
 import { ReactNode } from "react";
 
-export default function SignToggle({ children }: { children?: ReactNode }) {
+interface SignToggleProps {
+  children?: ReactNode;
+  dropdownOpen?: boolean;
+  onDropdownOpenChange?: (open: boolean) => void;
+}
+
+export default function SignToggle({ children, dropdownOpen, onDropdownOpenChange }: SignToggleProps) {
   const t = useTranslations();
   const { user } = useAppContext();
 
   return (
     <div className="flex items-center w-full justify-center">
-      {user ? <User user={user}>{children}</User> : <SignIn />}
+      {user ? (
+        <User 
+          user={user} 
+          open={dropdownOpen} 
+          onOpenChange={onDropdownOpenChange}
+        >
+          {children}
+        </User>
+      ) : (
+        <SignIn />
+      )}
     </div>
   );
 }

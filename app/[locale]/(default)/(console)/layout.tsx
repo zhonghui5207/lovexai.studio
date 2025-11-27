@@ -7,9 +7,9 @@ import { redirect } from "next/navigation";
 
 export default async function ({ children }: { children: ReactNode }) {
   const userInfo = await getUserInfo();
-  if (!userInfo || !userInfo.email) {
-    redirect("/auth/signin");
-  }
+  // if (!userInfo || !userInfo.email) {
+  //   redirect("/auth/signin");
+  // }
 
   const t = await getTranslations();
 
