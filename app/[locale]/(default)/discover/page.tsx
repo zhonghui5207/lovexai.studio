@@ -41,6 +41,83 @@ const SWIPE_CHARACTERS = [
     bio: "Don't worry, I only bite if you ask nicely. 🐍",
     distance: "Shadows",
     color: "#a855f7" // Purple
+  },
+  {
+    id: "swipe_4",
+    name: "Luna",
+    age: 20,
+    role: "Street Racer",
+    image: "https://cdn.lovexai.studio/Character/ComfyUI_00016_.png",
+    tags: ["Fast", "Adrenaline"],
+    bio: "Life in the fast lane. Catch me if you can! 🏎️",
+    distance: "5km away",
+    color: "#e11d48" // Pink
+  },
+  {
+    id: "swipe_5",
+    name: "Kael",
+    age: 28,
+    role: "Knight Commander",
+    image: "https://cdn.lovexai.studio/Character/ComfyUI_00017_.png",
+    tags: ["Honorable", "Protective"],
+    bio: "My sword is yours, my lady. ⚔️",
+    distance: "Castle Grounds",
+    color: "#eab308" // Yellow
+  },
+  {
+    id: "swipe_6",
+    name: "Zara",
+    age: 22,
+    role: "Space Explorer",
+    image: "https://cdn.lovexai.studio/Character/ComfyUI_00018_.png",
+    tags: ["Curious", "Adventurous"],
+    bio: "Let's explore the galaxy together. ✨",
+    distance: "Light years away",
+    color: "#6366f1" // Indigo
+  },
+  {
+    id: "swipe_7",
+    name: "Rogue",
+    age: 25,
+    role: "Mercenary",
+    image: "https://cdn.lovexai.studio/Character/ComfyUI_00019_.png",
+    tags: ["Mysterious", "Strong"],
+    bio: "For the right price, I'll do anything. 💰",
+    distance: "Unknown",
+    color: "#10b981" // Emerald
+  },
+  {
+    id: "swipe_8",
+    name: "Seraphina",
+    age: 1000,
+    role: "Ancient Vampire",
+    image: "https://cdn.lovexai.studio/Character/ComfyUI_00021_.png",
+    tags: ["Elegant", "Eternal"],
+    bio: "I have seen empires rise and fall. 🍷",
+    distance: "Old Mansion",
+    color: "#9f1239" // Rose
+  },
+  {
+    id: "swipe_9",
+    name: "Dr. X",
+    age: 35,
+    role: "Mad Scientist",
+    image: "https://cdn.lovexai.studio/Character/ComfyUI_00022_.png",
+    tags: ["Genius", "Crazy"],
+    bio: "My experiments are... unconventional. 🧪",
+    distance: "Underground Lab",
+    color: "#14b8a6" // Teal
+  },
+  {
+    id: "swipe_10",
+    name: "Pixel",
+    age: 19,
+    role: "AI Streamer",
+    image: "https://cdn.lovexai.studio/Character/ComfyUI_00023_.png",
+    tags: ["Virtual", "Kawaii"],
+    bio: "Don't forget to like and subscribe! 📺",
+    distance: "The Cloud",
+    color: "#ec4899" // Pink
   }
 ];
 
@@ -96,7 +173,7 @@ export default function DiscoverPage() {
       <div className="flex flex-col gap-16">
         
         {/* Top Section: Daily Picks (Swipe Deck) */}
-        <div className="flex flex-col items-center justify-center w-full max-w-5xl mx-auto relative">
+        <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto relative">
             
             {/* Dynamic Background Atmosphere */}
             <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
@@ -151,7 +228,7 @@ export default function DiscoverPage() {
                 </AnimatePresence>
                 
                 {cards.length === 0 && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/5 rounded-3xl border border-white/10 text-center p-8 z-0 max-w-sm mx-auto h-[500px]">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/5 rounded-3xl border border-white/10 text-center p-8 z-0 w-full h-full">
                         <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 animate-pulse">
                             <RefreshCw className="w-10 h-10 text-muted-foreground" />
                         </div>
@@ -165,7 +242,7 @@ export default function DiscoverPage() {
             </div>
 
             {/* Swipe Controls */}
-            <div className="flex items-center gap-8 mt-[-40px] relative z-20">
+            <div className="flex items-center gap-8 mt-8 relative z-20">
                 <Button 
                     size="icon" 
                     className="w-16 h-16 rounded-full bg-black/40 border-2 border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white hover:scale-110 transition-all shadow-lg shadow-red-500/20 backdrop-blur-md"
@@ -251,7 +328,7 @@ export default function DiscoverPage() {
 
 // --- Sub-components ---
 
-function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 'center' | 'right' | 'hidden', onSwipe: (dir: "left" | "right") => void }) {
+function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 'center' | 'right', onSwipe: (dir: "left" | "right") => void }) {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
     
@@ -270,48 +347,47 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
     const variants = {
         center: { 
             x: 0, 
-            scale: 1, 
+            y: 0,
+            scale: [1.05, 1], // Pop effect: Scale up then settle back
             rotate: 0, 
             opacity: 1, 
             filter: "blur(0px)",
             zIndex: 10,
-            transition: { type: "spring", stiffness: 300, damping: 20 }
+            // Changed from spring to easeOut to prevent "bouncing" and provide a smoother feel
+            transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] } 
         },
         left: { 
-            x: -280, 
+            x: -360, 
+            y: 0,
             scale: 0.85, 
             rotate: -6, 
-            opacity: 0.4, 
-            filter: "blur(2px)",
+            opacity: 0.5, 
+            filter: "blur(3px)",
             zIndex: 5,
-            transition: { duration: 0.5, ease: "easeInOut" }
+            transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] }
         },
         right: { 
-            x: 280, 
+            x: 360, 
+            y: 0,
             scale: 0.85, 
             rotate: 6, 
-            opacity: 0.4, 
-            filter: "blur(2px)",
+            opacity: 0.5, 
+            filter: "blur(3px)",
             zIndex: 5,
-            transition: { duration: 0.5, ease: "easeInOut" }
-        },
-        hidden: {
-            scale: 0.8,
-            opacity: 0,
-            zIndex: 0
+            transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] }
         },
         exit: (custom: number) => ({
-            x: custom > 0 ? 500 : -500,
+            x: custom > 0 ? 1000 : -1000,
             opacity: 0,
-            transition: { duration: 0.3 }
+            transition: { duration: 0.6, ease: "easeIn" } // Slower exit speed
         })
     };
 
     return (
         <motion.div
-            layoutId={data.id}
+            // Removed layoutId to prevent "pop-up" animation issues
             variants={variants}
-            initial="hidden"
+            initial={position === 'center' ? 'right' : false} 
             animate={position}
             exit="exit"
             custom={x.get()}
