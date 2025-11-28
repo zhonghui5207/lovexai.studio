@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { ProfileSettingsDialog } from "@/components/profile/ProfileSettingsDialog";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const { user } = useAppContext();
@@ -123,10 +124,12 @@ export default function ProfilePage() {
                         />
                     </div>
 
-                    <Button className="h-12 px-6 bg-primary hover:bg-primary/90 text-white gap-2 rounded-full text-base font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105">
-                        <Plus className="w-5 h-5" />
-                        <span className="hidden sm:inline">Create Companion</span>
-                    </Button>
+                    <Link href="/create">
+                        <Button className="h-12 px-6 bg-primary hover:bg-primary/90 text-white gap-2 rounded-full text-base font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105">
+                            <Plus className="w-5 h-5" />
+                            <span className="hidden sm:inline">Create Companion</span>
+                        </Button>
+                    </Link>
                 </div>
             </div>
 
@@ -159,15 +162,7 @@ export default function ProfilePage() {
                     </div>
                 </div>
                 
-                {/* 空状态占位 */}
-                {[1, 2, 3, 4].map((i) => (
-                     <div key={i} className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-white/5 border border-white/5 flex flex-col items-center justify-center border-dashed hover:bg-white/10 hover:border-primary/30 transition-all cursor-pointer">
-                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 group-hover:bg-primary group-hover:scale-110 transition-all duration-300 shadow-xl">
-                            <Plus className="w-8 h-8 text-white/50 group-hover:text-white" />
-                        </div>
-                        <p className="text-base font-medium text-muted-foreground group-hover:text-white transition-colors">Create New</p>
-                    </div>
-                ))}
+
             </div>
         </TabsContent>
 

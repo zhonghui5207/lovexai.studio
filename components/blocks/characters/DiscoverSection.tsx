@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 import { useSearchParams } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 
 interface Character {
   id: string;
@@ -59,16 +60,20 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
       <div className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 mix-blend-overlay" />
 
       {/* Top Badges */}
-      <div className="absolute top-3 left-3 flex gap-2">
-        {character.isOfficial && (
-          <Badge variant="secondary" className="bg-primary/80 text-white backdrop-blur-md border-none">
-            Official
-          </Badge>
-        )}
-        <Badge variant="outline" className="bg-black/40 text-white border-white/20 backdrop-blur-md">
-          {character.chatCount} 💬
-        </Badge>
+      <div className="absolute top-3 left-3">
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md text-white/90 text-xs font-medium border border-white/10">
+          <MessageCircle className="w-3.5 h-3.5 fill-current" />
+          {character.chatCount.replace(' chats', '')}
+        </div>
       </div>
+      
+      {character.isOfficial && (
+        <div className="absolute top-3 right-3">
+          <Badge variant="secondary" className="bg-primary/80 text-white backdrop-blur-md border-none px-3 py-1 rounded-full">
+            Lovexai
+          </Badge>
+        </div>
+      )}
 
       {/* Bottom Info */}
       <div className="absolute bottom-0 left-0 right-0 p-5 transform transition-transform duration-300 group-hover:-translate-y-2">

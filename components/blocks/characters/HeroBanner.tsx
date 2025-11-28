@@ -260,7 +260,7 @@ export default function HeroBanner() {
                         </span>
                         {character.isOfficial && (
                           <span className="px-2 py-1 rounded-md bg-primary/80 backdrop-blur-md text-xs font-bold uppercase tracking-wider">
-                            Official
+                            Lovexai
                           </span>
                         )}
                       </div>

@@ -109,7 +109,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
             {character.isOfficial && (
               <div className="absolute top-4 left-4">
                 <Badge className="bg-primary hover:bg-primary/90 text-white font-semibold px-3 py-1">
-                  Official
+                  Lovexai
                 </Badge>
               </div>
             )}
