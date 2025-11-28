@@ -5,9 +5,10 @@ import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info } from "lucide-react";
+import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 
 // Mock Data for Swipe Cards
 const SWIPE_CHARACTERS = [
@@ -135,6 +136,9 @@ export default function DiscoverPage() {
   const [cards, setCards] = useState(SWIPE_CHARACTERS);
   const [history, setHistory] = useState<typeof SWIPE_CHARACTERS>([]);
   const [match, setMatch] = useState<typeof SWIPE_CHARACTERS[0] | null>(null);
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [likedCharacters, setLikedCharacters] = useState<typeof SWIPE_CHARACTERS>([]);
+  const [isCollectionBounce, setIsCollectionBounce] = useState(false);
 
   // Swipe Logic
   const removeCard = (id: string, direction: "left" | "right") => {
@@ -142,12 +146,18 @@ export default function DiscoverPage() {
     if (!cardToRemove) return;
 
     if (direction === 'right') {
-        // Simulate a match for demo purposes
         setMatch(cardToRemove);
+        setLikedCharacters(prev => {
+            if (prev.find(c => c.id === cardToRemove.id)) return prev;
+            return [...prev, cardToRemove];
+        });
+        setIsCollectionBounce(true);
+        setTimeout(() => setIsCollectionBounce(false), 300);
     }
 
     setHistory([...history, cardToRemove]);
     setCards(cards.filter((c) => c.id !== id));
+    setIsFlipped(false);
     
     // TODO: Trigger API for Like/Pass
     console.log(`Swiped ${direction} on ${cardToRemove.name}`);
@@ -210,16 +220,100 @@ export default function DiscoverPage() {
             </h1>
             <p className="text-muted-foreground text-lg">Swipe to match, chat to connect.</p>
         </div>
-        <div className="flex items-center gap-3 bg-white/5 p-2 rounded-full border border-white/10">
-            <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30 px-4 py-2 rounded-full text-sm cursor-pointer transition-colors">
-                <Flame className="w-4 h-4 mr-1.5" /> Trending
-            </Badge>
-            <Badge variant="outline" className="text-muted-foreground hover:text-white px-4 py-2 rounded-full text-sm cursor-pointer transition-colors border-transparent hover:border-white/10">
-                <Sparkles className="w-4 h-4 mr-1.5" /> New Arrivals
-            </Badge>
-            <Badge variant="outline" className="text-muted-foreground hover:text-white px-4 py-2 rounded-full text-sm cursor-pointer transition-colors border-transparent hover:border-white/10">
-                <MapPin className="w-4 h-4 mr-1.5" /> Nearby
-            </Badge>
+        
+        <div className="flex items-center gap-4">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button 
+                        variant="ghost" 
+                        className={cn(
+                            "relative w-12 h-12 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all",
+                            isCollectionBounce && "scale-110 text-primary border-primary/50"
+                        )}
+                    >
+                        <Heart className={cn("w-6 h-6 transition-colors", likedCharacters.length > 0 ? "fill-primary text-primary" : "text-muted-foreground")} />
+                        {likedCharacters.length > 0 && (
+                            <Badge className="absolute -top-1 -right-1 bg-primary text-white text-xs w-5 h-5 flex items-center justify-center p-0 rounded-full animate-in zoom-in border-2 border-black">
+                                {likedCharacters.length}
+                            </Badge>
+                        )}
+                    </Button>
+                </SheetTrigger>
+                <SheetContent className="bg-neutral-900 border-white/10 text-white overflow-y-auto sm:max-w-md w-full">
+                    <SheetHeader className="mb-6">
+                        <SheetTitle className="text-2xl font-bold text-white flex items-center gap-2">
+                            <Heart className="w-6 h-6 fill-primary text-primary" />
+                            My Collection
+                        </SheetTitle>
+                        <SheetDescription className="text-neutral-400">
+                            Characters you've matched with.
+                        </SheetDescription>
+                    </SheetHeader>
+                    
+                    <div className="space-y-4">
+                        {likedCharacters.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-neutral-500 border-2 border-dashed border-white/10 rounded-xl bg-white/5">
+                                <Heart className="w-12 h-12 mb-3 opacity-20" />
+                                <p className="font-medium">No matches yet</p>
+                                <p className="text-sm">Swipe right to find your destiny!</p>
+                            </div>
+                        ) : (
+                            <AnimatePresence mode="popLayout">
+                                {likedCharacters.map((char) => (
+                                    <motion.div 
+                                        key={char.id}
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, x: -100 }}
+                                        className="flex items-center gap-4 p-3 bg-white/5 rounded-xl border border-white/5 hover:border-primary/30 transition-all group"
+                                    >
+                                        <Avatar className="w-14 h-14 border-2 border-white/10">
+                                            <AvatarImage src={char.image} className="object-cover" />
+                                            <AvatarFallback>{char.name[0]}</AvatarFallback>
+                                        </Avatar>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-lg truncate">{char.name}</h4>
+                                            <p className="text-xs text-primary font-medium truncate">{char.role}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Button 
+                                                size="icon" 
+                                                variant="ghost" 
+                                                className="h-10 w-10 hover:bg-primary/20 hover:text-primary rounded-full"
+                                                title="Chat"
+                                            >
+                                                <MessageCircle className="w-5 h-5" />
+                                            </Button>
+                                            <Button 
+                                                size="icon" 
+                                                variant="ghost" 
+                                                className="h-10 w-10 hover:bg-red-500/20 hover:text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                                onClick={() => setLikedCharacters(prev => prev.filter(c => c.id !== char.id))}
+                                                title="Remove"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+                        )}
+                    </div>
+                </SheetContent>
+            </Sheet>
+
+            <div className="hidden lg:flex items-center gap-3 bg-white/5 p-2 rounded-full border border-white/10">
+                <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30 px-4 py-2 rounded-full text-sm cursor-pointer transition-colors">
+                    <Flame className="w-4 h-4 mr-1.5" /> Trending
+                </Badge>
+                <Badge variant="outline" className="text-muted-foreground hover:text-white px-4 py-2 rounded-full text-sm cursor-pointer transition-colors border-transparent hover:border-white/10">
+                    <Sparkles className="w-4 h-4 mr-1.5" /> New Arrivals
+                </Badge>
+                <Badge variant="outline" className="text-muted-foreground hover:text-white px-4 py-2 rounded-full text-sm cursor-pointer transition-colors border-transparent hover:border-white/10">
+                    <MapPin className="w-4 h-4 mr-1.5" /> Nearby
+                </Badge>
+            </div>
         </div>
       </div>
 
@@ -277,6 +371,8 @@ export default function DiscoverPage() {
                             data={cards[cards.length - 1]}
                             position="center"
                             onSwipe={(dir) => removeCard(cards[cards.length - 1].id, dir)}
+                            isFlipped={isFlipped}
+                            setIsFlipped={setIsFlipped}
                         />
                     )}
                 </AnimatePresence>
@@ -308,14 +404,7 @@ export default function DiscoverPage() {
                 <Button 
                     size="icon" 
                     className="w-12 h-12 rounded-full bg-black/40 border border-white/20 text-white hover:bg-white/10 hover:scale-110 transition-all backdrop-blur-md"
-                    onClick={() => {
-                        // Trigger flip on the active card
-                        const activeCard = document.querySelector(`[data-card-id="${cards[cards.length - 1].id}"]`);
-                        if (activeCard) {
-                            const event = new CustomEvent('flipCard');
-                            activeCard.dispatchEvent(event);
-                        }
-                    }}
+                    onClick={() => setIsFlipped(prev => !prev)}
                 >
                     <RotateCcw className="w-5 h-5 text-yellow-400" />
                 </Button>
@@ -389,7 +478,19 @@ export default function DiscoverPage() {
 
 // --- Sub-components ---
 
-function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 'center' | 'right', onSwipe: (dir: "left" | "right") => void }) {
+function SwipeCard({ 
+    data, 
+    position, 
+    onSwipe,
+    isFlipped = false,
+    setIsFlipped 
+}: { 
+    data: any, 
+    position: 'left' | 'center' | 'right', 
+    onSwipe: (dir: "left" | "right") => void,
+    isFlipped?: boolean,
+    setIsFlipped?: React.Dispatch<React.SetStateAction<boolean>>
+}) {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
     
@@ -397,26 +498,12 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
     const likeOpacity = useTransform(x, [0, 150], [0, 1]);
     const nopeOpacity = useTransform(x, [-150, 0], [1, 0]);
 
-    // Flip State
-    const [isFlipped, setIsFlipped] = useState(false);
-
     // Track drag state to distinguish between click and drag
     const isDragging = useRef(false);
 
     const handleDragStart = () => {
         isDragging.current = true;
     };
-
-    // Listen for flip event
-    useEffect(() => {
-        const handleFlip = () => setIsFlipped(prev => !prev);
-        const element = document.querySelector(`[data-card-id="${data.id}"]`);
-        
-        if (element) {
-            element.addEventListener('flipCard', handleFlip);
-            return () => element.removeEventListener('flipCard', handleFlip);
-        }
-    }, [data.id]);
 
     const handleDragEnd = (event: any, info: PanInfo) => {
         // Small delay to reset drag state to allow click handler to check it
@@ -432,7 +519,7 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
     };
 
     const handleCardClick = () => {
-        if (!isDragging.current) {
+        if (!isDragging.current && setIsFlipped) {
             setIsFlipped(true);
         }
     };
