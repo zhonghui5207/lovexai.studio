@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 // Mock Data for Swipe Cards
 const SWIPE_CHARACTERS = [
@@ -132,11 +134,17 @@ const CATEGORIES = [
 export default function DiscoverPage() {
   const [cards, setCards] = useState(SWIPE_CHARACTERS);
   const [history, setHistory] = useState<typeof SWIPE_CHARACTERS>([]);
+  const [match, setMatch] = useState<typeof SWIPE_CHARACTERS[0] | null>(null);
 
   // Swipe Logic
   const removeCard = (id: string, direction: "left" | "right") => {
     const cardToRemove = cards.find(c => c.id === id);
     if (!cardToRemove) return;
+
+    if (direction === 'right') {
+        // Simulate a match for demo purposes
+        setMatch(cardToRemove);
+    }
 
     setHistory([...history, cardToRemove]);
     setCards(cards.filter((c) => c.id !== id));
@@ -148,6 +156,52 @@ export default function DiscoverPage() {
   return (
     <div className="min-h-screen text-white p-4 md:p-8 max-w-[1600px] mx-auto space-y-12">
       
+      {/* Match Modal */}
+      <Dialog open={!!match} onOpenChange={(open) => !open && setMatch(null)}>
+        <DialogContent className="sm:max-w-md bg-neutral-900 border-white/10 text-white">
+            <DialogHeader className="text-center">
+                <DialogTitle className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500 mb-2">
+                    It's a Match!
+                </DialogTitle>
+                <DialogDescription className="text-neutral-400 text-lg">
+                    You and {match?.name} like each other.
+                </DialogDescription>
+            </DialogHeader>
+            
+            <div className="flex items-center justify-center gap-6 py-8">
+                <div className="relative">
+                    <Avatar className="w-24 h-24 border-4 border-primary shadow-[0_0_30px_rgba(236,72,153,0.3)]">
+                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarFallback>ME</AvatarFallback>
+                    </Avatar>
+                    <div className="absolute -bottom-2 -right-2 bg-neutral-900 rounded-full p-1">
+                        <Heart className="w-6 h-6 text-primary fill-current" />
+                    </div>
+                </div>
+                <div className="relative">
+                    <Avatar className="w-24 h-24 border-4 border-purple-500 shadow-[0_0_30px_rgba(168,85,247,0.3)]">
+                        <AvatarImage src={match?.image} />
+                        <AvatarFallback>{match?.name[0]}</AvatarFallback>
+                    </Avatar>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+                <Button className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 h-12 text-lg rounded-xl">
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Chat with {match?.name}
+                </Button>
+                <Button 
+                    variant="outline" 
+                    className="w-full border-white/10 hover:bg-white/5 h-12 text-lg rounded-xl"
+                    onClick={() => setMatch(null)}
+                >
+                    Keep Swiping
+                </Button>
+            </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
@@ -346,6 +400,13 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
     // Flip State
     const [isFlipped, setIsFlipped] = useState(false);
 
+    // Track drag state to distinguish between click and drag
+    const isDragging = useRef(false);
+
+    const handleDragStart = () => {
+        isDragging.current = true;
+    };
+
     // Listen for flip event
     useEffect(() => {
         const handleFlip = () => setIsFlipped(prev => !prev);
@@ -356,13 +417,6 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
             return () => element.removeEventListener('flipCard', handleFlip);
         }
     }, [data.id]);
-
-    // Track drag state to distinguish between click and drag
-    const isDragging = useRef(false);
-
-    const handleDragStart = () => {
-        isDragging.current = true;
-    };
 
     const handleDragEnd = (event: any, info: PanInfo) => {
         // Small delay to reset drag state to allow click handler to check it
@@ -387,7 +441,7 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
         center: { 
             x: 0, 
             y: 0,
-            scale: [1.05, 1], 
+            scale: [1.05, 1], // Pop effect: Scale up then settle back
             rotate: 0, 
             opacity: 1, 
             filter: "blur(0px)",
@@ -417,7 +471,7 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
         exit: (custom: number) => ({
             x: custom > 0 ? 1000 : -1000,
             opacity: 0,
-            transition: { duration: 0.6, ease: "easeIn" }
+            transition: { duration: 0.6, ease: "easeIn" } // Slower exit speed
         })
     };
 
