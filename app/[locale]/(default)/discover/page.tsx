@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin } from "lucide-react";
+import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info } from "lucide-react";
 
 // Mock Data for Swipe Cards
 const SWIPE_CHARACTERS = [
@@ -254,9 +254,16 @@ export default function DiscoverPage() {
                 <Button 
                     size="icon" 
                     className="w-12 h-12 rounded-full bg-black/40 border border-white/20 text-white hover:bg-white/10 hover:scale-110 transition-all backdrop-blur-md"
-                    onClick={() => console.log("Super Like!")}
+                    onClick={() => {
+                        // Trigger flip on the active card
+                        const activeCard = document.querySelector(`[data-card-id="${cards[cards.length - 1].id}"]`);
+                        if (activeCard) {
+                            const event = new CustomEvent('flipCard');
+                            activeCard.dispatchEvent(event);
+                        }
+                    }}
                 >
-                    <Zap className="w-5 h-5 text-yellow-400" />
+                    <RotateCcw className="w-5 h-5 text-yellow-400" />
                 </Button>
 
                 <Button 
@@ -336,7 +343,33 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
     const likeOpacity = useTransform(x, [0, 150], [0, 1]);
     const nopeOpacity = useTransform(x, [-150, 0], [1, 0]);
 
+    // Flip State
+    const [isFlipped, setIsFlipped] = useState(false);
+
+    // Listen for flip event
+    useEffect(() => {
+        const handleFlip = () => setIsFlipped(prev => !prev);
+        const element = document.querySelector(`[data-card-id="${data.id}"]`);
+        
+        if (element) {
+            element.addEventListener('flipCard', handleFlip);
+            return () => element.removeEventListener('flipCard', handleFlip);
+        }
+    }, [data.id]);
+
+    // Track drag state to distinguish between click and drag
+    const isDragging = useRef(false);
+
+    const handleDragStart = () => {
+        isDragging.current = true;
+    };
+
     const handleDragEnd = (event: any, info: PanInfo) => {
+        // Small delay to reset drag state to allow click handler to check it
+        setTimeout(() => {
+            isDragging.current = false;
+        }, 100);
+
         if (info.offset.x > 100) {
             onSwipe("right");
         } else if (info.offset.x < -100) {
@@ -344,16 +377,21 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
         }
     };
 
+    const handleCardClick = () => {
+        if (!isDragging.current) {
+            setIsFlipped(true);
+        }
+    };
+
     const variants = {
         center: { 
             x: 0, 
             y: 0,
-            scale: [1.05, 1], // Pop effect: Scale up then settle back
+            scale: [1.05, 1], 
             rotate: 0, 
             opacity: 1, 
             filter: "blur(0px)",
             zIndex: 10,
-            // Changed from spring to easeOut to prevent "bouncing" and provide a smoother feel
             transition: { duration: 0.4, ease: [0.32, 0.72, 0, 1] } 
         },
         left: { 
@@ -379,13 +417,13 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
         exit: (custom: number) => ({
             x: custom > 0 ? 1000 : -1000,
             opacity: 0,
-            transition: { duration: 0.6, ease: "easeIn" } // Slower exit speed
+            transition: { duration: 0.6, ease: "easeIn" }
         })
     };
 
     return (
         <motion.div
-            // Removed layoutId to prevent "pop-up" animation issues
+            data-card-id={data.id}
             variants={variants}
             initial={position === 'center' ? 'right' : false} 
             animate={position}
@@ -394,64 +432,133 @@ function SwipeCard({ data, position, onSwipe }: { data: any, position: 'left' | 
             style={{ 
                 x: position === 'center' ? x : 0, 
                 rotate: position === 'center' ? rotate : (variants[position] as any).rotate || 0,
-                zIndex: (variants[position] as any).zIndex || 0
+                zIndex: (variants[position] as any).zIndex || 0,
+                transformStyle: "preserve-3d", // Crucial for 3D flip
             }}
-            drag={position === 'center' ? "x" : false}
+            drag={position === 'center' && !isFlipped ? "x" : false} // Disable drag when flipped
             dragConstraints={{ left: 0, right: 0 }}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
-            className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
+            className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing perspective-1000"
         >
-            <div className="relative w-full h-full rounded-3xl overflow-hidden bg-neutral-900 shadow-2xl border border-white/10">
-                {/* Image */}
-                <img src={data.image} alt={data.name} className="w-full h-full object-cover pointer-events-none" />
-                
-                {/* Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
-
-                {/* Overlays (Only visible when dragging center card) */}
-                {position === 'center' && (
-                    <>
-                        <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-8 border-4 border-green-500 rounded-lg px-4 py-2 -rotate-12 pointer-events-none z-20">
-                            <span className="text-green-500 font-bold text-4xl uppercase tracking-widest">LIKE</span>
-                        </motion.div>
-                        <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-8 border-4 border-red-500 rounded-lg px-4 py-2 rotate-12 pointer-events-none z-20">
-                            <span className="text-red-500 font-bold text-4xl uppercase tracking-widest">NOPE</span>
-                        </motion.div>
-                    </>
-                )}
-
-                {/* Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-8 pointer-events-none">
-                    <div className="flex items-end justify-between mb-2">
-                        <div>
-                            <h2 className="text-4xl font-bold text-white drop-shadow-md">
-                                {data.name}, <span className="text-2xl font-medium text-white/80">{data.age}</span>
-                            </h2>
-                            <p className="text-lg text-primary font-medium flex items-center gap-1">
-                                {data.role}
-                            </p>
-                        </div>
-                        <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30">
-                            <MessageCircle className="w-6 h-6" />
-                        </Button>
-                    </div>
+            <motion.div 
+                className="relative w-full h-full"
+                animate={{ rotateY: isFlipped ? 180 : 0 }}
+                transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
+                style={{ transformStyle: "preserve-3d" }}
+            >
+                {/* Front Face */}
+                <div 
+                    className="absolute inset-0 w-full h-full rounded-3xl overflow-hidden bg-neutral-900 shadow-2xl border border-white/10 cursor-pointer" 
+                    style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+                    onClick={handleCardClick}
+                >
+                    {/* Image */}
+                    <img src={data.image} alt={data.name} className="w-full h-full object-cover pointer-events-none" />
                     
-                    <p className="text-white/90 text-lg leading-relaxed mb-4 line-clamp-2">
-                        {data.bio}
-                    </p>
+                    {/* Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />
 
-                    <div className="flex flex-wrap gap-2">
-                        {data.tags.map((tag: string) => (
-                            <Badge key={tag} variant="secondary" className="bg-white/10 text-white backdrop-blur-md border-0">
-                                {tag}
+                    {/* Overlays (Only visible when dragging center card) */}
+                    {position === 'center' && (
+                        <>
+                            <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-8 border-4 border-green-500 rounded-lg px-4 py-2 -rotate-12 pointer-events-none z-20">
+                                <span className="text-green-500 font-bold text-4xl uppercase tracking-widest">LIKE</span>
+                            </motion.div>
+                            <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-8 border-4 border-red-500 rounded-lg px-4 py-2 rotate-12 pointer-events-none z-20">
+                                <span className="text-red-500 font-bold text-4xl uppercase tracking-widest">NOPE</span>
+                            </motion.div>
+                        </>
+                    )}
+
+                    {/* Content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-8 pointer-events-none">
+                        <div className="flex items-end justify-between mb-2">
+                            <div>
+                                <h2 className="text-4xl font-bold text-white drop-shadow-md">
+                                    {data.name}, <span className="text-2xl font-medium text-white/80">{data.age}</span>
+                                </h2>
+                                <p className="text-lg text-primary font-medium flex items-center gap-1">
+                                    {data.role}
+                                </p>
+                            </div>
+                            <Button size="icon" className="rounded-full bg-white/20 backdrop-blur-md hover:bg-white/30">
+                                <MessageCircle className="w-6 h-6" />
+                            </Button>
+                        </div>
+                        
+                        <p className="text-white/90 text-lg leading-relaxed mb-4 line-clamp-2">
+                            {data.bio}
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+                            {data.tags.map((tag: string) => (
+                                <Badge key={tag} variant="secondary" className="bg-white/10 text-white backdrop-blur-md border-0">
+                                    {tag}
+                                </Badge>
+                            ))}
+                            <Badge variant="outline" className="text-white/60 border-white/20 gap-1">
+                                <MapPin className="w-3 h-3" /> {data.distance}
                             </Badge>
-                        ))}
-                        <Badge variant="outline" className="text-white/60 border-white/20 gap-1">
-                            <MapPin className="w-3 h-3" /> {data.distance}
-                        </Badge>
+                        </div>
                     </div>
                 </div>
-            </div>
+
+                {/* Back Face (Details) */}
+                <div 
+                    className="absolute inset-0 w-full h-full bg-neutral-900 p-8 flex flex-col overflow-y-auto rounded-3xl border border-white/10 shadow-2xl cursor-pointer"
+                    style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+                    onClick={() => setIsFlipped(false)}
+                >
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-3xl font-bold text-white">{data.name}</h2>
+                    </div>
+
+                    <div className="space-y-6 text-white/80">
+                        <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Info className="w-4 h-4" /> Background Story
+                            </h3>
+                            <p className="leading-relaxed">
+                                Born in the neon-lit streets of Sector 7, {data.name} learned to survive by hacking into corporate mainframes. 
+                                (This is a placeholder story for {data.role}). Known for being {data.tags.join(" and ")}.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                             <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                                <h3 className="text-xs font-bold text-white/50 uppercase mb-1">Role</h3>
+                                <p className="font-medium">{data.role}</p>
+                             </div>
+                             <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                                <h3 className="text-xs font-bold text-white/50 uppercase mb-1">Distance</h3>
+                                <p className="font-medium">{data.distance}</p>
+                             </div>
+                        </div>
+
+                        <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
+                                Personality Traits
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {data.tags.map((tag: string) => (
+                                    <Badge key={tag} variant="secondary" className="bg-primary/20 text-primary border-0">
+                                        {tag}
+                                    </Badge>
+                                ))}
+                                <Badge variant="outline">Intelligent</Badge>
+                                <Badge variant="outline">Secretive</Badge>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="mt-auto pt-6">
+                        <Button className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg shadow-primary/20">
+                            Start Chatting with {data.name}
+                        </Button>
+                    </div>
+                </div>
+            </motion.div>
         </motion.div>
     );
 }
