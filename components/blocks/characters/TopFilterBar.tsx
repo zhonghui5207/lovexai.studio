@@ -11,9 +11,6 @@ export default function TopFilterBar() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   
-  // Only show on home page
-  if (pathname !== '/') return null;
-  
   const currentGender = searchParams.get("gender") || "female";
   const currentNsfw = searchParams.get("nsfw") === "true";
 
@@ -24,6 +21,9 @@ export default function TopFilterBar() {
     setGender(currentGender);
     setNsfw(currentNsfw);
   }, [currentGender, currentNsfw]);
+
+  // Only show on home page
+  if (pathname !== '/') return null;
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());

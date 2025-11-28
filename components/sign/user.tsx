@@ -49,9 +49,7 @@ export default function SignUser({ user, children, open, onOpenChange }: SignUse
           <Link href="/profile" className="w-full text-center py-1">Profile</Link>
         </DropdownMenuItem>
         
-        <DropdownMenuItem className="flex justify-center cursor-pointer text-muted-foreground focus:text-foreground focus:bg-white/10 transition-colors">
-          <Link href="/favorites" className="w-full text-center py-1">My Favorites</Link>
-        </DropdownMenuItem>
+
         
         <DropdownMenuItem className="flex justify-center cursor-pointer text-muted-foreground focus:text-foreground focus:bg-white/10 transition-colors">
           <Link href="/preferences" className="w-full text-center py-1">Preferences</Link>

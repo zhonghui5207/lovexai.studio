@@ -2,14 +2,16 @@
 
 import { useAppContext } from "@/contexts/app";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Search, Filter, Plus, User as UserIcon } from "lucide-react";
+import { Search, Filter, Plus, User as UserIcon, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+import { ProfileSettingsDialog } from "@/components/profile/ProfileSettingsDialog";
 
 export default function ProfilePage() {
   const { user } = useAppContext();
@@ -29,26 +31,42 @@ export default function ProfilePage() {
       {/* 1. 顶部用户信息区域 */}
       <div className="flex flex-col gap-6">
         {/* Banner 区域 */}
-        <div className="h-64 w-full bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-2xl relative overflow-hidden border border-white/5">
-           <div className="absolute inset-0 bg-[url('/imgs/pattern.png')] opacity-5 mix-blend-overlay"></div>
-           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-        </div>
+        <div className="h-80 w-full rounded-2xl relative overflow-hidden border border-white/5 group">
+           {/* Background Image */}
+           <div className="absolute inset-0 bg-[url('/imgs/default_banner.png')] bg-cover bg-center transition-transform duration-700 group-hover:scale-105"></div>
+           
+           {/* Gradient Overlay - Stronger at bottom for text readability */}
+           <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
 
-        {/* 用户信息 */}
-        <div className="px-8 -mt-20 flex flex-col gap-4 z-10">
-            <div className="relative">
-                <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-[#0a0a0a] shadow-2xl ring-1 ring-white/10">
-                    <AvatarImage src={user.avatar_url} alt={user.nickname || "User"} className="object-cover" />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
-                        {user.nickname?.charAt(0)?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                </Avatar>
-            </div>
-            
-            <div className="mt-2">
-                <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">{user.nickname || "Anonymous User"}</h1>
-                <p className="text-muted-foreground text-base font-medium">@{user.email?.split('@')[0] || "username"}</p>
-            </div>
+           {/* Content Positioned at Bottom */}
+           <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col md:flex-row items-end gap-6 z-10">
+                {/* Avatar */}
+                <div className="relative shrink-0">
+                    <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-[#0a0a0a] shadow-2xl ring-1 ring-white/10">
+                        <AvatarImage src={user.avatar_url} alt={user.nickname || "User"} className="object-cover" />
+                        <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
+                            {user.nickname?.charAt(0)?.toUpperCase() || "U"}
+                        </AvatarFallback>
+                    </Avatar>
+                </div>
+
+                {/* User Info & Actions */}
+                <div className="flex-1 flex flex-col md:flex-row items-end justify-between gap-4 w-full pb-2">
+                    <div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight drop-shadow-lg">{user.nickname || "User"}</h1>
+                            <Badge variant={user.credits?.is_pro ? "default" : "secondary"} className="h-6 px-3 shadow-lg">
+                                {user.credits?.is_pro ? "PRO" : "FREE"}
+                            </Badge>
+                        </div>
+                        <p className="text-white/80 text-base font-medium drop-shadow-md">{user.email || "user@example.com"}</p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                        <ProfileSettingsDialog user={user} />
+                    </div>
+                </div>
+           </div>
         </div>
       </div>
 
@@ -56,7 +74,7 @@ export default function ProfilePage() {
       <Tabs defaultValue="companions" className="w-full">
         <div className="border-b border-white/10 mb-8">
             <TabsList className="bg-transparent h-auto p-0 space-x-8">
-                {["Companions", "Fantasies", "Images", "Personas"].map((tab) => (
+                {["Companions", "Favorites", "Images", "Personas"].map((tab) => (
                     <TabsTrigger 
                         key={tab}
                         value={tab.toLowerCase()} 
@@ -71,18 +89,18 @@ export default function ProfilePage() {
         {/* Companions 内容区域 */}
         <TabsContent value="companions" className="space-y-8 animate-in fade-in-50 duration-500">
             {/* 工具栏 */}
-            <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between bg-white/5 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
+            <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
                 <div className="relative w-full xl:w-[500px]">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input 
                         placeholder="Search Companions..." 
-                        className="pl-12 h-12 text-base bg-black/20 border-white/10 focus:bg-black/40 focus:border-primary/50 transition-all rounded-lg"
+                        className="pl-12 h-12 text-base bg-black/20 border-white/10 focus:bg-black/40 focus:border-primary/50 transition-all rounded-full"
                     />
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto justify-end">
                     <Select defaultValue="newest">
-                        <SelectTrigger className="w-[140px] h-12 bg-black/20 border-white/10 rounded-lg">
+                        <SelectTrigger className="w-[140px] h-12 bg-black/20 border-white/10 rounded-full">
                             <SelectValue placeholder="Sort by" />
                         </SelectTrigger>
                         <SelectContent>
@@ -92,11 +110,11 @@ export default function ProfilePage() {
                         </SelectContent>
                     </Select>
 
-                    <Button variant="outline" size="icon" className="h-12 w-12 bg-black/20 border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/50 rounded-lg transition-all">
+                    <Button variant="outline" size="icon" className="h-12 w-12 bg-black/20 border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/50 rounded-full transition-all">
                         <Filter className="w-5 h-5" />
                     </Button>
 
-                    <div className="flex items-center gap-3 px-4 h-12 bg-black/20 rounded-lg border border-white/10">
+                    <div className="flex items-center gap-3 px-4 h-12 bg-black/20 rounded-full border border-white/10">
                         <span className="text-sm font-medium text-muted-foreground">NSFW</span>
                         <Switch 
                             checked={isNsfw} 
@@ -105,7 +123,7 @@ export default function ProfilePage() {
                         />
                     </div>
 
-                    <Button className="h-12 px-6 bg-primary hover:bg-primary/90 text-white gap-2 rounded-lg text-base font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105">
+                    <Button className="h-12 px-6 bg-primary hover:bg-primary/90 text-white gap-2 rounded-full text-base font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105">
                         <Plus className="w-5 h-5" />
                         <span className="hidden sm:inline">Create Companion</span>
                     </Button>
@@ -122,7 +140,7 @@ export default function ProfilePage() {
                         alt="Jane Doe" 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         onError={(e) => {
-                            e.currentTarget.src = "/public/placeholder.png";
+                            e.currentTarget.src = "/placeholder.png";
                         }}
                     />
                     
@@ -153,12 +171,12 @@ export default function ProfilePage() {
             </div>
         </TabsContent>
 
-        <TabsContent value="fantasies">
+        <TabsContent value="favorites">
             <div className="flex flex-col items-center justify-center py-32 text-muted-foreground bg-white/5 rounded-2xl border border-white/5 border-dashed">
                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                    <Search className="w-8 h-8 opacity-50" />
+                    <Heart className="w-8 h-8 opacity-50" />
                 </div>
-                <p className="text-lg">No fantasies found yet.</p>
+                <p className="text-lg">No favorites found yet.</p>
             </div>
         </TabsContent>
 
