@@ -45,30 +45,44 @@ export default function CreateCharacterPage() {
         {/* Left Column: Editor (7 cols) */}
         <div className="lg:col-span-7 space-y-8">
             
-            {/* 1. Avatar Section */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+            {/* 1. Visual Identity */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                     <ImagePlus className="w-5 h-5 text-primary" />
                     Visual Identity
                 </h2>
-                <div className="flex items-start gap-6">
-                    <div className="relative group cursor-pointer w-32 h-32 shrink-0 rounded-xl bg-black/40 border-2 border-dashed border-white/20 flex items-center justify-center hover:border-primary/50 hover:bg-primary/5 transition-all overflow-hidden">
-                        {avatarPreview ? (
-                            <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="text-center p-2">
-                                <ImagePlus className="w-8 h-8 mx-auto mb-2 text-white/30 group-hover:text-primary/80" />
-                                <span className="text-xs text-white/40 group-hover:text-white/60">Upload</span>
-                            </div>
-                        )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Left: Preview & Upload */}
+                    <div className="space-y-4">
+                        <div className="relative group cursor-pointer w-full aspect-square rounded-xl bg-black/40 border-2 border-dashed border-white/20 flex items-center justify-center hover:border-primary/50 hover:bg-primary/5 transition-all overflow-hidden">
+                            {avatarPreview ? (
+                                <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="text-center p-4">
+                                    <ImagePlus className="w-12 h-12 mx-auto mb-3 text-white/30 group-hover:text-primary/80 transition-colors" />
+                                    <p className="text-sm font-medium text-white/60 group-hover:text-white">Click to Upload</p>
+                                    <p className="text-xs text-white/40 mt-1">or drag and drop</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                    <div className="flex-1 space-y-3">
-                        <p className="text-sm text-muted-foreground">
-                            Upload an image or let AI generate one for you based on your description.
-                        </p>
-                        <Button variant="outline" className="w-full sm:w-auto gap-2 border-primary/30 hover:bg-primary/10 hover:text-primary">
+
+                    {/* Right: AI Generation */}
+                    <div className="space-y-4 flex flex-col">
+                        <div className="space-y-2 flex-1">
+                            <Label className="text-sm font-medium text-white/80 flex items-center gap-2">
+                                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                                AI Image Generation
+                            </Label>
+                            <Textarea 
+                                placeholder="Describe the character's appearance (e.g., silver hair, red eyes, cyberpunk outfit)..." 
+                                className="bg-black/20 border-white/10 min-h-[120px] text-sm focus:border-primary/50 resize-none"
+                            />
+                        </div>
+                        <Button className="w-full gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90 transition-opacity">
                             <Sparkles className="w-4 h-4" />
-                            Generate with AI
+                            Generate Image
                         </Button>
                     </div>
                 </div>
