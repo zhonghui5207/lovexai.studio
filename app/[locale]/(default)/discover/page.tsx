@@ -165,6 +165,16 @@ export default function DiscoverPage() {
 
   return (
     <div className="min-h-screen text-white p-4 md:p-8 max-w-[1600px] mx-auto space-y-12">
+      {/* Hide scrollbar for this page */}
+      <style jsx global>{`
+        ::-webkit-scrollbar {
+          display: none;
+        }
+        body {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
       
       {/* Match Modal */}
       <Dialog open={!!match} onOpenChange={(open) => !open && setMatch(null)}>
@@ -239,7 +249,7 @@ export default function DiscoverPage() {
                         )}
                     </Button>
                 </SheetTrigger>
-                <SheetContent className="bg-neutral-900 border-white/10 text-white overflow-y-auto sm:max-w-md w-full">
+                <SheetContent className="bg-neutral-900 border-white/10 text-white overflow-y-auto no-scrollbar sm:max-w-md w-full">
                     <SheetHeader className="mb-6">
                         <SheetTitle className="text-2xl font-bold text-white flex items-center gap-2">
                             <Heart className="w-6 h-6 fill-primary text-primary" />
@@ -309,9 +319,6 @@ export default function DiscoverPage() {
                 </Badge>
                 <Badge variant="outline" className="text-muted-foreground hover:text-white px-4 py-2 rounded-full text-sm cursor-pointer transition-colors border-transparent hover:border-white/10">
                     <Sparkles className="w-4 h-4 mr-1.5" /> New Arrivals
-                </Badge>
-                <Badge variant="outline" className="text-muted-foreground hover:text-white px-4 py-2 rounded-full text-sm cursor-pointer transition-colors border-transparent hover:border-white/10">
-                    <MapPin className="w-4 h-4 mr-1.5" /> Nearby
                 </Badge>
             </div>
         </div>
@@ -395,7 +402,7 @@ export default function DiscoverPage() {
             <div className="flex items-center gap-8 mt-8 relative z-20">
                 <Button 
                     size="icon" 
-                    className="w-16 h-16 rounded-full bg-black/40 border-2 border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white hover:scale-110 transition-all shadow-lg shadow-red-500/20 backdrop-blur-md"
+                    className="w-16 h-16 rounded-3xl bg-black/40 border-2 border-slate-500/50 text-slate-400 hover:bg-slate-600 hover:text-white hover:scale-110 transition-all shadow-lg shadow-slate-500/20 backdrop-blur-md"
                     onClick={() => cards.length > 0 && removeCard(cards[cards.length - 1].id, 'left')}
                 >
                     <X className="w-8 h-8" />
@@ -403,7 +410,7 @@ export default function DiscoverPage() {
                 
                 <Button 
                     size="icon" 
-                    className="w-12 h-12 rounded-full bg-black/40 border border-white/20 text-white hover:bg-white/10 hover:scale-110 transition-all backdrop-blur-md"
+                    className="w-12 h-12 rounded-2xl bg-black/40 border border-white/20 text-white hover:bg-white/10 hover:scale-110 transition-all backdrop-blur-md"
                     onClick={() => setIsFlipped(prev => !prev)}
                 >
                     <RotateCcw className="w-5 h-5 text-yellow-400" />
@@ -411,7 +418,7 @@ export default function DiscoverPage() {
 
                 <Button 
                     size="icon" 
-                    className="w-16 h-16 rounded-full bg-black/40 border-2 border-green-500/50 text-green-500 hover:bg-green-500 hover:text-white hover:scale-110 transition-all shadow-lg shadow-green-500/20 backdrop-blur-md"
+                    className="w-16 h-16 rounded-3xl bg-black/40 border-2 border-rose-500/50 text-rose-500 hover:bg-rose-500 hover:text-white hover:scale-110 transition-all shadow-lg shadow-rose-500/20 backdrop-blur-md"
                     onClick={() => cards.length > 0 && removeCard(cards[cards.length - 1].id, 'right')}
                 >
                     <Heart className="w-8 h-8 fill-current" />
@@ -603,11 +610,11 @@ function SwipeCard({
                     {/* Overlays (Only visible when dragging center card) */}
                     {position === 'center' && (
                         <>
-                            <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-8 border-4 border-green-500 rounded-lg px-4 py-2 -rotate-12 pointer-events-none z-20">
-                                <span className="text-green-500 font-bold text-4xl uppercase tracking-widest">LIKE</span>
+                            <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-8 border-4 border-rose-500 rounded-lg px-4 py-2 -rotate-12 pointer-events-none z-20">
+                                <span className="text-rose-500 font-bold text-4xl uppercase tracking-widest">LIKE</span>
                             </motion.div>
-                            <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-8 border-4 border-red-500 rounded-lg px-4 py-2 rotate-12 pointer-events-none z-20">
-                                <span className="text-red-500 font-bold text-4xl uppercase tracking-widest">NOPE</span>
+                            <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-8 border-4 border-slate-500 rounded-lg px-4 py-2 rotate-12 pointer-events-none z-20">
+                                <span className="text-slate-500 font-bold text-4xl uppercase tracking-widest">NOPE</span>
                             </motion.div>
                         </>
                     )}
