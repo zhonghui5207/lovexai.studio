@@ -39,6 +39,12 @@ export default defineSchema({
     // Combined text for full-text search (name + description + personality)
     search_text: v.optional(v.string()),
     legacy_id: v.optional(v.string()),
+    // Extended character details
+    suggestions: v.optional(v.string()),
+    background: v.optional(v.string()),
+    scenario: v.optional(v.string()),
+    current_state: v.optional(v.string()),
+    motivation: v.optional(v.string()),
   })
     .index("by_username", ["username"])
     .index("by_access_level", ["access_level"])

@@ -12,6 +12,7 @@ import type * as actions from "../actions.js";
 import type * as characters from "../characters.js";
 import type * as conversations from "../conversations.js";
 import type * as messages from "../messages.js";
+import type * as orders from "../orders.js";
 import type * as users from "../users.js";
 
 import type {
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   characters: typeof characters;
   conversations: typeof conversations;
   messages: typeof messages;
+  orders: typeof orders;
   users: typeof users;
 }>;
 

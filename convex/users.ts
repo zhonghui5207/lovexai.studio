@@ -177,21 +177,66 @@ export const syncUser = mutation({
     provider: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db
+    // 1. Try to find user by email
+    const existingByEmail = await ctx.db
       .query("users")
       .withIndex("by_email", (q) => q.eq("email", args.email))
-      .unique();
+      .first();
 
-    if (existing) {
-      if (existing.name !== args.name || existing.avatar_url !== args.avatar_url) {
-        await ctx.db.patch(existing._id, {
+    if (existingByEmail) {
+      // Update basic info
+      if (existingByEmail.name !== args.name || existingByEmail.avatar_url !== args.avatar_url) {
+        await ctx.db.patch(existingByEmail._id, {
           name: args.name,
           avatar_url: args.avatar_url,
         });
       }
-      return existing;
+      
+      // Claim legacy data if needed (if user has legacy_id but conversations point to it as string)
+      if (existingByEmail.legacy_id) {
+         const legacyConversations = await ctx.db
+            .query("conversations")
+            .filter(q => q.eq(q.field("user_id"), existingByEmail.legacy_id))
+            .collect();
+         
+         for (const conv of legacyConversations) {
+             await ctx.db.patch(conv._id, { user_id: existingByEmail._id });
+         }
+      }
+
+      return existingByEmail;
     }
 
+    // 2. Try to find user by legacy_id (if externalId matches a legacy UUID)
+    // This handles the case where email might be missing or different in legacy data
+    const existingByLegacyId = await ctx.db
+        .query("users")
+        .filter(q => q.eq(q.field("legacy_id"), args.externalId))
+        .unique();
+
+    if (existingByLegacyId) {
+        // We found the legacy user! Update email and tokenIdentifier
+        await ctx.db.patch(existingByLegacyId._id, {
+            email: args.email,
+            name: args.name,
+            avatar_url: args.avatar_url,
+            tokenIdentifier: args.externalId, // Link NextAuth ID
+        });
+        
+        // Claim legacy data
+        const legacyConversations = await ctx.db
+            .query("conversations")
+            .filter(q => q.eq(q.field("user_id"), existingByLegacyId.legacy_id))
+            .collect();
+            
+        for (const conv of legacyConversations) {
+            await ctx.db.patch(conv._id, { user_id: existingByLegacyId._id });
+        }
+
+        return existingByLegacyId;
+    }
+
+    // 3. Create new user
     const newId = await ctx.db.insert("users", {
       email: args.email,
       name: args.name,

@@ -94,7 +94,8 @@ export default function HeroBanner() {
   };
 
   const handleStartChat = (character: Character) => {
-    router.push(`/chat`);
+    setSelectedCharacter(character);
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {

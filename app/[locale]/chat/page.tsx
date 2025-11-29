@@ -25,6 +25,12 @@ interface Character {
   location?: string;
   access_level: string;
   credits_per_message: number;
+  // Added fields for CharacterPanel
+  suggestions?: string;
+  background?: string;
+  scenario?: string;
+  current_state?: string;
+  motivation?: string;
 }
 
 interface Conversation {
@@ -41,7 +47,7 @@ export default function ChatPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const conversationIdParam = searchParams.get('c');
+  const conversationIdParam = searchParams.get('c') as Id<"conversations"> | null;
 
   const [convexUserId, setConvexUserId] = useState<Id<"users"> | null>(null);
   const ensureUser = useMutation(api.users.ensureUser);
@@ -65,6 +71,12 @@ export default function ChatPage() {
   const rawCharacters = useQuery(api.characters.list, { activeOnly: true });
   const rawConversations = useQuery(api.conversations.list, { userId: convexUserId ?? undefined });
 
+  // Fetch specific conversation directly (handles race conditions where list isn't updated yet)
+  // Skip if convexUserId is not yet available to avoid unauthorized error
+  const directConversation = useQuery(api.conversations.get, 
+    conversationIdParam && convexUserId ? { id: conversationIdParam, userId: convexUserId } : "skip"
+  );
+
   // 3. Transform Data
   const characters: Character[] = useMemo(() => {
     return (rawCharacters || []).map((c) => ({
@@ -79,6 +91,11 @@ export default function ChatPage() {
       personality: c.personality,
       access_level: c.access_level,
       credits_per_message: c.credits_per_message,
+      suggestions: c.suggestions,
+      background: c.background,
+      scenario: c.scenario,
+      current_state: c.current_state,
+      motivation: c.motivation,
     }));
   }, [rawCharacters]);
 
@@ -88,7 +105,7 @@ export default function ChatPage() {
       characterId: c.character_id,
       characterName: c.character?.name || "Unknown",
       characterAvatar: c.character?.avatar_url || "",
-      lastMessage: "Click to view messages", // We could fetch last message content if needed
+      lastMessage: "Click to view messages",
       lastMessageTime: c.last_message_at,
       unreadCount: 0,
     }));
@@ -97,15 +114,69 @@ export default function ChatPage() {
   // 4. Determine Current State
   const currentConversation = useMemo(() => {
     if (!conversationIdParam) return conversations[0] || null;
-    return conversations.find((c) => c.id === conversationIdParam) || null;
-  }, [conversations, conversationIdParam]);
+    
+    // Try to find in list first
+    const foundInList = conversations.find((c) => c.id === conversationIdParam);
+    if (foundInList) return foundInList;
+
+    // If not in list, try direct fetch result
+    if (directConversation) {
+      return {
+        id: directConversation._id,
+        characterId: directConversation.character_id,
+        characterName: directConversation.character?.name || "Unknown",
+        characterAvatar: directConversation.character?.avatar_url || "",
+        lastMessage: "Click to view messages",
+        lastMessageTime: directConversation.last_message_at,
+        unreadCount: 0,
+      };
+    }
+    
+    return null;
+  }, [conversations, conversationIdParam, directConversation]);
 
   const currentCharacter = useMemo(() => {
     if (!currentConversation) return null;
-    return characters.find((c) => c.id === currentConversation.characterId) || null;
-  }, [currentConversation, characters]);
+    // Try to find in loaded characters list
+    const foundChar = characters.find((c) => c.id === currentConversation.characterId);
+    if (foundChar) return foundChar;
+    
+    // If not in list but we have direct conversation with character data
+    if (directConversation && directConversation.character && directConversation.character._id === currentConversation.characterId) {
+       const c = directConversation.character;
+       return {
+          id: c._id,
+          name: c.name,
+          username: c.username,
+          avatar_url: c.avatar_url || "",
+          description: c.description,
+          traits: c.traits || [],
+          greeting_message: c.greeting_message,
+          chat_count: c.chat_count,
+          personality: c.personality,
+          access_level: c.access_level,
+          credits_per_message: c.credits_per_message,
+       };
+    }
+    
+    return null;
+  }, [currentConversation, characters, directConversation]);
+  
+  // 5. Redirect Logic
+  const isConversationNotFound = conversationIdParam && rawConversations !== undefined && directConversation === null;
+  const noActiveConversation = !currentConversation && !conversationIdParam && characters.length > 0;
 
-  // 5. Handlers
+  useEffect(() => {
+    // Only redirect if we are NOT loading
+    // We need to check loading state here because these variables depend on data being loaded
+    const isLoading = status === "loading" || (session && !convexUserId) || rawConversations === undefined || rawCharacters === undefined;
+    
+    if (!isLoading && (isConversationNotFound || noActiveConversation)) {
+      router.push('/discover');
+    }
+  }, [isConversationNotFound, noActiveConversation, router, status, session, convexUserId, rawConversations, rawCharacters]);
+
+  // 6. Handlers
   const switchToConversation = (conversation: Conversation) => {
     router.push(`/chat?c=${conversation.id}`);
   };
@@ -143,46 +214,6 @@ export default function ChatPage() {
           >
             Log In
           </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Character Selection (No active conversation)
-  if (!currentConversation && characters.length > 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-2xl mx-auto p-6">
-          <h1 className="text-3xl font-bold mb-4">Welcome to LoveXAI Studio</h1>
-          <p className="text-muted-foreground mb-8">
-            Choose a character to start your first conversation
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {characters.map((character) => (
-              <button
-                key={character.id}
-                onClick={() => startNewChatWithCharacter(character)}
-                className="p-6 rounded-lg border border-border hover:border-primary/50 transition-all duration-200 text-left"
-              >
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                    <Image
-                      src={character.avatar_url}
-                      alt={character.name}
-                      fill
-                      className="object-cover"
-                      sizes="48px"
-                    />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">{character.name}</h3>
-                    <p className="text-sm text-muted-foreground">{character.chat_count}</p>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{character.description}</p>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     );

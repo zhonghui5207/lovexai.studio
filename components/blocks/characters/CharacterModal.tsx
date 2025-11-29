@@ -28,12 +28,19 @@ interface CharacterModalProps {
   onClose: () => void;
 }
 
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+
 export default function CharacterModal({ character, isOpen, onClose }: CharacterModalProps) {
   const [showCreateOptions, setShowCreateOptions] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
+  
+  const createConversation = useMutation(api.conversations.create);
+  const ensureUser = useMutation(api.users.ensureUser);
 
   // 当模态框关闭时重置状态
   React.useEffect(() => {
@@ -51,7 +58,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
     setCreateError(null);
 
     // 检查用户是否登录
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       // 未登录，跳转到登录页面
       window.location.href = '/api/auth/signin';
       return;
@@ -60,31 +67,31 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
     setIsCreatingChat(true);
 
     try {
-      // 调用API创建对话
-      const response = await fetch('/api/conversations/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: session.user.id,
-          characterId: character.id,
-          title: `Chat with ${character.name}`
-        })
+      // 1. 确保用户在 Convex 中存在 (Sync User)
+      // 使用 ensureUser 以保持与 ChatPage 逻辑一致，避免创建不同用户 ID
+      const userId = await ensureUser({
+        legacyId: session.user.id || "",
+        email: session.user.email,
+        name: session.user.name || "User",
+        avatar_url: session.user.image || "",
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const conversationId = data.data.conversation.id;
-
-        // 跳转到新创建的对话页面
-        router.push(`/chat?c=${conversationId}`);
-        onClose();
-      } else {
-        const errorData = await response.json();
-        setCreateError(errorData.error || 'Failed to create conversation');
+      if (!userId) {
+        throw new Error("Failed to sync user");
       }
-    } catch (error) {
+
+      // 2. 使用返回的 Convex User ID 创建对话
+      const conversationId = await createConversation({
+        characterId: character.id as Id<"characters">,
+        userId: userId,
+      });
+
+      // 跳转到新创建的对话页面
+      router.push(`/chat?c=${conversationId}`);
+      onClose();
+    } catch (error: any) {
       console.error('Error creating conversation:', error);
-      setCreateError('Network error. Please try again.');
+      setCreateError(error.message || 'Failed to create conversation');
     } finally {
       setIsCreatingChat(false);
     }

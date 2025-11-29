@@ -83,7 +83,15 @@ export const create = mutation({
       }
     }
 
-    if (!userId) throw new Error("Unauthorized");
+    if (!userId) {
+      // Try to find user by legacy ID if passed (fallback)
+      // This part might not be needed if we rely on auth context, but kept for robustness
+    }
+
+    if (!userId) {
+        console.error("Unauthorized: No user ID found in args or auth context");
+        throw new Error("Unauthorized");
+    }
 
     const character = await ctx.db.get(args.characterId);
     if (!character) throw new Error("Character not found");

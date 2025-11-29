@@ -5,126 +5,31 @@ import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info, Trash2 } from "lucide-react";
+import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info, Trash2, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-// Mock Data for Swipe Cards
-const SWIPE_CHARACTERS = [
-  {
-    id: "swipe_1",
-    name: "Neon",
-    age: 21,
-    role: "Cyber Hacker",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00015_.png",
-    tags: ["Rebellious", "Tech-savvy"],
-    bio: "Looking for someone who can keep up with my encryption keys. 🗝️",
-    distance: "2km away",
-    color: "#ef4444" // Red
-  },
-  {
-    id: "swipe_2",
-    name: "Aria",
-    age: 24,
-    role: "Elven Mage",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00020_.png",
-    tags: ["Gentle", "Mystical"],
-    bio: "I can cast a spell on you, but I'd rather charm you with coffee. ☕",
-    distance: "From another realm",
-    color: "#3b82f6" // Blue
-  },
-  {
-    id: "swipe_3",
-    name: "Viper",
-    age: 23,
-    role: "Assassin",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00027_.png",
-    tags: ["Dangerous", "Loyal"],
-    bio: "Don't worry, I only bite if you ask nicely. 🐍",
-    distance: "Shadows",
-    color: "#a855f7" // Purple
-  },
-  {
-    id: "swipe_4",
-    name: "Luna",
-    age: 20,
-    role: "Street Racer",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00016_.png",
-    tags: ["Fast", "Adrenaline"],
-    bio: "Life in the fast lane. Catch me if you can! 🏎️",
-    distance: "5km away",
-    color: "#e11d48" // Pink
-  },
-  {
-    id: "swipe_5",
-    name: "Kael",
-    age: 28,
-    role: "Knight Commander",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00017_.png",
-    tags: ["Honorable", "Protective"],
-    bio: "My sword is yours, my lady. ⚔️",
-    distance: "Castle Grounds",
-    color: "#eab308" // Yellow
-  },
-  {
-    id: "swipe_6",
-    name: "Zara",
-    age: 22,
-    role: "Space Explorer",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00018_.png",
-    tags: ["Curious", "Adventurous"],
-    bio: "Let's explore the galaxy together. ✨",
-    distance: "Light years away",
-    color: "#6366f1" // Indigo
-  },
-  {
-    id: "swipe_7",
-    name: "Rogue",
-    age: 25,
-    role: "Mercenary",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00019_.png",
-    tags: ["Mysterious", "Strong"],
-    bio: "For the right price, I'll do anything. 💰",
-    distance: "Unknown",
-    color: "#10b981" // Emerald
-  },
-  {
-    id: "swipe_8",
-    name: "Seraphina",
-    age: 1000,
-    role: "Ancient Vampire",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00021_.png",
-    tags: ["Elegant", "Eternal"],
-    bio: "I have seen empires rise and fall. 🍷",
-    distance: "Old Mansion",
-    color: "#9f1239" // Rose
-  },
-  {
-    id: "swipe_9",
-    name: "Dr. X",
-    age: 35,
-    role: "Mad Scientist",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00022_.png",
-    tags: ["Genius", "Crazy"],
-    bio: "My experiments are... unconventional. 🧪",
-    distance: "Underground Lab",
-    color: "#14b8a6" // Teal
-  },
-  {
-    id: "swipe_10",
-    name: "Pixel",
-    age: 19,
-    role: "AI Streamer",
-    image: "https://cdn.lovexai.studio/Character/ComfyUI_00023_.png",
-    tags: ["Virtual", "Kawaii"],
-    bio: "Don't forget to like and subscribe! 📺",
-    distance: "The Cloud",
-    color: "#ec4899" // Pink
-  }
-];
+// Interface for mapped character data
+interface SwipeCharacter {
+  id: string;
+  _id: Id<"characters">;
+  name: string;
+  age: number;
+  role: string;
+  image: string;
+  tags: string[];
+  bio: string;
+  distance: string;
+  color: string;
+}
 
-// Mock Data for Categories
+// Mock Data for Categories (Keep for now or fetch dynamic if available)
 const CATEGORIES = [
   { id: "cyber", name: "Cyber City", image: "/generated_characters/character_street_fashion.png", count: "1.2k" },
   { id: "fantasy", name: "Fantasy Realm", image: "https://cdn.lovexai.studio/Character/ComfyUI_00020_.png", count: "850" },
@@ -133,12 +38,70 @@ const CATEGORIES = [
 ];
 
 export default function DiscoverPage() {
-  const [cards, setCards] = useState(SWIPE_CHARACTERS);
-  const [history, setHistory] = useState<typeof SWIPE_CHARACTERS>([]);
-  const [match, setMatch] = useState<typeof SWIPE_CHARACTERS[0] | null>(null);
+  const { data: session } = useSession();
+  const router = useRouter();
+  
+  // Convex Hooks
+  const rawCharacters = useQuery(api.characters.list, { activeOnly: true });
+  const ensureUser = useMutation(api.users.ensureUser);
+  const createConversation = useMutation(api.conversations.create);
+
+  const [cards, setCards] = useState<SwipeCharacter[]>([]);
+  const [history, setHistory] = useState<SwipeCharacter[]>([]);
+  const [match, setMatch] = useState<SwipeCharacter | null>(null);
   const [isFlipped, setIsFlipped] = useState(false);
-  const [likedCharacters, setLikedCharacters] = useState<typeof SWIPE_CHARACTERS>([]);
+  const [likedCharacters, setLikedCharacters] = useState<SwipeCharacter[]>([]);
   const [isCollectionBounce, setIsCollectionBounce] = useState(false);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+
+  // Load characters when data is available
+  useEffect(() => {
+    if (rawCharacters) {
+      const mapped: SwipeCharacter[] = rawCharacters.map((c, i) => ({
+        id: c._id,
+        _id: c._id,
+        name: c.name,
+        age: c.age || 20 + (i % 10),
+        role: c.personality?.split(' ')[0] || "Companion", // Simple fallback
+        image: c.avatar_url || "",
+        tags: c.traits || ["Friendly"],
+        bio: c.description,
+        distance: c.location || "Unknown",
+        color: ["#ef4444", "#3b82f6", "#a855f7", "#e11d48", "#eab308"][i % 5]
+      }));
+      setCards(mapped);
+    }
+  }, [rawCharacters]);
+
+  const handleStartChat = async (characterId: Id<"characters">) => {
+    if (!session?.user?.email) {
+      window.location.href = '/api/auth/signin';
+      return;
+    }
+
+    setIsCreatingChat(true);
+    try {
+      const userId = await ensureUser({
+        legacyId: session.user.id || "",
+        email: session.user.email,
+        name: session.user.name || "User",
+        avatar_url: session.user.image || "",
+      });
+
+      if (!userId) throw new Error("Failed to sync user");
+
+      const conversationId = await createConversation({
+        characterId,
+        userId,
+      });
+
+      router.push(`/chat?c=${conversationId}`);
+    } catch (error) {
+      console.error("Failed to create conversation:", error);
+    } finally {
+      setIsCreatingChat(false);
+    }
+  };
 
   // Swipe Logic
   const removeCard = (id: string, direction: "left" | "right") => {
@@ -159,7 +122,6 @@ export default function DiscoverPage() {
     setCards(cards.filter((c) => c.id !== id));
     setIsFlipped(false);
     
-    // TODO: Trigger API for Like/Pass
     console.log(`Swiped ${direction} on ${cardToRemove.name}`);
   };
 
@@ -191,7 +153,7 @@ export default function DiscoverPage() {
             <div className="flex items-center justify-center gap-6 py-8">
                 <div className="relative">
                     <Avatar className="w-24 h-24 border-4 border-primary shadow-[0_0_30px_rgba(236,72,153,0.3)]">
-                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarImage src={session?.user?.image || "https://github.com/shadcn.png"} />
                         <AvatarFallback>ME</AvatarFallback>
                     </Avatar>
                     <div className="absolute -bottom-2 -right-2 bg-neutral-900 rounded-full p-1">
@@ -207,8 +169,12 @@ export default function DiscoverPage() {
             </div>
 
             <div className="flex flex-col gap-3">
-                <Button className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 h-12 text-lg rounded-xl">
-                    <MessageCircle className="w-5 h-5 mr-2" />
+                <Button 
+                    className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 h-12 text-lg rounded-xl"
+                    onClick={() => match && handleStartChat(match._id)}
+                    disabled={isCreatingChat}
+                >
+                    {isCreatingChat ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <MessageCircle className="w-5 h-5 mr-2" />}
                     Chat with {match?.name}
                 </Button>
                 <Button 
@@ -292,6 +258,8 @@ export default function DiscoverPage() {
                                                 variant="ghost" 
                                                 className="h-10 w-10 hover:bg-primary/20 hover:text-primary rounded-full"
                                                 title="Chat"
+                                                onClick={() => handleStartChat(char._id)}
+                                                disabled={isCreatingChat}
                                             >
                                                 <MessageCircle className="w-5 h-5" />
                                             </Button>
@@ -380,6 +348,7 @@ export default function DiscoverPage() {
                             onSwipe={(dir) => removeCard(cards[cards.length - 1].id, dir)}
                             isFlipped={isFlipped}
                             setIsFlipped={setIsFlipped}
+                            onStartChat={() => handleStartChat(cards[cards.length - 1]._id)}
                         />
                     )}
                 </AnimatePresence>
@@ -391,8 +360,8 @@ export default function DiscoverPage() {
                         </div>
                         <h3 className="text-xl font-bold mb-2">No more profiles</h3>
                         <p className="text-muted-foreground mb-6">Check back later for new companions!</p>
-                        <Button onClick={() => setCards(SWIPE_CHARACTERS)} variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
-                            Reset Demo
+                        <Button onClick={() => window.location.reload()} variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
+                            Refresh
                         </Button>
                     </div>
                 )}
@@ -450,20 +419,23 @@ export default function DiscoverPage() {
         <section>
             <h2 className="text-2xl font-bold mb-6">Trending Characters</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                 {/* Reusing a simplified card structure for the grid */}
-                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                    <div key={i} className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-900 cursor-pointer border border-white/5 hover:border-primary/50 transition-all">
+                 {(rawCharacters || []).map((char, i) => (
+                    <div 
+                        key={char._id} 
+                        className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-900 cursor-pointer border border-white/5 hover:border-primary/50 transition-all"
+                        onClick={() => handleStartChat(char._id)}
+                    >
                         <img 
-                            src={`https://cdn.lovexai.studio/Character/ComfyUI_000${15 + i}_.png`} 
-                            alt="Character" 
+                            src={char.avatar_url || `https://cdn.lovexai.studio/Character/ComfyUI_000${15 + (i % 10)}_.png`} 
+                            alt={char.name} 
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             onError={(e) => e.currentTarget.src = "https://placehold.co/400x600/1a1a1a/ffffff?text=Character"}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-80" />
                         
                         <div className="absolute bottom-0 left-0 right-0 p-4 transform transition-transform duration-300 group-hover:-translate-y-1">
-                            <h3 className="font-bold text-white text-lg mb-1">Character {i}</h3>
-                            <p className="text-xs text-white/60 line-clamp-1">A mysterious character waiting to meet you.</p>
+                            <h3 className="font-bold text-white text-lg mb-1">{char.name}</h3>
+                            <p className="text-xs text-white/60 line-clamp-1">{char.description}</p>
                             
                             <div className="mt-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span className="text-xs text-primary font-medium">Chat Now</span>
@@ -490,13 +462,15 @@ function SwipeCard({
     position, 
     onSwipe,
     isFlipped = false,
-    setIsFlipped 
+    setIsFlipped,
+    onStartChat
 }: { 
     data: any, 
     position: 'left' | 'center' | 'right', 
     onSwipe: (dir: "left" | "right") => void,
     isFlipped?: boolean,
-    setIsFlipped?: React.Dispatch<React.SetStateAction<boolean>>
+    setIsFlipped?: React.Dispatch<React.SetStateAction<boolean>>,
+    onStartChat?: () => void
 }) {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
@@ -656,7 +630,7 @@ function SwipeCard({
                 <div 
                     className="absolute inset-0 w-full h-full bg-neutral-900 p-8 flex flex-col overflow-y-auto rounded-3xl border border-white/10 shadow-2xl cursor-pointer"
                     style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-                    onClick={() => setIsFlipped(false)}
+                    onClick={() => setIsFlipped && setIsFlipped(false)}
                 >
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-3xl font-bold text-white">{data.name}</h2>
@@ -701,7 +675,13 @@ function SwipeCard({
                     </div>
                     
                     <div className="mt-auto pt-6">
-                        <Button className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg shadow-primary/20">
+                        <Button 
+                            className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg shadow-primary/20"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onStartChat?.();
+                            }}
+                        >
                             Start Chatting with {data.name}
                         </Button>
                     </div>

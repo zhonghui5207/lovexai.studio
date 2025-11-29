@@ -93,7 +93,13 @@ export async function POST(req: Request) {
       sub_interval: is_subscription ? interval : undefined,
     });
 
-    const stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "");
+    const stripeKey = process.env.STRIPE_PRIVATE_KEY;
+    if (!stripeKey) {
+      console.error("Missing STRIPE_PRIVATE_KEY");
+      return respErr("Server configuration error: Missing Stripe API Key");
+    }
+
+    const stripe = new Stripe(stripeKey);
 
     let options: Stripe.Checkout.SessionCreateParams = {
       payment_method_types: ["card"],
