@@ -137,7 +137,7 @@ export default function PricingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const handleCheckout = async (productId: string, price: number) => {
+  const handleCheckout = async (productId: string, price: number, interval?: 'month' | 'year' | 'one-time') => {
     if (!user) {
       setShowSignModal(true);
       return;
@@ -147,25 +147,38 @@ export default function PricingPage() {
     setProcessingId(productId);
 
     try {
-      // Mock checkout API call - replace with real implementation
-      // For now, we just simulate a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Real implementation would look like this:
-      /*
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ product_id: productId, amount: price })
+        body: JSON.stringify({
+          product_id: productId,
+          product_name: productId.includes("credits") ? `${price} Credits` : "Subscription",
+          amount: Math.round(price * 100), // Stripe expects cents
+          currency: "usd",
+          interval: interval || "one-time",
+          valid_months: interval === "year" ? 12 : 1,
+          credits: productId.includes("credits") ? parseInt(productId.split("_")[1]) : 0,
+        })
       });
+
       const data = await response.json();
-      // Redirect to Stripe...
-      */
       
-      toast.info("Checkout integration required with backend");
+      if (data.code !== 0) {
+        throw new Error(data.message || "Checkout failed");
+      }
+
+      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
+      if (!stripe) throw new Error("Stripe failed to load");
+
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: data.data.session_id
+      });
+
+      if (error) throw error;
       
-    } catch (error) {
-      toast.error("Checkout failed");
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      toast.error(error.message || "Checkout failed");
     } finally {
       setIsLoading(false);
       setProcessingId(null);
@@ -299,7 +312,7 @@ export default function PricingPage() {
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (plan.product_id) handleCheckout(plan.product_id, plan.price[billingCycle]);
+                          if (plan.product_id) handleCheckout(plan.product_id, plan.price[billingCycle], billingCycle === 'monthly' ? 'month' : 'year');
                         }}
                         disabled={plan.disabled || isLoading}
                         className={`w-full py-6 rounded-xl font-bold text-base transition-all ${
@@ -340,7 +353,7 @@ export default function PricingPage() {
                   <div
                     key={index}
                     className="group relative overflow-hidden rounded-2xl bg-card border border-white/5 p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer"
-                    onClick={() => handleCheckout(pack.product_id, pack.price)}
+                    onClick={() => handleCheckout(pack.product_id, pack.price, 'one-time')}
                   >
                     <div className="flex justify-between items-start relative z-10">
                       <div>

@@ -1,13 +1,9 @@
-import {
-  CreditsTransType,
-  increaseCredits,
-  updateCreditForOrder,
-} from "./credit";
-import { findOrderByOrderNo, updateOrderStatus } from "@/models/order";
-import { getIsoTimestr, getOneYearLaterTimestr } from "@/lib/time";
-
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
+import { getIsoTimestr } from "@/lib/time";
 import Stripe from "stripe";
-import { updateAffiliateForOrder } from "./affiliate";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function handleOrderSession(session: Stripe.Checkout.Session) {
   try {
@@ -24,31 +20,21 @@ export async function handleOrderSession(session: Stripe.Checkout.Session) {
     const paid_email =
       session.customer_details?.email || session.customer_email || "";
     const paid_detail = JSON.stringify(session);
-
-    const order = await findOrderByOrderNo(order_no);
-    if (!order) {
-      throw new Error("invalid order");
-    }
-
     const paid_at = getIsoTimestr();
-    await updateOrderStatus(order_no, "paid", paid_at, paid_email, paid_detail);
 
-    if (order.user_uuid) {
-      if (order.credits > 0) {
-        // increase credits for paied order
-        await updateCreditForOrder(order);
-      }
-
-      // update affiliate for paied order
-      await updateAffiliateForOrder(order);
-    }
+    await convex.mutation(api.orders.processPaidOrder, {
+      orderNo: order_no,
+      paidAt: paid_at,
+      paidEmail: paid_email,
+      stripeSessionId: session.id,
+      paidDetail: paid_detail,
+    });
 
     console.log(
       "handle order session successed: ",
       order_no,
       paid_at,
-      paid_email,
-      paid_detail
+      paid_email
     );
   } catch (e) {
     console.log("handle order session failed: ", e);

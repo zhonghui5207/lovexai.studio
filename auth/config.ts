@@ -3,7 +3,8 @@ import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { NextAuthConfig } from "next-auth";
 import { Provider } from "next-auth/providers/index";
-import { findOrCreateUser } from "@/models/user";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
 import { getClientIp } from "@/lib/ip";
 import { getIsoTimestr } from "@/lib/time";
 
@@ -147,24 +148,27 @@ export const authOptions: NextAuthConfig = {
         if (user && user.email && account) {
           console.log("Creating/finding user for:", user.email);
           try {
-            const dbUser = await findOrCreateUser({
+            const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+            const dbUser = await convex.mutation(api.users.syncUser, {
               email: user.email,
               name: user.name || "",
               avatar_url: user.image || "",
+              externalId: user.id || "",
               provider: account.provider,
-              provider_id: account.providerAccountId,
             });
 
-            console.log("User created/found successfully:", dbUser.id);
+            if (!dbUser) throw new Error("Failed to sync user");
+
+            console.log("User created/found successfully:", dbUser._id);
 
             token.user = {
-              id: dbUser.id,
+              id: dbUser._id,
               email: dbUser.email,
               name: dbUser.name,
               avatar_url: dbUser.avatar_url,
               subscription_tier: dbUser.subscription_tier,
               credits_balance: dbUser.credits_balance,
-              created_at: dbUser.created_at,
+              created_at: new Date(dbUser._creationTime).toISOString(),
             };
           } catch (e) {
             console.error("save user failed:", e);

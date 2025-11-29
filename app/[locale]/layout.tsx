@@ -10,6 +10,7 @@ import { NextAuthSessionProvider } from "@/auth/session";
 import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "@/providers/theme";
 import { cn } from "@/lib/utils";
+import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -72,11 +73,13 @@ export default async function RootLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <NextAuthSessionProvider>
-            <AppContextProvider>
-              <ThemeProvider attribute="class" disableTransitionOnChange>
-                {children}
-              </ThemeProvider>
-            </AppContextProvider>
+            <ConvexClientProvider>
+              <AppContextProvider>
+                <ThemeProvider attribute="class" disableTransitionOnChange>
+                  {children}
+                </ThemeProvider>
+              </AppContextProvider>
+            </ConvexClientProvider>
           </NextAuthSessionProvider>
         </NextIntlClientProvider>
       </body>

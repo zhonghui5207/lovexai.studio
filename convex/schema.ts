@@ -1,0 +1,137 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  // Users table
+  users: defineTable({
+    email: v.string(),
+    name: v.string(),
+    avatar_url: v.optional(v.string()),
+    subscription_tier: v.string(), // 'free', 'basic', 'pro', 'ultra'
+    credits_balance: v.number(),
+    invite_code: v.optional(v.string()),
+    invited_by: v.optional(v.string()),
+    subscription_expires_at: v.optional(v.string()),
+    // External Auth Provider ID (e.g. from NextAuth/Clerk)
+    tokenIdentifier: v.optional(v.string()),
+    // Legacy Supabase UUID (for migration mapping)
+    legacy_id: v.optional(v.string()),
+  })
+    .index("by_email", ["email"])
+    .index("by_token", ["tokenIdentifier"])
+    .index("by_invite_code", ["invite_code"]),
+
+  // Characters table
+  characters: defineTable({
+    name: v.string(),
+    description: v.string(),
+    personality: v.string(),
+    is_active: v.boolean(),
+    access_level: v.string(), // 'free', 'basic', 'pro', 'ultra'
+    sort_order: v.number(),
+    credits_per_message: v.number(),
+    chat_count: v.string(), // e.g. "1.2k chats"
+    is_premium: v.boolean(),
+    greeting_message: v.string(),
+    username: v.string(),
+    avatar_url: v.optional(v.string()),
+    traits: v.optional(v.array(v.string())),
+    // Combined text for full-text search (name + description + personality)
+    search_text: v.optional(v.string()),
+    legacy_id: v.optional(v.string()),
+  })
+    .index("by_username", ["username"])
+    .index("by_access_level", ["access_level"])
+    .index("by_sort_order", ["sort_order"])
+    .searchIndex("search_body", {
+      searchField: "search_text",
+      filterFields: ["is_active", "access_level"],
+    }),
+
+  // Conversations table
+  conversations: defineTable({
+    user_id: v.string(), // Can be Convex ID or External UUID
+    character_id: v.id("characters"),
+    title: v.string(),
+    is_archived: v.boolean(),
+    last_message_at: v.string(),
+    message_count: v.number(),
+    total_credits_used: v.number(),
+    legacy_id: v.optional(v.string()),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_user_character", ["user_id", "character_id"])
+    .index("by_last_message", ["last_message_at"])
+    .index("by_user_time", ["user_id", "last_message_at"]),
+
+  // Messages table
+  messages: defineTable({
+    conversation_id: v.id("conversations"),
+    sender_type: v.string(), // 'user' | 'character'
+    content: v.string(),
+    credits_used: v.number(),
+    generation_settings: v.optional(v.any()), // JSON object
+    legacy_id: v.optional(v.string()),
+  }).index("by_conversation", ["conversation_id"]),
+
+  // Generation Settings table
+  generation_settings: defineTable({
+    conversation_id: v.id("conversations"),
+    response_length: v.string(),
+    include_narrator: v.boolean(),
+    narrator_voice: v.string(),
+    selected_model: v.string(),
+  }).index("by_conversation", ["conversation_id"]),
+
+  // Credits table (Transaction history)
+  credits: defineTable({
+    user_id: v.string(),
+    trans_no: v.optional(v.string()),
+    order_no: v.optional(v.string()),
+    expired_at: v.optional(v.string()),
+    amount: v.number(),
+    type: v.string(), // 'purchase', 'bonus', 'usage'
+  }).index("by_user", ["user_id"]),
+
+  // Orders table
+  orders: defineTable({
+    order_no: v.string(),
+    user_id: v.string(),
+    user_email: v.string(),
+    status: v.string(), // 'created', 'paid', 'deleted'
+    amount: v.number(),
+    credits: v.number(),
+    currency: v.string(),
+    stripe_session_id: v.optional(v.string()),
+    paid_at: v.optional(v.string()),
+    paid_email: v.optional(v.string()),
+    // Subscription details
+    sub_id: v.optional(v.string()),
+    sub_interval: v.optional(v.string()),
+    product_id: v.optional(v.string()),
+    product_name: v.optional(v.string()),
+    expired_at: v.optional(v.string()),
+  })
+    .index("by_order_no", ["order_no"])
+    .index("by_user", ["user_id"]),
+
+  // Feedbacks table
+  feedbacks: defineTable({
+    user_id: v.string(),
+    content: v.string(),
+    type: v.string(),
+    status: v.string(),
+  }).index("by_user", ["user_id"]),
+
+  // Image Generations table
+  image_generations: defineTable({
+    user_id: v.string(),
+    prompt: v.string(),
+    revised_prompt: v.optional(v.string()),
+    image_url: v.string(),
+    storage_key: v.optional(v.string()),
+    model: v.string(),
+    status: v.string(), // 'completed', 'failed'
+    credits_cost: v.number(),
+  }).index("by_user", ["user_id"]),
+});

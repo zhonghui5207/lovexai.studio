@@ -1,11 +1,11 @@
 import { getUserEmail, getUserUuid } from "@/services/user";
-import { insertOrder, updateOrderSession } from "@/models/order";
 import { respData, respErr } from "@/lib/resp";
-
-import { Order } from "@/types/order";
+import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
 import Stripe from "stripe";
-import { findUserByUuid } from "@/models/user";
 import { getSnowId } from "@/lib/hash";
+
+const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(req: Request) {
   try {
@@ -52,12 +52,6 @@ export async function POST(req: Request) {
 
     let user_email = await getUserEmail();
     if (!user_email) {
-      const user = await findUserByUuid(user_uuid);
-      if (user) {
-        user_email = user.email;
-      }
-    }
-    if (!user_email) {
       return respErr("invalid user");
     }
 
@@ -84,22 +78,20 @@ export async function POST(req: Request) {
 
     expired_at = newDate.toISOString();
 
-    const order: Order = {
+    // Create Order in Convex
+    await convex.mutation(api.orders.createOrder, {
       order_no: order_no,
-      created_at: created_at,
-      user_uuid: user_uuid,
+      user_id: user_uuid,
       user_email: user_email,
       amount: amount,
-      interval: interval,
-      expired_at: expired_at,
-      status: "created",
-      credits: credits,
       currency: currency,
+      credits: credits,
+      status: "created",
       product_id: product_id,
       product_name: product_name,
-      valid_months: valid_months,
-    };
-    await insertOrder(order);
+      expired_at: expired_at,
+      sub_interval: is_subscription ? interval : undefined,
+    });
 
     const stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "");
 
@@ -161,7 +153,12 @@ export async function POST(req: Request) {
     const session = await stripe.checkout.sessions.create(options);
 
     const stripe_session_id = session.id;
-    await updateOrderSession(order_no, stripe_session_id, order_detail);
+
+    // Update session in Convex
+    await convex.mutation(api.orders.updateOrderSession, {
+      orderNo: order_no,
+      stripeSessionId: stripe_session_id,
+    });
 
     return respData({
       public_key: process.env.STRIPE_PUBLIC_KEY,

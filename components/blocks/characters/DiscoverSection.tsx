@@ -7,6 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 import { useSearchParams } from "next/navigation";
 import { MessageCircle } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import Image from "next/image";
 
 interface Character {
   id: string;
@@ -32,6 +35,8 @@ interface CharacterCardProps {
 }
 
 function CharacterCard({ character, onClick }: CharacterCardProps) {
+  const [isLoading, setIsLoading] = useState(true);
+
   return (
     <motion.div
       layout
@@ -39,19 +44,18 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.3 }}
-      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-card cursor-pointer"
+      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/5 cursor-pointer"
       onClick={onClick}
     >
       {/* Image with Zoom Effect */}
-      <div className="absolute inset-0 overflow-hidden">
-        <img
+      <div className={`absolute inset-0 overflow-hidden transition-all duration-700 ${isLoading ? 'scale-110 blur-xl grayscale' : 'scale-100 blur-0 grayscale-0'}`}>
+        <Image
           src={character.avatar}
           alt={character.name}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = 'https://placehold.co/400x600/1a1a1a/ffffff?text=No+Image';
-          }}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-110"
+          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+          onLoad={() => setIsLoading(false)}
         />
       </div>
 
@@ -115,9 +119,6 @@ const generateMockChatCount = (index: number): string => {
 const FILTERS = ["All", "Trending", "New", "Roleplay", "Anime", "Realistic"];
 
 export default function DiscoverSection() {
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [displayCharacters, setDisplayCharacters] = useState<Character[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
@@ -126,57 +127,34 @@ export default function DiscoverSection() {
   const activeGender = searchParams.get("gender") || "female";
   const nsfwEnabled = searchParams.get("nsfw") === "true";
 
-  useEffect(() => {
-    const fetchCharacters = async () => {
-      try {
-        const response = await fetch('/api/characters');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.data) {
-            const transformedCharacters = data.data.map((char: any, index: number) => ({
-              id: char.id,
-              name: char.name,
-              username: char.username,
-              avatar: char.avatar_url,
-              description: char.description,
-              traits: char.traits || [],
-              greeting: char.greeting_message || "Hello! Nice to meet you.",
-              chatCount: char.chat_count || generateMockChatCount(index),
-              isOfficial: true,
-              personality: char.personality,
-              physicalDescription: char.personality,
-              age: char.age,
-              location: char.location,
-              access_level: char.access_level,
-              tags: ["Trending", "Roleplay"] // Mock tags for demo
-            }));
+  const rawCharacters = useQuery(api.characters.list, { activeOnly: true });
+  const loading = rawCharacters === undefined;
 
-            setCharacters(transformedCharacters);
-            setDisplayCharacters(transformedCharacters.slice(0, 12));
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch characters:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const allCharacters = (rawCharacters || []).map((char, index) => ({
+    id: char._id,
+    name: char.name,
+    username: char.username,
+    avatar: char.avatar_url || "",
+    description: char.description,
+    traits: char.traits || [],
+    greeting: char.greeting_message || "Hello! Nice to meet you.",
+    chatCount: char.chat_count || generateMockChatCount(index),
+    isOfficial: char.is_premium,
+    personality: char.personality,
+    physicalDescription: char.personality,
+    age: undefined,
+    location: undefined,
+    access_level: char.access_level,
+    tags: ["Trending", "Roleplay"]
+  }));
 
-    fetchCharacters();
-  }, [activeGender, nsfwEnabled]); // Re-fetch when filters change (mock behavior)
+  const displayCharacters = allCharacters.filter(c => {
+    if (activeFilter === "All") return true;
+    return c.traits.some(t => t.toLowerCase().includes(activeFilter.toLowerCase()));
+  }).slice(0, 12);
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    if (filter === "All") {
-      setDisplayCharacters(characters.slice(0, 12));
-    } else {
-      // Simple mock filtering logic - in real app, check character tags
-      const filtered = characters.filter(c => 
-        c.traits.some(t => t.toLowerCase().includes(filter.toLowerCase())) || 
-        Math.random() > 0.5 // Randomly show some for demo purposes if tags don't match
-      );
-      setDisplayCharacters(filtered.slice(0, 12));
-    }
   };
 
   const handleCharacterClick = (character: Character) => {

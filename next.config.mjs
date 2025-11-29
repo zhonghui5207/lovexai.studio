@@ -21,6 +21,7 @@ const nextConfig = {
   reactStrictMode: false,
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
   images: {
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: "https",

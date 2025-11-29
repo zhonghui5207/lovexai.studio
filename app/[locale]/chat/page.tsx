@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import ChatInterface from "@/components/chat/ChatInterface";
 import LoadingHeartbeat from "@/components/ui/LoadingHeartbeat";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import Image from "next/image";
 
+// Types expected by ChatInterface
 interface Character {
   id: string;
   name: string;
@@ -36,177 +41,97 @@ export default function ChatPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const conversationId = searchParams.get('c'); // /chat?c=conversation-id
+  const conversationIdParam = searchParams.get('c');
 
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [currentConversation, setCurrentConversation] = useState<Conversation | null>(null);
-  const [currentCharacter, setCurrentCharacter] = useState<Character | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [convexUserId, setConvexUserId] = useState<Id<"users"> | null>(null);
+  const ensureUser = useMutation(api.users.ensureUser);
+  const createConversation = useMutation(api.conversations.create);
 
-  // 预加载所有数据
+  // 1. Sync User with Convex
   useEffect(() => {
-    if (status === "loading") return;
-    if (!session?.user?.id) {
-      setLoading(false); // Fix: Set loading to false for unauthenticated users
-      return;
+    if (session?.user?.id && !convexUserId) {
+      ensureUser({
+        legacyId: session.user.id,
+        email: session.user.email || "",
+        name: session.user.name || "User",
+        avatar_url: session.user.image || "",
+      })
+        .then((id) => setConvexUserId(id))
+        .catch((err) => console.error("Failed to sync user:", err));
     }
+  }, [session, convexUserId, ensureUser]);
 
-    const loadAllData = async () => {
-      try {
-        setLoading(true);
+  // 2. Fetch Data
+  const rawCharacters = useQuery(api.characters.list, { activeOnly: true });
+  const rawConversations = useQuery(api.conversations.list, { userId: convexUserId ?? undefined });
 
-        // 并行加载所有数据
-        const [conversationsRes, charactersRes] = await Promise.all([
-          fetch(`/api/conversations?userId=${session.user.id}`),
-          fetch(`/api/characters?userId=${session.user.id}`)
-        ]);
+  // 3. Transform Data
+  const characters: Character[] = useMemo(() => {
+    return (rawCharacters || []).map((c) => ({
+      id: c._id,
+      name: c.name,
+      username: c.username,
+      avatar_url: c.avatar_url || "",
+      description: c.description,
+      traits: c.traits || [],
+      greeting_message: c.greeting_message,
+      chat_count: c.chat_count,
+      personality: c.personality,
+      access_level: c.access_level,
+      credits_per_message: c.credits_per_message,
+    }));
+  }, [rawCharacters]);
 
-        let loadedConversations: Conversation[] = [];
-        let loadedCharacters: Character[] = [];
+  const conversations: Conversation[] = useMemo(() => {
+    return (rawConversations || []).map((c: any) => ({
+      id: c._id,
+      characterId: c.character_id,
+      characterName: c.character?.name || "Unknown",
+      characterAvatar: c.character?.avatar_url || "",
+      lastMessage: "Click to view messages", // We could fetch last message content if needed
+      lastMessageTime: c.last_message_at,
+      unreadCount: 0,
+    }));
+  }, [rawConversations]);
 
-        // 处理对话数据
-        if (conversationsRes.ok) {
-          const conversationsData = await conversationsRes.json();
-          if (conversationsData.success) {
-            loadedConversations = conversationsData.data || [];
-            setConversations(loadedConversations);
-          }
-        }
+  // 4. Determine Current State
+  const currentConversation = useMemo(() => {
+    if (!conversationIdParam) return conversations[0] || null;
+    return conversations.find((c) => c.id === conversationIdParam) || null;
+  }, [conversations, conversationIdParam]);
 
-        // 处理角色数据
-        if (charactersRes.ok) {
-          const charactersData = await charactersRes.json();
-          if (charactersData.success) {
-            loadedCharacters = charactersData.data || [];
-            setCharacters(loadedCharacters);
-          }
-        }
+  const currentCharacter = useMemo(() => {
+    if (!currentConversation) return null;
+    return characters.find((c) => c.id === currentConversation.characterId) || null;
+  }, [currentConversation, characters]);
 
-        // 根据URL参数选择当前对话
-        if (conversationId && loadedConversations.length > 0) {
-          const targetConversation = loadedConversations.find(c => c.id === conversationId);
-          if (targetConversation) {
-            setCurrentConversation(targetConversation);
-            const character = loadedCharacters.find(c => c.id === targetConversation.characterId);
-            if (character) {
-              setCurrentCharacter(character);
-            }
-          } else {
-            // 对话不存在，跳转到最新对话或角色选择
-            if (loadedConversations.length > 0) {
-              const latest = loadedConversations[0];
-              router.replace(`/chat?c=${latest.id}`);
-            }
-          }
-        } else if (loadedConversations.length > 0) {
-          // 没有指定对话ID，选择最新的对话
-          const latest = loadedConversations[0];
-          setCurrentConversation(latest);
-          const character = loadedCharacters.find(c => c.id === latest.characterId);
-          if (character) {
-            setCurrentCharacter(character);
-          }
-          // 更新URL但不刷新页面
-          router.replace(`/chat?c=${latest.id}`);
-        }
-
-      } catch (err) {
-        console.error('Error loading data:', err);
-        setError('Failed to load chat data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAllData();
-  }, [session, status]);
-
-  // 监听URL变化，实现无延迟切换
-  useEffect(() => {
-    if (!conversationId || !conversations.length || !characters.length) return;
-
-    const targetConversation = conversations.find(c => c.id === conversationId);
-    if (targetConversation && targetConversation.id !== currentConversation?.id) {
-      // 立即切换对话（无延迟）
-      setCurrentConversation(targetConversation);
-      const character = characters.find(c => c.id === targetConversation.characterId);
-      if (character) {
-        setCurrentCharacter(character);
-      }
-    }
-  }, [conversationId, conversations, characters, currentConversation?.id]);
-
-  // 切换对话的处理函数
+  // 5. Handlers
   const switchToConversation = (conversation: Conversation) => {
-    if (conversation.id === currentConversation?.id) return;
-
-    // 立即更新状态（瞬间切换）
-    setCurrentConversation(conversation);
-    const character = characters.find(c => c.id === conversation.characterId);
-    if (character) {
-      setCurrentCharacter(character);
-    }
-
-    // 使用shallow routing更新URL，不重新渲染页面
     router.push(`/chat?c=${conversation.id}`);
   };
 
-  // 开始新聊天
   const startNewChatWithCharacter = async (character: Character) => {
-    if (!session?.user?.id) return;
-
+    if (!convexUserId) return;
     try {
-      const response = await fetch('/api/conversations/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: session.user.id,
-          characterId: character.id,
-          title: `Chat with ${character.name}`
-        })
+      const conversationId = await createConversation({
+        characterId: character.id as Id<"characters">,
+        userId: convexUserId,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        const newConversation: Conversation = {
-          id: data.data.conversation.id,
-          characterId: character.id,
-          characterName: character.name,
-          characterAvatar: character.avatar_url,
-          lastMessage: character.greeting_message,
-          lastMessageTime: new Date().toISOString(),
-          unreadCount: 0
-        };
-
-        // 更新对话列表
-        const updatedConversations = [newConversation, ...conversations];
-        setConversations(updatedConversations);
-
-        // 切换到新对话
-        setCurrentConversation(newConversation);
-        setCurrentCharacter(character);
-
-        // 更新URL
-        router.push(`/chat?c=${newConversation.id}`);
-      }
+      router.push(`/chat?c=${conversationId}`);
     } catch (error) {
-      console.error('Error creating conversation:', error);
+      console.error("Failed to create conversation:", error);
     }
   };
 
-  // 更新对话列表
-  const handleConversationsUpdate = (updatedConversations: Conversation[]) => {
-    setConversations(updatedConversations);
+  const handleConversationsUpdate = () => {
+    // No-op: Convex updates automatically
   };
 
-  // Loading状态
-  if (status === "loading" || loading) {
+  // 6. Render States
+  if (status === "loading" || (session && !convexUserId) || rawConversations === undefined || rawCharacters === undefined) {
     return <LoadingHeartbeat />;
   }
 
-  // 未登录状态
   if (!session) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -223,26 +148,8 @@ export default function ChatPage() {
     );
   }
 
-  // 错误状态
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-4">Error</h2>
-          <p className="text-muted-foreground mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
-          >
-            Reload
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // 角色选择界面（没有对话时）
-  if (!currentCharacter && characters.length > 0) {
+  // Character Selection (No active conversation)
+  if (!currentConversation && characters.length > 0) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center max-w-2xl mx-auto p-6">
@@ -250,7 +157,6 @@ export default function ChatPage() {
           <p className="text-muted-foreground mb-8">
             Choose a character to start your first conversation
           </p>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {characters.map((character) => (
               <button
@@ -259,28 +165,21 @@ export default function ChatPage() {
                 className="p-6 rounded-lg border border-border hover:border-primary/50 transition-all duration-200 text-left"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  <img
-                    src={character.avatar_url}
-                    alt={character.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iMjQiIGZpbGw9IiNGM0Y0RjYiLz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjOUNBM0FGIj48cGF0aCBkPSJNMTIgMTJjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+Cjwvc3ZnPgo=';
-                    }}
-                  />
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden">
+                    <Image
+                      src={character.avatar_url}
+                      alt={character.name}
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  </div>
                   <div>
                     <h3 className="font-semibold">{character.name}</h3>
                     <p className="text-sm text-muted-foreground">{character.chat_count}</p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">{character.description}</p>
-                <div className="flex flex-wrap gap-1">
-                  {character.traits.slice(0, 3).map((trait, index) => (
-                    <span key={index} className="text-xs px-2 py-1 bg-muted rounded-full">
-                      {trait}
-                    </span>
-                  ))}
-                </div>
+                <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{character.description}</p>
               </button>
             ))}
           </div>
@@ -289,13 +188,8 @@ export default function ChatPage() {
     );
   }
 
-  // 主聊天界面
   if (!currentCharacter) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading conversation...</div>
-      </div>
-    );
+    return <LoadingHeartbeat />;
   }
 
   return (
@@ -308,6 +202,7 @@ export default function ChatPage() {
         onNewChatWithCharacter={startNewChatWithCharacter}
         availableCharacters={characters}
         onConversationsUpdate={handleConversationsUpdate}
+        convexUserId={convexUserId}
       />
     </div>
   );
