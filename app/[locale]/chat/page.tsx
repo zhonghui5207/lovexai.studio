@@ -156,6 +156,11 @@ export default function ChatPage() {
           personality: c.personality,
           access_level: c.access_level,
           credits_per_message: c.credits_per_message,
+          suggestions: c.suggestions,
+          background: c.background,
+          scenario: c.scenario,
+          current_state: c.current_state,
+          motivation: c.motivation,
        };
     }
     

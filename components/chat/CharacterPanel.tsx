@@ -178,11 +178,9 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
             {/* 模块内容 - 数据库背景介绍 */}
             {showScenario && (
               <div className="px-4 pb-4">
-                <div className="bg-muted/50 rounded-lg p-3">
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {character.background}
-                  </p>
-                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {character.background}
+                </p>
               </div>
             )}
           </div>
