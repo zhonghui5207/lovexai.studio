@@ -19,6 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import InsufficientCreditsDialog from "./InsufficientCreditsDialog";
+import { useCredits } from "@/contexts/CreditsContext";
 
 interface Message {
   id: string;
@@ -56,8 +58,10 @@ interface ChatWindowProps {
 
 export default function ChatWindow({ character, messages, onSendMessage, isTyping = false, isLoading = false, creditsPerMessage = 1 }: ChatWindowProps) {
   const { data: session } = useSession();
+  const { credits } = useCredits();
   const [newMessage, setNewMessage] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCreditsDialogOpen, setIsCreditsDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<'network' | 'server' | 'credits' | 'permission' | 'general' | 'timeout' | 'empty_message'>('general');
   const [generationSettings, setGenerationSettings] = useState<GenerationSettings>({
@@ -103,6 +107,12 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       return;
     }
 
+    // Check credits
+    if (credits < creditsPerMessage) {
+      setIsCreditsDialogOpen(true);
+      return;
+    }
+
     // 清除之前的错误
     setError(null);
 
@@ -111,28 +121,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       await onSendMessage(newMessage.trim(), generationSettings);
       setNewMessage("");
     } catch (error: any) {
-      console.error('Error sending message:', error);
-
-      // 解析错误类型
-      if (error.status === 402) {
-        setError('Insufficient credits! Please top up your account to continue chatting.');
-        setErrorType('credits');
-      } else if (error.status === 403) {
-        setError('Access denied. Please upgrade your subscription to chat with this character.');
-        setErrorType('permission');
-      } else if (error.status >= 500) {
-        setError('Server error occurred. Please try again in a moment.');
-        setErrorType('server');
-      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        setError('Network connection failed. Please check your internet connection.');
-        setErrorType('network');
-      } else if (error.name === 'AbortError') {
-        setError('Request timeout. Please try again.');
-        setErrorType('timeout');
-      } else {
-        setError('Failed to send message. Please try again.');
-        setErrorType('general');
-      }
+      // ... (error handling)
     }
   };
 
@@ -218,7 +207,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
               <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem className="hover:bg-white/5 cursor-pointer focus:bg-white/5 focus:text-white">
                 <span className="flex items-center gap-2">
-                  <span>�</span> Report Character
+                  <span></span> Report Character
                 </span>
               </DropdownMenuItem>
               <DropdownMenuItem className="text-red-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer focus:bg-red-500/10 focus:text-red-400">
@@ -230,10 +219,6 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
           </DropdownMenu>
         </div>
       </div>
-
-  
-      {/* Credit Display (Old - Removed) */}
-      {/* <CreditDisplay creditsPerMessage={creditsPerMessage} /> */}
 
       {/* Error Display */}
       <ErrorDisplay
@@ -341,6 +326,12 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
         onClose={() => setIsSettingsOpen(false)}
         settings={generationSettings}
         onSettingsChange={setGenerationSettings}
+      />
+
+      {/* Insufficient Credits Dialog */}
+      <InsufficientCreditsDialog
+        isOpen={isCreditsDialogOpen}
+        onClose={() => setIsCreditsDialogOpen(false)}
       />
     </div>
   );

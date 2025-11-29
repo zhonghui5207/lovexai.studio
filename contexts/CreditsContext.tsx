@@ -3,6 +3,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode, memo } from 'react';
 import { useSession } from 'next-auth/react';
 
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+
 interface CreditsContextType {
   credits: number;
   isLoading: boolean;
@@ -27,29 +30,19 @@ interface CreditsProviderProps {
 
 export const CreditsProvider = memo(function CreditsProviderComponent({ children }: CreditsProviderProps) {
   const { data: session } = useSession();
-  const [credits, setCredits] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  // 初始获取积分
+  const [localCredits, setLocalCredits] = useState<number | null>(null);
+  
+  // Use Convex for real-time credit updates
+  const convexUser = useQuery(api.users.current);
+  
   useEffect(() => {
-    if (!session?.user?.id) return;
+    if (convexUser) {
+      setLocalCredits(convexUser.credits_balance || 0);
+    }
+  }, [convexUser]);
 
-    const fetchCredits = async () => {
-      try {
-        const response = await fetch(`/api/user/credits?userId=${session.user.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setCredits(data.data?.credits_balance || 0);
-        }
-      } catch (error) {
-        console.error('Failed to fetch credits:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCredits();
-  }, [session?.user?.id]);
+  const credits = localCredits ?? 0;
+  const isLoading = convexUser === undefined;
 
   // 刷新积分（手动调用）
   const refreshCredits = async () => {
@@ -59,7 +52,7 @@ export const CreditsProvider = memo(function CreditsProviderComponent({ children
       const response = await fetch(`/api/user/credits?userId=${session.user.id}`);
       if (response.ok) {
         const data = await response.json();
-        setCredits(data.data?.credits_balance || 0);
+        setLocalCredits(data.data?.credits_balance || 0);
       }
     } catch (error) {
       console.error('Failed to refresh credits:', error);
@@ -68,13 +61,13 @@ export const CreditsProvider = memo(function CreditsProviderComponent({ children
 
   // 直接更新积分（事件驱动）
   const updateCredits = (newCredits: number) => {
-    setCredits(newCredits);
+    setLocalCredits(newCredits);
   };
 
   // 扣除积分
   const deductCredits = (amount: number): boolean => {
-    if (credits >= amount) {
-      setCredits(prev => prev - amount);
+    if ((localCredits ?? 0) >= amount) {
+      setLocalCredits(prev => (prev ?? 0) - amount);
       return true;
     }
     return false;

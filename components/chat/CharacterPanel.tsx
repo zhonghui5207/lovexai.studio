@@ -271,7 +271,7 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
               </p>
 
               <div className="space-y-2">
-                {characterSuggestions.map((suggestion, index) => (
+                {characterSuggestions.map((suggestion: string, index: number) => (
                   <Card
                     key={index}
                     className={`p-3 hover:bg-muted/50 cursor-pointer transition-all ${

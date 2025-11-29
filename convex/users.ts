@@ -25,7 +25,7 @@ export const store = mutation({
       throw new Error("Called storeUser without authentication present");
     }
 
-    // Check if user exists by tokenIdentifier (Auth provider ID)
+    // 1. Check if user exists by tokenIdentifier (Auth provider ID)
     const user = await ctx.db
       .query("users")
       .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
@@ -33,7 +33,6 @@ export const store = mutation({
 
     if (user !== null) {
       // Update basic info if changed
-      // We only update if fields are missing or explicitly different to avoid overwriting custom data
       if (user.name !== identity.name || user.avatar_url !== identity.pictureUrl) {
         await ctx.db.patch(user._id, {
           name: identity.name || user.name,
@@ -43,23 +42,25 @@ export const store = mutation({
       return user._id;
     }
 
-    // Check if user exists by email (legacy migration case)
-    // If we migrated data from Supabase, the user might exist but not have the tokenIdentifier yet.
-    const existingUserByEmail = await ctx.db
-      .query("users")
-      .withIndex("by_email", (q) => q.eq("email", identity.email!))
-      .unique();
+    // 2. Check if user exists by email (Fall back to email matching)
+    if (identity.email) {
+      const existingUserByEmail = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email!))
+        .unique();
 
-    if (existingUserByEmail) {
-      // Link the new auth token to the existing user
-      await ctx.db.patch(existingUserByEmail._id, {
-        tokenIdentifier: identity.tokenIdentifier,
-        avatar_url: identity.pictureUrl || existingUserByEmail.avatar_url,
-      });
-      return existingUserByEmail._id;
+      if (existingUserByEmail) {
+        // Link the new auth token to the existing user
+        await ctx.db.patch(existingUserByEmail._id, {
+          tokenIdentifier: identity.tokenIdentifier,
+          name: identity.name || existingUserByEmail.name,
+          avatar_url: identity.pictureUrl || existingUserByEmail.avatar_url,
+        });
+        return existingUserByEmail._id;
+      }
     }
 
-    // Create new user
+    // 3. Create new user
     const newUserId = await ctx.db.insert("users", {
       name: identity.name || "User",
       email: identity.email!,

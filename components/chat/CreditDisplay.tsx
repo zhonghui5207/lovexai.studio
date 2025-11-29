@@ -11,6 +11,9 @@ export default function CreditDisplay({
   simpleMode?: boolean;
 }) {
   const { credits, isLoading } = useCredits();
+  
+  // Debug log
+  // console.log("CreditDisplay:", { credits, isLoading });
 
   const isLowCredits = credits < creditsPerMessage * 3;
   const cannotAffordMessage = credits < creditsPerMessage;
