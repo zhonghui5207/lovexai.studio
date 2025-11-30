@@ -250,9 +250,17 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                     : "bg-[#1a1d26] text-foreground rounded-bl-none border border-white/5 mr-auto"
                 }`}
               >
-                <p className="text-[15px] leading-7 tracking-wide font-medium">
-                  <FormattedMessage content={message.content} />
-                </p>
+                {message.sender === "character" && !message.content ? (
+                  <div className="flex space-x-1 h-6 items-center">
+                    <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                    <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                  </div>
+                ) : (
+                  <p className="text-[15px] leading-7 tracking-wide font-medium">
+                    <FormattedMessage content={message.content} />
+                  </p>
+                )}
               </div>
               
               <div
@@ -270,19 +278,8 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
             </div>
           </div>
         ))}
-
-        {isTyping && (
-          <div className="flex items-start gap-3">
-            {renderAvatar()}
-            <div className="bg-black/40 backdrop-blur-sm border border-white/5 rounded-2xl px-4 py-3 shadow-sm">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                <div className="w-2 h-2 bg-white/50 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-              </div>
-            </div>
-          </div>
-        )}
+        
+        {/* Remove the separate isTyping block since we handle it in the message list now */}
 
         <div ref={messagesEndRef} />
         </div> {/* 闭合 Messages content div */}

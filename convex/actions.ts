@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { generateText } from "ai";
+import { streamText } from "ai";
 
 export const generateResponse = action({
   args: { conversationId: v.id("conversations") },
@@ -51,20 +51,34 @@ export const generateResponse = action({
       },
     });
 
-    // 4. Call LLM
+    // 4. Create placeholder message
+    const messageId = await ctx.runMutation(api.messages.createAIResponsePlaceholder, {
+      conversationId: args.conversationId,
+    });
+
+    // 5. Call LLM with Streaming
     try {
-      const { text } = await generateText({
+      const { textStream } = await streamText({
         model: provider(modelName),
         system: systemPrompt,
         messages: coreMessages as any,
       });
 
-      // 5. Save response
-      await ctx.runMutation(api.messages.saveAIResponse, {
-        conversationId: args.conversationId,
-        content: text,
-      });
+      let fullResponse = "";
 
+      for await (const delta of textStream) {
+        fullResponse += delta;
+        
+        // Update message content incrementally
+        // Optimization: In a real app, you might want to throttle these updates (e.g. every 100ms or 10 chars)
+        // to reduce database write load. For now, we update on every chunk for maximum smoothness.
+        await ctx.runMutation(api.messages.updateAIResponse, {
+          messageId: messageId,
+          content: fullResponse,
+        });
+      }
+
+      // 6. Deduct credits (Only once at the end)
       if (conversation.user_id) {
         await ctx.runMutation(api.users.deductCredits, {
           amount: char.credits_per_message || 1,
@@ -73,6 +87,7 @@ export const generateResponse = action({
       }
     } catch (e) {
       console.error("AI Generation failed:", e);
+      // Optional: Update message to show error or delete it
     }
   },
 });

@@ -78,7 +78,7 @@ function ChatInterface({
   convexUserId
 }: ChatInterfaceProps) {
   const { updateCredits } = useCredits();
-  const [isTyping, setIsTyping] = useState(false);
+  // const [isTyping, setIsTyping] = useState(false); // Removed
 
   // Convex Hooks
   const rawMessages = useQuery(
@@ -111,15 +111,10 @@ function ChatInterface({
         userId: convexUserId,
       });
 
-      setIsTyping(true);
-
       // 2. Trigger AI (Don't await to unblock UI)
       generateResponse({ conversationId: conversationId as Id<"conversations"> })
         .catch((error) => {
           console.error("Failed to generate response:", error);
-        })
-        .finally(() => {
-          setIsTyping(false);
         });
 
     } catch (error) {
@@ -160,7 +155,7 @@ function ChatInterface({
               messages={messages}
               onSendMessage={handleSendMessage}
               character={character}
-              isTyping={isTyping}
+              // isTyping={isTyping} // Removed
               isLoading={rawMessages === undefined && !!conversationId}
               creditsPerMessage={character.credits_per_message}
             />

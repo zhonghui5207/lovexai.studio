@@ -84,18 +84,61 @@ export const send = mutation({
   },
 });
 
-// Save AI response (Internal Mutation)
+// Create a placeholder message for AI response (for streaming)
+export const createAIResponsePlaceholder = mutation({
+  args: {
+    conversationId: v.id("conversations"),
+  },
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation) throw new Error("Conversation not found");
+
+    let creditsCost = 0;
+    if (conversation.character_id) {
+      const character = await ctx.db.get(conversation.character_id);
+      if (character) {
+        creditsCost = character.credits_per_message || 1;
+      }
+    }
+
+    const messageId = await ctx.db.insert("messages", {
+      conversation_id: args.conversationId,
+      sender_type: "character",
+      content: "", // Start empty
+      credits_used: creditsCost,
+    });
+
+    await ctx.db.patch(args.conversationId, {
+      last_message_at: new Date().toISOString(),
+      message_count: (conversation.message_count || 0) + 1,
+    });
+
+    return messageId;
+  },
+});
+
+// Update AI response content (for streaming)
+export const updateAIResponse = mutation({
+  args: {
+    messageId: v.id("messages"),
+    content: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.messageId, {
+      content: args.content,
+    });
+  },
+});
+
+// Save AI response (Internal Mutation) - Deprecated but kept for compatibility
 export const saveAIResponse = mutation({
   args: {
     conversationId: v.id("conversations"),
     content: v.string(),
   },
   handler: async (ctx, args) => {
-    // We can skip auth check if we trust internal calls, but actions run with same auth context usually?
-    // Actually actions are called by scheduler, which has system auth or user auth.
-    // If called via runMutation from action, it inherits identity?
-    // For now, we just check if conversation exists.
-    
+    // ... implementation ...
+    // This is now replaced by the streaming flow, but we can keep it or redirect logic
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation) throw new Error("Conversation not found");
 
@@ -103,7 +146,7 @@ export const saveAIResponse = mutation({
       conversation_id: args.conversationId,
       sender_type: "character",
       content: args.content,
-      credits_used: conversation.character_id ? 1 : 0, // Simplified credit logic
+      credits_used: conversation.character_id ? 1 : 0,
     });
 
     await ctx.db.patch(args.conversationId, {
