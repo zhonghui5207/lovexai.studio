@@ -78,16 +78,15 @@ export const store = mutation({
 // Temporary Auth Bypass for Migration/Dev
 export const ensureUser = mutation({
   args: {
-    legacyId: v.string(),
     email: v.string(),
     name: v.string(),
     avatar_url: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Check if user exists by legacy_id (Supabase UUID)
+    // Check if user exists by email
     const user = await ctx.db
       .query("users")
-      .filter((q) => q.eq(q.field("legacy_id"), args.legacyId))
+      .withIndex("by_email", (q) => q.eq("email", args.email))
       .unique();
 
     if (user) {
@@ -106,7 +105,6 @@ export const ensureUser = mutation({
       name: args.name,
       email: args.email,
       avatar_url: args.avatar_url,
-      legacy_id: args.legacyId,
       subscription_tier: "free",
       credits_balance: 100,
       invite_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
@@ -192,58 +190,15 @@ export const syncUser = mutation({
           avatar_url: args.avatar_url,
         });
       }
-      
-      // Claim legacy data if needed (if user has legacy_id but conversations point to it as string)
-      if (existingByEmail.legacy_id) {
-         const legacyConversations = await ctx.db
-            .query("conversations")
-            .filter(q => q.eq(q.field("user_id"), existingByEmail.legacy_id))
-            .collect();
-         
-         for (const conv of legacyConversations) {
-             await ctx.db.patch(conv._id, { user_id: existingByEmail._id });
-         }
-      }
-
       return existingByEmail;
     }
 
-    // 2. Try to find user by legacy_id (if externalId matches a legacy UUID)
-    // This handles the case where email might be missing or different in legacy data
-    const existingByLegacyId = await ctx.db
-        .query("users")
-        .filter(q => q.eq(q.field("legacy_id"), args.externalId))
-        .unique();
-
-    if (existingByLegacyId) {
-        // We found the legacy user! Update email and tokenIdentifier
-        await ctx.db.patch(existingByLegacyId._id, {
-            email: args.email,
-            name: args.name,
-            avatar_url: args.avatar_url,
-            tokenIdentifier: args.externalId, // Link NextAuth ID
-        });
-        
-        // Claim legacy data
-        const legacyConversations = await ctx.db
-            .query("conversations")
-            .filter(q => q.eq(q.field("user_id"), existingByLegacyId.legacy_id))
-            .collect();
-            
-        for (const conv of legacyConversations) {
-            await ctx.db.patch(conv._id, { user_id: existingByLegacyId._id });
-        }
-
-        return existingByLegacyId;
-    }
-
-    // 3. Create new user
+    // 2. Create new user
     const newId = await ctx.db.insert("users", {
       email: args.email,
       name: args.name,
       avatar_url: args.avatar_url,
       tokenIdentifier: args.externalId,
-      legacy_id: args.externalId,
       subscription_tier: "free",
       credits_balance: 100,
       invite_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
@@ -252,3 +207,5 @@ export const syncUser = mutation({
     return await ctx.db.get(newId);
   },
 });
+
+

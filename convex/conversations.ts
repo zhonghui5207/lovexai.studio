@@ -132,25 +132,4 @@ export const create = mutation({
   },
 });
 
-export const migrateCreate = mutation({
-  args: {
-    user_id: v.id("users"),
-    character_id: v.id("characters"),
-    title: v.string(),
-    is_archived: v.boolean(),
-    last_message_at: v.string(),
-    message_count: v.number(),
-    total_credits_used: v.number(),
-    legacy_id: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("conversations")
-      .filter((q) => q.eq(q.field("legacy_id"), args.legacy_id))
-      .first();
 
-    if (existing) return existing._id;
-
-    return await ctx.db.insert("conversations", args);
-  },
-});

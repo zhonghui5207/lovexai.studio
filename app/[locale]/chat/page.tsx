@@ -57,7 +57,6 @@ export default function ChatPage() {
   useEffect(() => {
     if (session?.user?.id && !convexUserId) {
       ensureUser({
-        legacyId: session.user.id,
         email: session.user.email || "",
         name: session.user.name || "User",
         avatar_url: session.user.image || "",

@@ -102,22 +102,4 @@ export const saveAIResponse = mutation({
   },
 });
 
-export const migrateCreate = mutation({
-  args: {
-    conversation_id: v.id("conversations"),
-    sender_type: v.string(),
-    content: v.string(),
-    credits_used: v.number(),
-    legacy_id: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const existing = await ctx.db
-      .query("messages")
-      .filter((q) => q.eq(q.field("legacy_id"), args.legacy_id))
-      .first();
 
-    if (existing) return existing._id;
-
-    return await ctx.db.insert("messages", args);
-  },
-});

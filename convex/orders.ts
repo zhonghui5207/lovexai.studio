@@ -50,7 +50,8 @@ export const processPaidOrder = mutation({
 
     if (!user) {
         // Try as legacy_id
-        user = await ctx.db.query("users").filter(q => q.eq(q.field("legacy_id"), order.user_id)).unique();
+        // Legacy migration logic removed
+        // user = await ctx.db.query("users").filter(q => q.eq(q.field("legacy_id"), order.user_id)).unique();
     }
     
     if (!user) {

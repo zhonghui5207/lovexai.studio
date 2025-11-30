@@ -70,7 +70,6 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
       // 1. 确保用户在 Convex 中存在 (Sync User)
       // 使用 ensureUser 以保持与 ChatPage 逻辑一致，避免创建不同用户 ID
       const userId = await ensureUser({
-        legacyId: session.user.id || "",
         email: session.user.email,
         name: session.user.name || "User",
         avatar_url: session.user.image || "",

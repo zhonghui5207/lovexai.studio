@@ -82,7 +82,6 @@ export default function DiscoverPage() {
     setIsCreatingChat(true);
     try {
       const userId = await ensureUser({
-        legacyId: session.user.id || "",
         email: session.user.email,
         name: session.user.name || "User",
         avatar_url: session.user.image || "",

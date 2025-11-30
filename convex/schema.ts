@@ -14,8 +14,6 @@ export default defineSchema({
     subscription_expires_at: v.optional(v.string()),
     // External Auth Provider ID (e.g. from NextAuth/Clerk)
     tokenIdentifier: v.optional(v.string()),
-    // Legacy Supabase UUID (for migration mapping)
-    legacy_id: v.optional(v.string()),
   })
     .index("by_email", ["email"])
     .index("by_token", ["tokenIdentifier"])
@@ -38,7 +36,6 @@ export default defineSchema({
     traits: v.optional(v.array(v.string())),
     // Combined text for full-text search (name + description + personality)
     search_text: v.optional(v.string()),
-    legacy_id: v.optional(v.string()),
     // Extended character details
     suggestions: v.optional(v.string()),
     background: v.optional(v.string()),
@@ -63,7 +60,6 @@ export default defineSchema({
     last_message_at: v.string(),
     message_count: v.number(),
     total_credits_used: v.number(),
-    legacy_id: v.optional(v.string()),
   })
     .index("by_user", ["user_id"])
     .index("by_user_character", ["user_id", "character_id"])
@@ -77,7 +73,6 @@ export default defineSchema({
     content: v.string(),
     credits_used: v.number(),
     generation_settings: v.optional(v.any()), // JSON object
-    legacy_id: v.optional(v.string()),
   }).index("by_conversation", ["conversation_id"]),
 
   // Generation Settings table
