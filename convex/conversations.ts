@@ -26,11 +26,21 @@ export const list = query({
       .order("desc")
       .collect();
 
-    // Enrich with character data
+    // Enrich with character data and last message
     const enriched = await Promise.all(
       conversations.map(async (conv) => {
         const character = await ctx.db.get(conv.character_id);
-        return { ...conv, character };
+        const lastMessage = await ctx.db
+          .query("messages")
+          .withIndex("by_conversation", (q) => q.eq("conversation_id", conv._id))
+          .order("desc")
+          .first();
+          
+        return { 
+          ...conv, 
+          character,
+          lastMessageContent: lastMessage?.content
+        };
       })
     );
 
@@ -63,7 +73,18 @@ export const get = query({
     }
 
     const character = await ctx.db.get(conversation.character_id);
-    return { ...conversation, character };
+    
+    const lastMessage = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversation_id", conversation._id))
+      .order("desc")
+      .first();
+
+    return { 
+      ...conversation, 
+      character,
+      lastMessageContent: lastMessage?.content
+    };
   },
 });
 

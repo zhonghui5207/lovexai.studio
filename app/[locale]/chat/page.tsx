@@ -107,7 +107,9 @@ export default function ChatPage() {
       characterId: c.character_id,
       characterName: c.character?.name || "Unknown",
       characterAvatar: c.character?.avatar_url || "",
-      lastMessage: "Click to view messages",
+      lastMessage: c.lastMessageContent 
+        ? (c.lastMessageContent.length > 30 ? c.lastMessageContent.substring(0, 30) + "..." : c.lastMessageContent)
+        : "No messages yet",
       lastMessageTime: c.last_message_at,
       unreadCount: 0,
     }));
@@ -128,7 +130,9 @@ export default function ChatPage() {
         characterId: directConversation.character_id,
         characterName: directConversation.character?.name || "Unknown",
         characterAvatar: directConversation.character?.avatar_url || "",
-        lastMessage: "Click to view messages",
+        lastMessage: directConversation.lastMessageContent 
+          ? (directConversation.lastMessageContent.length > 30 ? directConversation.lastMessageContent.substring(0, 30) + "..." : directConversation.lastMessageContent)
+          : "No messages yet",
         lastMessageTime: directConversation.last_message_at,
         unreadCount: 0,
       };

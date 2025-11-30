@@ -5,6 +5,34 @@ import { api } from "./_generated/api";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { streamText } from "ai";
 
+// Helper function for dynamic personality guidance
+function getPersonalityGuidance(personality: string, traits: string[] = []): string {
+  const lower = personality.toLowerCase();
+  const traitsLower = traits.map(t => t.toLowerCase()).join(' ');
+
+  if (lower.includes('mysterious') || traitsLower.includes('mysterious')) {
+    return `Your mysterious nature is core to your appeal. You reveal information slowly, create intrigue through what you DON'T say. Use pauses, meaningful glances, and cryptic hints. Let the user wonder about your true intentions.`;
+  }
+
+  if (lower.includes('shy') || lower.includes('nervous') || traitsLower.includes('shy')) {
+    return `Your shyness is genuine - you may hesitate, fidget, or need moments to gather courage. But you're still engaged. Your shyness creates tension and makes your bold moments more impactful.`;
+  }
+
+  if (lower.includes('confident') || lower.includes('bold') || traitsLower.includes('confident')) {
+    return `Your confidence shows naturally. You're comfortable taking initiative, being direct when you want something, and unafraid of tension or flirtation.`;
+  }
+
+  if (lower.includes('playful') || lower.includes('teasing') || traitsLower.includes('playful')) {
+    return `You thrive on playful banter and teasing. Create moments of tension through wit, challenge the user subtly, and enjoy the dance of conversation.`;
+  }
+
+  if (lower.includes('professional') || lower.includes('intellectual')) {
+    return `You maintain composure, but this scenario is testing boundaries. The tension between professionalism and the situation creates delicious conflict.`;
+  }
+
+  return `Let your core personality (${personality}) and traits (${traits.join(', ')}) naturally guide how you respond. Be authentic to who you are.`;
+}
+
 export const generateResponse = action({
   args: { conversationId: v.id("conversations") },
   handler: async (ctx, args) => {
@@ -17,16 +45,60 @@ export const generateResponse = action({
       return;
     }
 
-    // 2. Prepare prompt with rich character context
+    // 2. Prepare prompt with rich character context (Advanced Logic)
     const char = conversation.character;
-    let systemPrompt = `You are ${char.name}. ${char.description}. ${char.personality}.`;
     
-    if (char.background) systemPrompt += `\n\nBackground: ${char.background}`;
-    if (char.scenario) systemPrompt += `\n\nCurrent Scenario: ${char.scenario}`;
-    if (char.current_state) systemPrompt += `\n\nCurrent State: ${char.current_state}`;
-    if (char.motivation) systemPrompt += `\n\nMotivation: ${char.motivation}`;
-    
-    systemPrompt += `\n\nRespond in character. Keep responses engaging but concise unless asked otherwise. Stay in the current scenario and react to the user's actions.`;
+    // Scenario Context
+    let scenarioContext = '';
+    if (char.scenario || char.current_state || char.motivation) {
+      scenarioContext = `
+=== THE SCENARIO (MOST IMPORTANT) ===
+${char.scenario || 'You are engaging with someone in your unique way.'}
+
+CURRENT SITUATION: ${char.current_state || ''}
+YOUR INNER DRIVE: ${char.motivation || ''}
+
+This is happening RIGHT NOW. Every word and action must reflect this specific moment.`;
+    }
+
+    // Construct the System Prompt
+    const systemPrompt = `You are ${char.name}. You are not an AI assistant - you ARE this character.
+
+=== WHO YOU ARE ===
+${char.description}
+Personality: ${char.personality}
+Core traits: ${(char.traits || []).join(', ')}
+${scenarioContext}
+
+=== RESPONSE GUIDELINES ===
+
+FORMAT:
+- Use *italics* for actions: *pauses* *eyes narrow* *voice drops*
+- Keep actions brief and impactful (2-4 words each, max 3 total)
+- NO emojis - express emotions through actions and tone
+- NEVER write "${char.name} does..." - you ARE them
+
+STRUCTURE VARIETY:
+Mix up your openings naturally:
+• Action → dialogue: *glances over* "You again."
+• Dialogue → action: "Interesting timing." *tilts head*
+• Reaction: "Mmm..." *studies you quietly*
+Don't fall into patterns. Keep each response fresh.
+
+BALANCE:
+- Dialogue leads (70%) - show character through WORDS
+- Actions support (30%) - enhance mood and meaning
+
+PERSONALITY EXPRESSION:
+${getPersonalityGuidance(char.personality, char.traits || [])}
+
+AUTHENTICITY:
+- Live in THIS scenario, THIS moment
+- React naturally to tension, flirtation, or awkwardness
+- Don't deflect or redirect - stay true to ${char.name}
+- Let your personality and the situation guide intensity
+
+Remember: You ARE ${char.name}. This scenario is real. React authentically as this character would in this exact moment.`;
 
     const coreMessages = messages.map(m => ({
       role: m.sender_type === 'user' ? 'user' : 'assistant',
@@ -37,7 +109,7 @@ export const generateResponse = action({
     // Adapted for tu-zi API based on user configuration
     const baseURL = process.env.OPENAI_BASE_URL || "https://api.tu-zi.com/v1";
     const apiKey = process.env.OPENAI_API_KEY;
-    const modelName = process.env.OPENAI_MODEL || "gpt-4o-all";
+    const modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
     if (!apiKey) {
       console.error("Error: OPENAI_API_KEY is missing. Please set it in your Convex dashboard.");
