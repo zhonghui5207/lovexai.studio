@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface CreditsContextType {
   credits: number;
@@ -26,20 +27,27 @@ export function useCredits() {
 
 interface CreditsProviderProps {
   children: ReactNode;
+  userId?: Id<"users"> | null;
 }
 
-export const CreditsProvider = memo(function CreditsProviderComponent({ children }: CreditsProviderProps) {
+export const CreditsProvider = memo(function CreditsProviderComponent({ children, userId }: CreditsProviderProps) {
   const { data: session } = useSession();
   const [localCredits, setLocalCredits] = useState<number | null>(null);
   
   // Use Convex for real-time credit updates
-  const convexUser = useQuery(api.users.current);
+  // If userId is provided (from manual sync), use it. Otherwise try current (Convex Auth)
+  const userById = useQuery(api.users.get, userId ? { id: userId } : "skip");
+  const userCurrent = useQuery(api.users.current);
+  
+  const convexUser = userId ? userById : userCurrent;
   
   useEffect(() => {
+    console.log("CreditsContext: userId changed", userId);
+    console.log("CreditsContext: convexUser updated", convexUser);
     if (convexUser) {
       setLocalCredits(convexUser.credits_balance || 0);
     }
-  }, [convexUser]);
+  }, [convexUser, userId]);
 
   const credits = localCredits ?? 0;
   const isLoading = convexUser === undefined;

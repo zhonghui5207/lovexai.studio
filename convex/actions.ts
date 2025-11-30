@@ -9,8 +9,8 @@ export const generateResponse = action({
   args: { conversationId: v.id("conversations") },
   handler: async (ctx, args) => {
     // 1. Fetch conversation and messages
-    const messages = await ctx.runQuery(api.messages.list, { conversationId: args.conversationId });
-    const conversation = await ctx.runQuery(api.conversations.get, { id: args.conversationId });
+    const messages = await ctx.runQuery(api.messages.listInternal, { conversationId: args.conversationId });
+    const conversation = await ctx.runQuery(api.conversations.getInternal, { id: args.conversationId });
     
     if (!conversation || !messages || !conversation.character) {
       console.error("Conversation, messages, or character not found");
@@ -64,6 +64,13 @@ export const generateResponse = action({
         conversationId: args.conversationId,
         content: text,
       });
+
+      if (conversation.user_id) {
+        await ctx.runMutation(api.users.deductCredits, {
+          amount: char.credits_per_message || 1,
+          userId: conversation.user_id as any,
+        });
+      }
     } catch (e) {
       console.error("AI Generation failed:", e);
     }

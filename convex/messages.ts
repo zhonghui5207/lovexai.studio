@@ -29,6 +29,17 @@ export const list = query({
   },
 });
 
+// List messages for a conversation (Internal use)
+export const listInternal = query({
+  args: { conversationId: v.id("conversations") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversation_id", args.conversationId))
+      .collect();
+  },
+});
+
 // Send a message (User)
 export const send = mutation({
   args: {

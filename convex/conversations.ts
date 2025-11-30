@@ -67,6 +67,18 @@ export const get = query({
   },
 });
 
+// Get a single conversation (Internal use, no auth check)
+export const getInternal = query({
+  args: { id: v.id("conversations") },
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.id);
+    if (!conversation) return null;
+
+    const character = await ctx.db.get(conversation.character_id);
+    return { ...conversation, character };
+  },
+});
+
 // Create a new conversation
 export const create = mutation({
   args: { characterId: v.id("characters"), userId: v.optional(v.id("users")) },

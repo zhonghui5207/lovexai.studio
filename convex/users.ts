@@ -16,6 +16,13 @@ export const current = query({
   },
 });
 
+export const get = query({
+  args: { id: v.id("users") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
+  },
+});
+
 // Create or update user after login
 export const store = mutation({
   args: {},
@@ -116,15 +123,23 @@ export const ensureUser = mutation({
 
 // Deduct credits
 export const deductCredits = mutation({
-  args: { amount: v.number() },
+  args: { amount: v.number(), userId: v.optional(v.id("users")) },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Unauthorized");
+    let user = null;
 
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
-      .unique();
+    if (args.userId) {
+      // Internal call (e.g. from action)
+      user = await ctx.db.get(args.userId);
+    } else {
+      // Client call
+      const identity = await ctx.auth.getUserIdentity();
+      if (!identity) throw new Error("Unauthorized");
+
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+        .unique();
+    }
 
     if (!user) throw new Error("User not found");
 
@@ -138,11 +153,10 @@ export const deductCredits = mutation({
 
     // Record transaction
     await ctx.db.insert("credits", {
-      user_id: user._id, // Using Convex ID here
+      user_id: user._id,
       amount: -args.amount,
       type: "usage",
-      created_at: new Date().toISOString(), // Schema didn't enforce created_at but good to have
-    } as any); // Cast to any if schema mismatch, but we should add created_at to schema later
+    } as any);
   },
 });
 

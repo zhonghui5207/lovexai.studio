@@ -61,7 +61,10 @@ export default function ChatPage() {
         name: session.user.name || "User",
         avatar_url: session.user.image || "",
       })
-        .then((id) => setConvexUserId(id))
+        .then((id) => {
+          console.log("ChatPage: Synced user, ID:", id);
+          setConvexUserId(id);
+        })
         .catch((err) => console.error("Failed to sync user:", err));
     }
   }, [session, convexUserId, ensureUser]);

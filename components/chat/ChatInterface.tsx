@@ -62,7 +62,7 @@ interface ChatInterfaceProps {
 
 export default function ChatInterfaceWrapper(props: ChatInterfaceProps) {
   return (
-    <CreditsProvider>
+    <CreditsProvider userId={props.convexUserId}>
       <ChatInterface {...props} />
     </CreditsProvider>
   );
@@ -113,17 +113,18 @@ function ChatInterface({
 
       setIsTyping(true);
 
-      // 2. Trigger AI
-      await generateResponse({ conversationId: conversationId as Id<"conversations"> });
-
-      // 3. Deduct credits (Optimistic)
-      // In a real app, this should be reactive to the database
-      // updateCredits((prev) => prev - character.credits_per_message);
+      // 2. Trigger AI (Don't await to unblock UI)
+      generateResponse({ conversationId: conversationId as Id<"conversations"> })
+        .catch((error) => {
+          console.error("Failed to generate response:", error);
+        })
+        .finally(() => {
+          setIsTyping(false);
+        });
 
     } catch (error) {
       console.error("Failed to send message:", error);
-    } finally {
-      setIsTyping(false);
+      throw error; // Re-throw to prevent input clearing in ChatWindow
     }
   };
 

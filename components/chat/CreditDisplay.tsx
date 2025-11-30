@@ -20,12 +20,13 @@ export default function CreditDisplay({
 
   if (simpleMode) {
     return (
-      <div className="flex items-center gap-1.5 text-sm font-semibold text-white">
+      <div className="flex items-center gap-1.5 text-sm font-semibold text-white" title={`Credits: ${credits}`}>
         <Sparkles className="w-3.5 h-3.5 fill-current" />
         <span>{isLoading ? "..." : credits}</span>
       </div>
     );
   }
+
 
   if (isLoading) {
     return (
