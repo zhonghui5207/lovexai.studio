@@ -107,206 +107,164 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
   };
 
   return (
-    <div className="flex flex-col h-full bg-background/20">
+    <div className="flex flex-col h-full bg-background/80 backdrop-blur-xl border-l border-border/50 shadow-2xl">
       {/* Character Header */}
-      <div className="relative">
+      <div className="relative group">
         {/* Large Character Image */}
-        <div className="h-64 relative overflow-hidden">
+        <div className="h-72 relative overflow-hidden">
           <img
             src={character.avatar_url}
             alt={character.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent opacity-60" />
         </div>
 
         {/* Character Info Overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-          <h2 className="text-xl font-bold mb-1">{character.name}</h2>
-          <p className="text-sm text-white/90 mb-2 line-clamp-3">
-            {character.age}, {character.description}
+        <div className="absolute bottom-0 left-0 right-0 p-5 pt-12 text-foreground">
+          <h2 className="text-2xl font-bold mb-1 text-white drop-shadow-md">{character.name}</h2>
+          <p className="text-sm text-white/90 mb-3 line-clamp-2 font-medium drop-shadow-sm">
+            {character.age ? `${character.age}, ` : ''}{character.description}
           </p>
-
-  
-          {/* <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowFullDescription(!showFullDescription)}
-            className="text-white hover:bg-white/20 p-0 h-auto text-xs"
-          >
-            {showFullDescription ? "View less" : "View more"}
-            <ChevronDown className={`ml-1 h-3 w-3 transition-transform ${showFullDescription ? "rotate-180" : ""}`} />
-          </Button> */}
         </div>
       </div>
 
-      {/* Extended Description */}
-      {showFullDescription && (
-        <div className="p-4 border-b border-border">
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
-            {character.personality}
-          </p>
-          {/* {character.location && (
-            <p className="text-xs text-muted-foreground mt-2">
-              📍 {character.location}
-            </p>
-          )} */}
-        </div>
-      )}
-
       {/* 模块化内容区域 - 基于对标网站的设计 */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-2 py-2 space-y-2">
 
         {/* 1. Background 模块 - 角色背景展示 */}
         {character.background && (
-          <div className="border-b border-border">
+          <div className="rounded-xl overflow-hidden bg-card/30 border border-border/40 transition-all hover:bg-card/50">
             {/* 模块标题栏 - 可点击折叠 */}
             <button
               onClick={() => setShowScenario(!showScenario)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+              className="w-full px-4 py-3 flex items-center justify-between transition-colors group"
             >
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-purple-500" />
-                <span className="font-medium text-sm">Background</span>
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-400 group-hover:bg-purple-500/20 transition-colors">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <span className="font-semibold text-sm text-foreground/90">Background</span>
               </div>
-              {showScenario ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${showScenario ? 'rotate-180' : ''}`} />
             </button>
 
             {/* 模块内容 - 数据库背景介绍 */}
-            {showScenario && (
-              <div className="px-4 pb-4">
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {character.background}
-                </p>
+            <div className={`grid transition-all duration-300 ease-in-out ${showScenario ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+              <div className="overflow-hidden">
+                <div className="px-4 pb-4 pt-1">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {character.background}
+                  </p>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         )}
 
         {/* 2. Persona 模块 - 可上下折叠 */}
-        <div className="border-b border-border">
+        <div className="rounded-xl overflow-hidden bg-card/30 border border-border/40 transition-all hover:bg-card/50">
           {/* 模块标题栏 - 可点击折叠 */}
           <button
             onClick={() => setShowPersona(!showPersona)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+            className="w-full px-4 py-3 flex flex-col gap-3 transition-colors group"
           >
-            <div className="flex items-center gap-2">
-              <Star className="w-4 h-4 text-primary" />
-              <span className="font-medium text-sm">Persona</span>
-              <Badge variant="outline" className="text-xs">
-                {character.traits[0] || 'Friendly'}
-              </Badge>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 rounded-md bg-pink-500/10 text-pink-400 group-hover:bg-pink-500/20 transition-colors">
+                  <Star className="w-4 h-4" />
+                </div>
+                <span className="font-semibold text-sm text-foreground/90">Persona</span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${showPersona ? 'rotate-180' : ''}`} />
             </div>
-            {showPersona ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            
+            <div className="flex flex-wrap gap-1.5 w-full">
+              {character.traits.map((trait, index) => (
+                <Badge key={index} variant="secondary" className="text-[10px] h-5 px-2 bg-secondary/50 text-secondary-foreground/80 border-0">
+                  {trait}
+                </Badge>
+              ))}
+            </div>
           </button>
 
           {/* 模块内容 - 可折叠显示 */}
-          {showPersona && (
-            <div className="px-4 pb-4 space-y-3">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {character.personality}
-              </p>
-              {/* {character.location && (
-                <p className="text-xs text-muted-foreground">
-                  📍 {character.location}
+          <div className={`grid transition-all duration-300 ease-in-out ${showPersona ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+            <div className="overflow-hidden">
+              <div className="px-4 pb-4 pt-1 space-y-3">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {character.personality}
                 </p>
-              )} */}
-              <div className="flex flex-wrap gap-1">
-                {character.traits.slice(0, 3).map((trait, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {trait}
-                  </Badge>
-                ))}
               </div>
             </div>
-          )}
+          </div>
         </div>
-
-        {/* 2. Memories 模块 - 可上下折叠 */}
-        {/* <div className="border-b border-border">
-          <button
-            onClick={() => setShowMemories(!showMemories)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-blue-500" />
-              <span className="font-medium text-sm">Memories</span>
-              <Badge variant="destructive" className="text-xs">New</Badge>
-            </div>
-            {showMemories ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-
-          {showMemories && (
-            <div className="px-4 pb-4 space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Shared memories and important moments in your conversation history.
-              </p>
-              <Button variant="outline" size="sm" className="w-full">
-                Manage Memories
-              </Button>
-            </div>
-          )}
-        </div> */}
 
         {/* 3. Suggestions 模块 - 可上下折叠 */}
-        <div>
+        <div className="rounded-xl overflow-hidden bg-card/30 border border-border/40 transition-all hover:bg-card/50">
           <button
             onClick={() => setShowSuggestions(!showSuggestions)}
-            className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors"
+            className="w-full px-4 py-3 flex items-center justify-between transition-colors group"
           >
-            <div className="flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-yellow-500" />
-              <span className="font-medium text-sm">Suggestions</span>
+            <div className="flex items-center gap-3">
+              <div className="p-1.5 rounded-md bg-yellow-500/10 text-yellow-400 group-hover:bg-yellow-500/20 transition-colors">
+                <Lightbulb className="w-4 h-4" />
+              </div>
+              <span className="font-semibold text-sm text-foreground/90">Suggestions</span>
             </div>
-            {showSuggestions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-300 ${showSuggestions ? 'rotate-180' : ''}`} />
           </button>
 
-          {showSuggestions && characterSuggestions.length > 0 && (
-            <div className="px-4 pb-4 space-y-3">
-              <p className="text-xs text-muted-foreground">
-                Quick conversation starters
-              </p>
+          <div className={`grid transition-all duration-300 ease-in-out ${showSuggestions && characterSuggestions.length > 0 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+            <div className="overflow-hidden">
+              <div className="px-4 pb-4 pt-1 space-y-3">
+                <p className="text-xs text-muted-foreground/80 font-medium uppercase tracking-wider">
+                  Quick conversation starters
+                </p>
 
-              <div className="space-y-2">
-                {characterSuggestions.map((suggestion: string, index: number) => (
-                  <Card
-                    key={index}
-                    className={`p-3 hover:bg-muted/50 cursor-pointer transition-all ${
-                      clickedSuggestion === suggestion
-                        ? 'bg-primary/10 border border-primary/20'
-                        : ''
-                    }`}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm flex-1">{suggestion}</p>
-                      {clickedSuggestion === suggestion && (
-                        <div className="text-xs text-primary ml-2 flex items-center gap-1">
-                          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                          <span>Sending...</span>
-                        </div>
-                      )}
+                <div className="space-y-2.5">
+                  {characterSuggestions.map((suggestion: string, index: number) => (
+                    <div
+                      key={index}
+                      className={`group relative p-3.5 rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden ${
+                        clickedSuggestion === suggestion
+                          ? 'bg-primary/10 border-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.2)]'
+                          : 'bg-background/40 border-white/5 hover:bg-background/60 hover:border-white/10 hover:shadow-md'
+                      }`}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                    >
+                      <div className="relative z-10 flex items-start justify-between gap-3">
+                        <p className="text-sm text-foreground/90 leading-snug group-hover:text-primary/90 transition-colors">
+                          {suggestion}
+                        </p>
+                        {clickedSuggestion === suggestion ? (
+                          <div className="flex items-center gap-1.5 text-xs text-primary font-medium animate-in fade-in duration-200">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                            </span>
+                            Sent
+                          </div>
+                        ) : (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity text-primary/50">
+                            <MessageSquare className="w-4 h-4" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Hover Gradient Effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-x-[-100%] group-hover:translate-x-[100%]" style={{ transitionDuration: '1s' }} />
                     </div>
-                  </Card>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
-
-        {/* 4. Gallery 模块 - 可上下折叠 */}
-        {/* <div className="border-b border-border">
-          <button className="w-full px-4 py-3 flex items-center justify-between hover:bg-muted/50 transition-colors">
-            <div className="flex items-center gap-2">
-              <Image className="w-4 h-4 text-green-500" />
-              <span className="font-medium text-sm">Gallery</span>
-            </div>
-            <ChevronDown className="w-4 h-4" />
-          </button>
-        </div> */}
 
       </div>
     </div>

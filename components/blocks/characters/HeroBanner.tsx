@@ -1,10 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 // Import the same character data structure from DiscoverSection
 interface Character {
@@ -23,70 +26,45 @@ interface Character {
   location?: string;
 }
 
-// Use the first 3 characters from the same data set
-const heroCharacters: Character[] = [
-  {
-    id: "emma_001",
-    name: "Emma",
-    username: "emmytime",
-    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00015_.png",
-    description: "Your Best Friend's Sister",
-    traits: ["Playful", "Witty", "Charming"],
-    greeting: "Hey there... I was wondering when you'd finally notice me 😉",
-    chatCount: "282K",
-    isOfficial: false,
-    personality: "Emma is playful and flirtatious, with a mischievous streak that keeps you on your toes. She's confident, witty, and knows exactly how to push your buttons in all the right ways. Despite her teasing nature, she has a genuine sweetness underneath.",
-    physicalDescription: "Blonde hair, bright blue eyes, athletic build with curves in all the right places. She has a captivating smile and expressive eyes that seem to sparkle with mischief.",
-    age: 24,
-    location: "California, USA"
-  },
-  {
-    id: "sophia_002",
-    name: "Sophia",
-    username: "sophiawonder",
-    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00020_.png",
-    description: "Wonder Powers Best",
-    traits: ["Gentle", "Patient", "Caring"],
-    greeting: "Ready for an adventure? Let's explore together! ✨",
-    chatCount: "198K",
-    isOfficial: false,
-    personality: "Sophia is the epitome of grace and kindness. She's a natural caregiver who always puts others first. Her gentle nature and infinite patience make her the perfect companion for deep, meaningful conversations. She has a way of making you feel heard and understood.",
-    physicalDescription: "Auburn hair that catches the light beautifully, warm hazel eyes, elegant features with a naturally kind expression. She has a graceful posture and moves with quiet confidence.",
-    age: 26,
-    location: "New York, USA"
-  },
-  {
-    id: "luna_003",
-    name: "Luna",
-    username: "lunarmystic",
-    avatar: "https://cdn.lovexai.studio/Character/ComfyUI_00027_.png",
-    description: "Your Yandere Admirer",
-    traits: ["Mysterious", "Intense", "Devoted"],
-    greeting: "I've been waiting for someone like you... 🌙",
-    chatCount: "156K",
-    isOfficial: false,
-    personality: "Luna is intensely passionate and devoted, with a mysterious aura that draws you in. She's possessive in the most endearing way, wanting to know everything about you. Her love is all-consuming and she'd do anything to protect what's hers.",
-    physicalDescription: "Dark, flowing hair with mysterious purple highlights, piercing violet eyes that seem to see into your soul. Pale complexion with sharp, elegant features and an enigmatic smile.",
-    age: 22,
-    location: "Tokyo, Japan"
-  }
-];
-
 export default function HeroBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedGender, setSelectedGender] = useState<'female' | 'male' | 'anime'>('female');
-  const [nsfwEnabled, setNsfwEnabled] = useState(false);
   const router = useRouter();
+
+  // Fetch characters from Convex
+  const rawCharacters = useQuery(api.characters.list, { activeOnly: true });
+
+  // Transform data
+  const heroCharacters: Character[] = useMemo(() => {
+    if (!rawCharacters) return [];
+    
+    return rawCharacters.slice(0, 3).map((c) => ({
+      id: c._id,
+      name: c.name,
+      username: c.username,
+      avatar: c.avatar_url || "https://cdn.lovexai.studio/Character/default_avatar.png",
+      description: c.description,
+      traits: c.traits || [],
+      greeting: c.greeting_message,
+      chatCount: c.chat_count || "0",
+      isOfficial: c.is_premium || false,
+      personality: c.personality,
+      physicalDescription: c.description, // Fallback as physicalDescription might not be in schema
+      // age: c.age, // Not in schema
+      // location: c.location, // Not in schema
+    }));
+  }, [rawCharacters]);
 
   // Auto-play carousel
   useEffect(() => {
+    if (heroCharacters.length === 0) return;
+    
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % heroCharacters.length);
     }, 5000); // Slower interval for better viewing
     return () => clearInterval(timer);
-  }, []);
+  }, [heroCharacters.length]);
 
   const handleCharacterClick = (character: Character) => {
     setSelectedCharacter(character);
@@ -103,11 +81,22 @@ export default function HeroBanner() {
     setSelectedCharacter(null);
   };
 
-  const genderOptions = [
-    { key: 'female' as const, label: 'Girls', icon: '👩' },
-    { key: 'male' as const, label: 'Guys', icon: '👨' },
-    { key: 'anime' as const, label: 'Anime', icon: '🎭' }
-  ];
+  // Loading State
+  if (rawCharacters === undefined) {
+    return (
+      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-transparent pt-10 lg:pt-0">
+         <div className="animate-pulse flex flex-col items-center gap-4">
+            <div className="h-12 w-64 bg-white/10 rounded-lg"></div>
+            <div className="h-4 w-48 bg-white/5 rounded-lg"></div>
+         </div>
+      </section>
+    );
+  }
+
+  // Empty State
+  if (heroCharacters.length === 0) {
+    return null; // Or show a placeholder
+  }
 
   return (
     <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-transparent pt-10 lg:pt-0">
@@ -250,39 +239,36 @@ export default function HeroBanner() {
                       className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
                     />
                     
+                    {/* Top Badges */}
+                    <div className="absolute top-4 left-4 flex flex-col gap-2 items-start z-10">
+                      <span className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-wider text-white/90 shadow-lg">
+                        {character.traits[0]}
+                      </span>
+                    </div>
+
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
                     
                     {/* Content */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="px-2 py-1 rounded-md bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider">
-                          {character.traits[0]}
-                        </span>
-                        {character.isOfficial && (
-                          <span className="px-2 py-1 rounded-md bg-primary/80 backdrop-blur-md text-xs font-bold uppercase tracking-wider">
-                            Lovexai
-                          </span>
-                        )}
-                      </div>
-                      
-                      <h3 className="font-heading text-3xl font-bold mb-1">{character.name}</h3>
-                      <p className="text-sm text-white/80 line-clamp-2 font-sans mb-4">
-                        {character.greeting}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-20">
+                      <h3 className="font-heading text-3xl font-bold mb-2 drop-shadow-lg">{character.name}</h3>
+                      <p className="text-sm text-white/80 line-clamp-2 font-sans mb-4 leading-relaxed drop-shadow-md">
+                        "{character.greeting}"
                       </p>
                       
                       {offset === 0 && (
                         <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
                           className="flex items-center justify-between pt-4 border-t border-white/10"
                         >
-                          <div className="flex items-center gap-1 text-xs text-white/60">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            Online Now
+                          <div className="flex items-center gap-1.5 text-xs font-medium text-white/70">
+                            <span className="text-primary">🔥</span> {character.chatCount} chats
                           </div>
-                          <div className="flex items-center gap-1 text-xs font-mono text-primary-foreground">
-                            <span>❤</span> {character.chatCount}
+                          
+                          <div className="flex items-center gap-2 text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm">
+                            <span>Chat</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                           </div>
                         </motion.div>
                       )}

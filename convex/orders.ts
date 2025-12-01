@@ -60,11 +60,30 @@ export const processPaidOrder = mutation({
     }
 
     if (user && order.credits > 0) {
+        // Determine new tier
+        let newTier = (user as any).subscription_tier || "free";
+        const productName = order.product_name?.toLowerCase() || "";
+        
+        if (productName.includes("premium")) {
+            newTier = "basic";
+        } else if (productName.includes("pro")) {
+            newTier = "pro";
+        }
+
         // Add credits
         const currentCredits = (user as any).credits_balance || 0;
-        await ctx.db.patch(user._id, {
+        
+        const patchData: any = {
             credits_balance: currentCredits + order.credits
-        });
+        };
+
+        // If it's a subscription order (has expired_at), update subscription info
+        if (order.expired_at) {
+            patchData.subscription_tier = newTier;
+            patchData.subscription_expires_at = order.expired_at;
+        }
+
+        await ctx.db.patch(user._id, patchData);
         
         // Record transaction
         await ctx.db.insert("credits", {

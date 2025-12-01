@@ -62,16 +62,27 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
       }
 
       const { code, message, data } = await response.json();
+      console.log("Checkout API response:", { code, message, data });
+
       if (code !== 0) {
         toast.error(message);
         return;
       }
 
       const { public_key, session_id } = data;
+      console.log("Stripe config:", { public_key, session_id });
+
+      if (!public_key) {
+        console.error("Missing Stripe public key");
+        toast.error("Configuration error: Missing Stripe public key");
+        return;
+      }
 
       const stripe = await loadStripe(public_key);
+      console.log("Stripe loaded:", !!stripe);
+
       if (!stripe) {
-        toast.error("checkout failed");
+        toast.error("Failed to load Stripe");
         return;
       }
 
@@ -80,6 +91,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
       });
 
       if (result.error) {
+        console.error("Stripe redirect error:", result.error);
         toast.error(result.error.message);
       }
     } catch (e) {
@@ -257,7 +269,7 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                       ) : null}
                       {item.button && (
                         <Button
-                          className="w-full flex items-center justify-center gap-3 font-bold text-lg py-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-primary/20"
+                          className="w-full flex items-center justify-center gap-3 font-bold text-lg py-6 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 hover:from-purple-600 hover:via-pink-600 hover:to-red-600 text-white rounded-xl shadow-lg transition-all duration-300 hover:shadow-primary/20 disabled:opacity-70 disabled:cursor-not-allowed"
                           disabled={isLoading}
                           onClick={() => {
                             if (isLoading) {
@@ -266,19 +278,18 @@ export default function Pricing({ pricing }: { pricing: PricingType }) {
                             handleCheckout(item);
                           }}
                         >
-                          {(!isLoading ||
-                            (isLoading && productId !== item.product_id)) && (
-                            <p>{item.button.title}</p>
-                          )}
-
-                          {isLoading && productId === item.product_id && (
-                            <p>{item.button.title}</p>
-                          )}
-                          {isLoading && productId === item.product_id && (
-                            <Loader className="mr-2 h-5 w-5 animate-spin" />
-                          )}
-                          {item.button.icon && (
-                            <Icon name={item.button.icon} className="size-5" />
+                          {isLoading && productId === item.product_id ? (
+                            <>
+                              <Loader className="mr-2 h-5 w-5 animate-spin" />
+                              <p>Processing...</p>
+                            </>
+                          ) : (
+                            <>
+                              <p>{item.button.title}</p>
+                              {item.button.icon && (
+                                <Icon name={item.button.icon} className="size-5" />
+                              )}
+                            </>
                           )}
                         </Button>
                       )}

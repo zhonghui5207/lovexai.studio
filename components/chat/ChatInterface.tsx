@@ -162,7 +162,7 @@ function ChatInterface({
           </div>
 
           {/* Character Panel */}
-          <div className="hidden lg:block lg:w-80 xl:w-96 border-l-2 border-border bg-background shadow-lg">
+          <div className="hidden lg:block lg:w-80 xl:w-96 z-20">
             <CharacterPanel
               character={character}
               onSuggestionClick={handleSendMessage}

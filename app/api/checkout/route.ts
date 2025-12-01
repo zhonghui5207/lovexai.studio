@@ -8,6 +8,7 @@ import { getSnowId } from "@/lib/hash";
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(req: Request) {
+  console.log("Checkout API called");
   try {
     let {
       credits,
@@ -19,6 +20,8 @@ export async function POST(req: Request) {
       valid_months,
       cancel_url,
     } = await req.json();
+
+    console.log("Checkout params:", { product_id, amount, currency, interval });
 
     if (!cancel_url) {
       cancel_url = `${
@@ -79,6 +82,7 @@ export async function POST(req: Request) {
     expired_at = newDate.toISOString();
 
     // Create Order in Convex
+    console.log("Creating order in Convex...");
     await convex.mutation(api.orders.createOrder, {
       order_no: order_no,
       user_id: user_uuid,
@@ -92,6 +96,7 @@ export async function POST(req: Request) {
       expired_at: expired_at,
       sub_interval: is_subscription ? interval : undefined,
     });
+    console.log("Order created in Convex");
 
     const stripeKey = process.env.STRIPE_PRIVATE_KEY;
     if (!stripeKey) {
@@ -114,6 +119,7 @@ export async function POST(req: Request) {
             recurring: is_subscription
               ? {
                   interval: interval,
+                  interval_count: 1,
                 }
               : undefined,
           },
@@ -130,8 +136,8 @@ export async function POST(req: Request) {
         user_uuid: user_uuid,
       },
       mode: is_subscription ? "subscription" : "payment",
-      success_url: `${process.env.NEXT_PUBLIC_WEB_URL}/pay-success/{CHECKOUT_SESSION_ID}`,
-      cancel_url: cancel_url,
+      success_url: `${process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000"}/pay-success/{CHECKOUT_SESSION_ID}`,
+      cancel_url: cancel_url.startsWith("http") ? cancel_url : `${process.env.NEXT_PUBLIC_WEB_URL || "http://localhost:3000"}${cancel_url}`,
     };
 
     if (user_email) {
@@ -156,7 +162,9 @@ export async function POST(req: Request) {
 
     const order_detail = JSON.stringify(options);
 
+    console.log("Creating Stripe session...");
     const session = await stripe.checkout.sessions.create(options);
+    console.log("Stripe session created:", session.id);
 
     const stripe_session_id = session.id;
 
@@ -167,7 +175,7 @@ export async function POST(req: Request) {
     });
 
     return respData({
-      public_key: process.env.STRIPE_PUBLIC_KEY,
+      public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       order_no: order_no,
       session_id: stripe_session_id,
     });
