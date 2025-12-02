@@ -117,12 +117,12 @@ export default function HeroBanner() {
           >
 
 
-            <h1 className="font-heading text-5xl lg:text-7xl font-bold leading-tight text-foreground tracking-tight">
-              Craft Your <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-purple-500 to-secondary drop-shadow-[0_0_25px_rgba(255,0,110,0.4)]">
-                Perfect Fantasy
-              </span>
-            </h1>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
+            Craft Your <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-gradient-x">
+              Perfect Soulmate
+            </span>
+          </h1>
           </motion.div>
           
           <motion.p 

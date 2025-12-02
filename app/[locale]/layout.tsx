@@ -4,7 +4,7 @@ import "@/app/theme-romantic-cyberpunk.css";
 import { getMessages, getTranslations } from "next-intl/server";
 
 import { AppContextProvider } from "@/contexts/app";
-import { Space_Grotesk as FontHeading, Plus_Jakarta_Sans as FontSans } from "next/font/google";
+import localFont from "next/font/local";
 import { Metadata } from "next";
 import { NextAuthSessionProvider } from "@/auth/session";
 import { NextIntlClientProvider } from "next-intl";
@@ -12,15 +12,19 @@ import { ThemeProvider } from "@/providers/theme";
 import { cn } from "@/lib/utils";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 
-const fontSans = FontSans({
-  subsets: ["latin"],
+// Configure local font
+// You need to place the font file in /app/fonts/ABCFavorit-Variable.ttf
+const fontSans = localFont({
+  src: "../fonts/ABCFavorit-Variable.ttf", // Adjust filename if needed
   variable: "--font-sans",
+  display: "swap",
 });
 
-const fontHeading = FontHeading({
-  subsets: ["latin"],
+// Reuse the same font for headings to match the reference style
+const fontHeading = localFont({
+  src: "../fonts/ABCFavorit-Variable.ttf", // Adjust filename if needed
   variable: "--font-heading",
-  weight: ["400", "600", "700"],
+  display: "swap",
 });
 
 export async function generateMetadata({
