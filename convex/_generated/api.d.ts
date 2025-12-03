@@ -11,10 +11,12 @@
 import type * as actions from "../actions.js";
 import type * as characters from "../characters.js";
 import type * as conversations from "../conversations.js";
+import type * as images from "../images.js";
 import type * as messages from "../messages.js";
 import type * as orders from "../orders.js";
 import type * as seed from "../seed.js";
 import type * as users from "../users.js";
+import type * as utils_flux from "../utils/flux.js";
 
 import type {
   ApiFromModules,
@@ -26,10 +28,12 @@ declare const fullApi: ApiFromModules<{
   actions: typeof actions;
   characters: typeof characters;
   conversations: typeof conversations;
+  images: typeof images;
   messages: typeof messages;
   orders: typeof orders;
   seed: typeof seed;
   users: typeof users;
+  "utils/flux": typeof utils_flux;
 }>;
 
 /**

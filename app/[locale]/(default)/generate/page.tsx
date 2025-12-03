@@ -10,21 +10,18 @@ import {
   UserPlus, 
   RefreshCw, 
   Dice5,
-  Layers,
   Maximize2,
-  History,
-  Zap
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Slider } from "@/components/ui/slider"; // Note: Slider might not be in ui folder, if not I'll use standard input range or check later. 
-// Actually I didn't see slider.tsx in the list, so I'll use a custom styled input or just simple buttons for now.
-// Wait, I didn't see slider.tsx. I'll check if I can use something else or just standard HTML input range styled.
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area"; // Did I see scroll-area? No. I'll use div with overflow.
 import { cn } from "@/lib/utils";
+import { useAction, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
+import Link from "next/link";
 
 // Mock Data for Styles
 const STYLES = [
@@ -57,22 +54,34 @@ export default function GeneratePage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
+  // Convex Hooks
+  const generateAction = useAction(api.images.generate);
+  const history = useQuery(api.images.listMine);
+
   const handleRandomPrompt = () => {
     const random = RANDOM_PROMPTS[Math.floor(Math.random() * RANDOM_PROMPTS.length)];
     setPrompt(random);
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt) return;
     setIsGenerating(true);
     setGeneratedImage(null);
     
-    // Simulate generation delay
-    setTimeout(() => {
+    try {
+      const url = await generateAction({
+        prompt: prompt,
+        style: selectedStyle,
+        ratio: aspectRatio,
+      });
+      setGeneratedImage(url);
+      toast.success("Image generated successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to generate image. Please try again.");
+    } finally {
       setIsGenerating(false);
-      // Mock result - in real app this comes from backend
-      setGeneratedImage("https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=800&h=1400&fit=crop"); 
-    }, 3000);
+    }
   };
 
   return (
@@ -252,10 +261,12 @@ export default function GeneratePage() {
                       <Maximize2 className="w-5 h-5" />
                     </Button>
                     <div className="w-px h-6 bg-white/20 mx-1" />
-                    <Button className="rounded-full bg-primary hover:bg-primary/90 px-6 gap-2">
-                      <UserPlus className="w-4 h-4" />
-                      Create Character
-                    </Button>
+                    <Link href={`/create?image=${encodeURIComponent(generatedImage)}`}>
+                        <Button className="rounded-full bg-primary hover:bg-primary/90 px-6 gap-2">
+                        <UserPlus className="w-4 h-4" />
+                        Create Character
+                        </Button>
+                    </Link>
                   </div>
                 </motion.div>
               ) : (
@@ -279,12 +290,37 @@ export default function GeneratePage() {
 
           {/* Recent History Strip (Bottom) */}
           <div className="h-32 mt-4 flex gap-4 overflow-x-auto pb-2 custom-scrollbar">
-             {/* Mock History Items */}
-             {[1,2,3,4,5].map((i) => (
-               <div key={i} className="min-w-[100px] aspect-square rounded-xl bg-white/5 border border-white/10 overflow-hidden hover:border-primary/50 cursor-pointer transition-colors relative group">
-                 <img src={`https://picsum.photos/seed/${i}/200`} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+             {history === undefined ? (
+               // Loading State
+               [1,2,3].map(i => (
+                 <div key={i} className="min-w-[100px] aspect-square rounded-xl bg-white/5 animate-pulse" />
+               ))
+             ) : history.length === 0 ? (
+               // Empty State
+               <div className="flex items-center justify-center w-full text-white/30 text-sm">
+                 <History className="w-4 h-4 mr-2" />
+                 No history yet
                </div>
-             ))}
+             ) : (
+               // History Items
+               history.map((item) => (
+                 <div 
+                    key={item._id} 
+                    onClick={() => setGeneratedImage(item.image_url)}
+                    className={cn(
+                        "min-w-[100px] aspect-square rounded-xl bg-white/5 border border-white/10 overflow-hidden hover:border-primary/50 cursor-pointer transition-colors relative group",
+                        generatedImage === item.image_url && "border-primary ring-2 ring-primary/30"
+                    )}
+                 >
+                   <img src={item.image_url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                   {item.status === 'failed' && (
+                       <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                           <AlertCircle className="w-6 h-6 text-red-500" />
+                       </div>
+                   )}
+                 </div>
+               ))
+             )}
           </div>
 
         </div>
