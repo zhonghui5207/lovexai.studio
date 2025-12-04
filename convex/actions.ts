@@ -161,9 +161,10 @@ export const enhancePrompt = action({
       throw new Error("OpenAI API Key is missing");
     }
 
-    const systemPrompt = `You are an expert prompt engineer for AI image generation models like Flux and Stable Diffusion.
-Your task is to take a simple user prompt and enhance it to create a high-quality, detailed, and artistic image.
-Add details about lighting, texture, composition, and style.
+    const systemPrompt = `You are an expert prompt engineer for AI character generation.
+Your task is to take a simple user prompt and enhance it to create a high-quality, detailed character portrait.
+CRITICAL: The subject MUST be a person/character. If the user only provides a style (e.g., 'Gothic') or setting, YOU MUST invent a character that fits that theme (e.g., 'A mysterious gothic woman with pale skin...').
+Focus on facial features, clothing, lighting, and composition.
 Keep the prompt concise but descriptive (under 75 words).
 Return ONLY the enhanced prompt text, no explanations or quotes.`;
 

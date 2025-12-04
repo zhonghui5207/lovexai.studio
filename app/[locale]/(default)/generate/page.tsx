@@ -166,6 +166,26 @@ export default function GeneratePage() {
     }
   };
 
+  const handleDownload = async () => {
+    if (!generatedImage) return;
+    try {
+      const response = await fetch(generatedImage);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `generated-image-${Date.now()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success("Image downloaded!");
+    } catch (error) {
+      console.error("Download failed:", error);
+      toast.error("Failed to download image");
+    }
+  };
+
   const handleRandomPrompt = () => {
     const random = RANDOM_PROMPTS[Math.floor(Math.random() * RANDOM_PROMPTS.length)];
     setPrompt(random);
@@ -288,7 +308,7 @@ export default function GeneratePage() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder={placeholderText}
-                className="bg-black/40 border-white/10 min-h-[120px] text-base focus:border-primary/50 resize-none placeholder:text-white/20 transition-all caret-primary"
+                className="bg-black/40 border-white/10 min-h-[120px] text-base focus:border-primary/50 resize-none placeholder:text-white/20 transition-all caret-primary [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
                 />
             </div>
             
@@ -370,38 +390,114 @@ export default function GeneratePage() {
                         <div className="relative max-h-full aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
                             <img src={generatedImage} alt="Generated" className="w-full h-full object-contain bg-black/50" />
                             
-                            {/* Overlay Actions */}
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4 backdrop-blur-sm">
-                                <Link href={`/create?image=${encodeURIComponent(generatedImage)}`}>
-                                    <Button className="bg-primary hover:bg-primary/90 text-white gap-2 scale-110 shadow-xl shadow-primary/20">
-                                        <UserPlus className="w-4 h-4" />
-                                        Create Character with this Image
-                                    </Button>
-                                </Link>
+                            {/* Overlay Actions (Bottom Toolbar) */}
+                            <div className="absolute inset-x-0 bottom-0 p-6 flex items-center justify-between bg-gradient-to-t from-black/90 via-black/50 to-transparent translate-y-4 group-hover:translate-y-0 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20">
+                                {/* Left: Utility Actions */}
                                 <div className="flex gap-2">
-                                    <Button variant="outline" size="icon" className="rounded-full bg-white/10 border-white/20 hover:bg-white/20 text-white">
+                                    <Button 
+                                        variant="outline" 
+                                        size="icon" 
+                                        className="h-9 w-9 rounded-full bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-md"
+                                        onClick={handleDownload}
+                                        title="Download Image"
+                                    >
                                         <Download className="w-4 h-4" />
                                     </Button>
-                                    <Button variant="outline" size="icon" className="rounded-full bg-white/10 border-white/20 hover:bg-white/20 text-white">
-                                        <Maximize2 className="w-4 h-4" />
-                                    </Button>
                                 </div>
+
+                                {/* Right: Primary Action */}
+                                <Link href={`/create?image=${encodeURIComponent(generatedImage)}`}>
+                                    <Button className="h-9 bg-primary hover:bg-primary/90 text-white gap-2 shadow-lg shadow-primary/20 rounded-full px-4 font-medium backdrop-blur-md">
+                                        <UserPlus className="w-4 h-4" />
+                                        Create Character
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
                     </div>
                 ) : isGenerating ? (
                     // GENERATING STATE
-                    <div className="flex flex-col items-center gap-6 z-10">
-                        <div className="relative w-32 h-32">
-                            <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" />
-                            <div className="absolute inset-2 rounded-full border-r-2 border-purple-500 animate-spin reverse duration-700" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Sparkles className="w-8 h-8 text-white animate-pulse" />
+                    <div className="flex flex-col items-center gap-8 z-10">
+                        {/* Custom Animated X Logo - App Icon Style (Matching Sidebar Logo) */}
+                        <div className="relative group">
+                            {/* Outer Glow Pulse */}
+                            <div className="absolute inset-0 bg-purple-500/30 blur-2xl rounded-[2.5rem] animate-pulse" />
+                            
+                            {/* Icon Container */}
+                            <div className="relative w-32 h-32 bg-[#130d14] rounded-[2.5rem] flex items-center justify-center shadow-2xl border border-white/10 overflow-hidden">
+                                {/* Inner Gradient Glow */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-50" />
+                                
+                                {/* The Logo SVG */}
+                                <svg viewBox="0 0 100 100" className="w-20 h-20 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] relative z-10 animate-[spin_4s_linear_infinite]">
+                                    <defs>
+                                        <linearGradient id="loading-love-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#ff006e" />
+                                            <stop offset="100%" stopColor="#ff5c8d" />
+                                        </linearGradient>
+                                        <linearGradient id="loading-ai-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" stopColor="#8338ec" />
+                                            <stop offset="100%" stopColor="#3a86ff" />
+                                        </linearGradient>
+                                        <filter id="loading-glow-strong">
+                                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                            <feMerge>
+                                                <feMergeNode in="coloredBlur"/>
+                                                <feMergeNode in="SourceGraphic"/>
+                                            </feMerge>
+                                        </filter>
+                                    </defs>
+                                    
+                                    {/* The "Love" Curve (Bottom-Left to Top-Right) */}
+                                    <path 
+                                        d="M 20,80 C 20,80 40,80 50,50 C 60,20 80,20 80,20" 
+                                        stroke="url(#loading-love-gradient)" 
+                                        strokeWidth="10" 
+                                        strokeLinecap="round" 
+                                        fill="none"
+                                        filter="url(#loading-glow-strong)"
+                                        className="animate-[dash_3s_ease-in-out_infinite]"
+                                    />
+                                    
+                                    {/* The "AI" Beam (Top-Left to Bottom-Right) - Segmented */}
+                                    <path 
+                                        d="M 20,20 L 40,40" 
+                                        stroke="url(#loading-ai-gradient)" 
+                                        strokeWidth="10" 
+                                        strokeLinecap="round" 
+                                        fill="none" 
+                                        filter="url(#loading-glow-strong)"
+                                        className="animate-[dash_3s_ease-in-out_infinite_0.5s]"
+                                    />
+                                    <path 
+                                        d="M 60,60 L 80,80" 
+                                        stroke="url(#loading-ai-gradient)" 
+                                        strokeWidth="10" 
+                                        strokeLinecap="round" 
+                                        fill="none" 
+                                        filter="url(#loading-glow-strong)"
+                                        className="animate-[dash_3s_ease-in-out_infinite_0.7s]"
+                                    />
+                                    
+                                    {/* Center Bright Spot */}
+                                    <circle cx="50" cy="50" r="8" fill="white" className="animate-ping opacity-50" />
+                                    <circle cx="50" cy="50" r="5" fill="white" className="drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+
+                                    {/* Tech Accents */}
+                                    <rect x="55" y="55" width="5" height="5" fill="white" opacity="0.8" />
+                                    <rect x="65" y="65" width="5" height="5" fill="white" opacity="0.6" />
+                                </svg>
                             </div>
                         </div>
-                        <div className="text-center space-y-2">
-                            <h3 className="text-2xl font-bold text-white animate-pulse">Dreaming...</h3>
-                            <p className="text-primary font-mono text-sm h-6">{loadingLog}</p>
+
+                        <div className="text-center space-y-3">
+                            <h3 className="text-3xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
+                                Manifesting...
+                            </h3>
+                            <p className="text-white/50 font-mono text-sm h-6 flex items-center gap-2 justify-center">
+                                <span className="w-2 h-2 rounded-full bg-primary animate-bounce" />
+                                {loadingLog}
+                            </p>
                         </div>
                     </div>
                 ) : (
