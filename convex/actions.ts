@@ -2,8 +2,7 @@
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { streamText } from "ai";
+import { callChatCompletion } from "./utils/llm";
 
 // Helper function for dynamic personality guidance
 function getPersonalityGuidance(personality: string, traits: string[] = []): string {
@@ -105,61 +104,80 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
       content: m.content,
     }));
 
-    // 3. Configure AI Provider (OpenAI Compatible)
-    // Adapted for tu-zi API based on user configuration
-    const baseURL = process.env.OPENAI_BASE_URL || "https://api.tu-zi.com/v1";
+    // Prepend system prompt
+    const fullMessages = [
+      { role: "system", content: systemPrompt },
+      ...coreMessages
+    ];
+
+    // 3. Configure API Key
     const apiKey = process.env.OPENAI_API_KEY;
     const modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
-
+    
     if (!apiKey) {
       console.error("Error: OPENAI_API_KEY is missing. Please set it in your Convex dashboard.");
+      return;
     }
-
-    const provider = createOpenAICompatible({
-      name: "tu-zi",
-      baseURL: baseURL,
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-    });
 
     // 4. Create placeholder message
     const messageId = await ctx.runMutation(api.messages.createAIResponsePlaceholder, {
       conversationId: args.conversationId,
     });
 
-    // 5. Call LLM with Streaming
+    // 5. Call LLM (Non-streaming for now, using new utility)
     try {
-      const { textStream } = await streamText({
-        model: provider(modelName),
-        system: systemPrompt,
-        messages: coreMessages as any,
-      });
+      const responseContent = await callChatCompletion(apiKey, fullMessages, modelName);
 
-      let fullResponse = "";
-
-      for await (const delta of textStream) {
-        fullResponse += delta;
-        
-        // Update message content incrementally
-        // Optimization: In a real app, you might want to throttle these updates (e.g. every 100ms or 10 chars)
-        // to reduce database write load. For now, we update on every chunk for maximum smoothness.
+      if (responseContent) {
         await ctx.runMutation(api.messages.updateAIResponse, {
           messageId: messageId,
-          content: fullResponse,
+          content: responseContent,
         });
-      }
 
-      // 6. Deduct credits (Only once at the end)
-      if (conversation.user_id) {
-        await ctx.runMutation(api.users.deductCredits, {
-          amount: char.credits_per_message || 1,
-          userId: conversation.user_id as any,
-        });
+        // 6. Deduct credits
+        if (conversation.user_id) {
+          await ctx.runMutation(api.users.deductCredits, {
+            amount: char.credits_per_message || 1,
+            userId: conversation.user_id as any,
+          });
+        }
+      } else {
+        console.error("LLM returned empty response");
       }
     } catch (e) {
       console.error("AI Generation failed:", e);
       // Optional: Update message to show error or delete it
     }
   },
+});
+
+export const enhancePrompt = action({
+  args: { prompt: v.string() },
+  handler: async (ctx, args) => {
+    const apiKey = process.env.OPENAI_API_KEY;
+    const modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
+
+    if (!apiKey) {
+      throw new Error("OpenAI API Key is missing");
+    }
+
+    const systemPrompt = `You are an expert prompt engineer for AI image generation models like Flux and Stable Diffusion.
+Your task is to take a simple user prompt and enhance it to create a high-quality, detailed, and artistic image.
+Add details about lighting, texture, composition, and style.
+Keep the prompt concise but descriptive (under 75 words).
+Return ONLY the enhanced prompt text, no explanations or quotes.`;
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: args.prompt }
+    ];
+
+    try {
+      const enhanced = await callChatCompletion(apiKey, messages, modelName);
+      return enhanced;
+    } catch (e) {
+      console.error("Prompt enhancement failed:", e);
+      throw new Error("Failed to enhance prompt");
+    }
+  }
 });
