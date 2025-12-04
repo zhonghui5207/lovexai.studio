@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { action, internalMutation, query } from "./_generated/server";
+import { action, internalMutation, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { callImageGeneration } from "./utils/image_gen";
+import { uploadImageToR2 } from "./utils/r2";
 
 export const generate = action({
   args: {
@@ -46,18 +47,29 @@ export const generate = action({
       throw new Error("Failed to generate image: Invalid response from API");
     }
 
+    // 3.5 Upload to R2 (Cloudflare Object Storage)
+    // This ensures we have a permanent copy and don't rely on temporary API links
+    let finalImageUrl = imageUrl;
+    try {
+        finalImageUrl = await uploadImageToR2(imageUrl, args.prompt);
+        console.log("Image successfully persisted to R2:", finalImageUrl);
+    } catch (uploadError) {
+        console.error("Failed to upload to R2, falling back to original URL:", uploadError);
+        // We continue with the original URL so the user still gets their result
+    }
+
     // 4. Deduct Credits & Save Record
     await ctx.runMutation(internal.images.saveGeneration, {
       userId,
       prompt: args.prompt,
       style: args.style,
-      image_url: imageUrl,
+      image_url: finalImageUrl, // Use the R2 URL (or fallback)
       creditsCost: 5,
       status: "completed",
       model: modelName,
     });
 
-    return imageUrl;
+    return finalImageUrl;
   },
 });
 
@@ -95,5 +107,12 @@ export const listMine = query({
       .withIndex("by_user", (q) => q.eq("user_id", userId))
       .order("desc")
       .take(20);
+  },
+});
+
+export const remove = mutation({
+  args: { id: v.id("image_generations") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
   },
 });

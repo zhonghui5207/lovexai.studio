@@ -18,6 +18,7 @@ import type * as seed from "../seed.js";
 import type * as users from "../users.js";
 import type * as utils_image_gen from "../utils/image_gen.js";
 import type * as utils_llm from "../utils/llm.js";
+import type * as utils_r2 from "../utils/r2.js";
 
 import type {
   ApiFromModules,
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   users: typeof users;
   "utils/image_gen": typeof utils_image_gen;
   "utils/llm": typeof utils_llm;
+  "utils/r2": typeof utils_r2;
 }>;
 
 /**
