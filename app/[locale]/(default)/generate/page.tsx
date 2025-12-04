@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { 
   Wand2, 
   Sparkles, 
@@ -11,7 +10,8 @@ import {
   RefreshCw, 
   Dice5,
   Maximize2,
-  AlertCircle
+  AlertCircle,
+  History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,17 +25,20 @@ import Link from "next/link";
 
 // Mock Data for Styles
 const STYLES = [
-  { id: "anime", name: "Anime", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=150&h=150&fit=crop" },
-  { id: "realistic", name: "Realistic", image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop" },
-  { id: "cyberpunk", name: "Cyberpunk", image: "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=150&h=150&fit=crop" },
-  { id: "oil", name: "Oil Painting", image: "https://images.unsplash.com/photo-1579783902614-a3fb39279c15?w=150&h=150&fit=crop" },
-  { id: "pixel", name: "Pixel Art", image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=150&h=150&fit=crop" },
+  { id: "anime", name: "Anime" },
+  { id: "realistic", name: "Realistic" },
+  { id: "cyberpunk", name: "Cyberpunk" },
+  { id: "oil", name: "Oil Painting" },
+  { id: "pixel", name: "Pixel Art" },
+  { id: "watercolor", name: "Watercolor" },
+  { id: "sketch", name: "Sketch" },
+  { id: "3d-render", name: "3D Render" },
 ];
 
-const ASPECT_RATIOS = [
-  { id: "9:16", label: "Portrait", icon: "📱" },
-  { id: "1:1", label: "Square", icon: "🟦" },
-  { id: "16:9", label: "Landscape", icon: "💻" },
+const MODELS = [
+  { id: "flux-kontext-pro", name: "Flux Dreamer", desc: "Best for Anime & Art" },
+  { id: "gpt-image-1", name: "Genesis Core", desc: "Best for Realism" },
+  { id: "gemini-3-pro-image-preview", name: "Gemini Horizon", desc: "Best for Creativity" },
 ];
 
 // Random Prompts for "Dice"
@@ -50,7 +53,8 @@ const RANDOM_PROMPTS = [
 export default function GeneratePage() {
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("anime");
-  const [aspectRatio, setAspectRatio] = useState("9:16");
+  const [selectedModel, setSelectedModel] = useState("flux-kontext-pro");
+  // const [aspectRatio, setAspectRatio] = useState("9:16"); // Removed, defaulting to 3:4
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
 
@@ -72,7 +76,8 @@ export default function GeneratePage() {
       const url = await generateAction({
         prompt: prompt,
         style: selectedStyle,
-        ratio: aspectRatio,
+        ratio: "3:4", // Hardcoded for character cards
+        model: selectedModel,
       });
       setGeneratedImage(url);
       toast.success("Image generated successfully!");
@@ -102,6 +107,25 @@ export default function GeneratePage() {
             <p className="text-muted-foreground text-sm">
               Manifest your ideal companion from the digital void.
             </p>
+          </div>
+
+          {/* Model Selector */}
+          <div className="bg-white/5 p-1 rounded-xl flex gap-1 border border-white/10">
+            {MODELS.map((model) => (
+              <button
+                key={model.id}
+                onClick={() => setSelectedModel(model.id)}
+                className={cn(
+                  "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center gap-0.5",
+                  selectedModel === model.id 
+                    ? "bg-primary text-white shadow-lg" 
+                    : "text-white/50 hover:text-white hover:bg-white/5"
+                )}
+              >
+                <span>{model.name}</span>
+                <span className="text-[10px] opacity-60 font-normal">{model.desc}</span>
+              </button>
+            ))}
           </div>
 
           {/* Prompt Input */}
@@ -141,49 +165,24 @@ export default function GeneratePage() {
             </div>
           </div>
 
-          {/* Style Selector */}
+          {/* Style Selector (Updated to Tags) */}
           <div className="space-y-3">
             <Label className="text-sm font-medium text-white/80">Art Style</Label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="flex flex-wrap gap-2">
               {STYLES.map((style) => (
-                <div 
+                <button
                   key={style.id}
                   onClick={() => setSelectedStyle(style.id)}
                   className={cn(
-                    "relative aspect-square rounded-xl overflow-hidden cursor-pointer border-2 transition-all group",
-                    selectedStyle === style.id ? "border-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" : "border-transparent hover:border-white/20"
+                    "px-4 py-2 rounded-full text-sm font-medium transition-all border",
+                    selectedStyle === style.id
+                      ? "bg-primary/20 border-primary text-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                      : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white hover:border-white/20"
                   )}
                 >
-                  <img src={style.image} alt={style.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2">
-                    <span className="text-xs font-medium text-white">{style.name}</span>
-                  </div>
-                </div>
+                  {style.name}
+                </button>
               ))}
-            </div>
-          </div>
-
-          {/* Settings (Aspect Ratio & More) */}
-          <div className="space-y-4 bg-white/5 p-5 rounded-2xl border border-white/10">
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-white/80">Aspect Ratio</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {ASPECT_RATIOS.map((ratio) => (
-                  <button
-                    key={ratio.id}
-                    onClick={() => setAspectRatio(ratio.id)}
-                    className={cn(
-                      "flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all",
-                      aspectRatio === ratio.id 
-                        ? "bg-primary/20 border-primary text-white" 
-                        : "bg-black/20 border-white/10 text-white/50 hover:bg-white/10 hover:text-white"
-                    )}
-                  >
-                    <span className="text-xl">{ratio.icon}</span>
-                    <span className="text-xs font-medium">{ratio.label}</span>
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -216,76 +215,70 @@ export default function GeneratePage() {
         {/* RIGHT PANEL: STAGE / PREVIEW */}
         <div className="lg:col-span-8 h-full flex flex-col">
           
-          <div className="flex-1 bg-black/40 rounded-3xl border border-white/10 relative overflow-hidden flex items-center justify-center backdrop-blur-sm shadow-2xl">
+          <div className="flex-1 bg-black/40 rounded-3xl border border-white/10 relative overflow-hidden flex items-center justify-center backdrop-blur-sm shadow-2xl p-8">
             
             {/* Grid Pattern Background */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
             
-            <AnimatePresence mode="wait">
-              {isGenerating ? (
-                <motion.div 
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col items-center gap-4 z-10"
-                >
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Sparkles className="w-8 h-8 text-primary animate-pulse" />
-                    </div>
+            {isGenerating ? (
+              <div 
+                key="loading"
+                className="flex flex-col items-center gap-4 z-10"
+              >
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Sparkles className="w-8 h-8 text-primary animate-pulse" />
                   </div>
-                  <p className="text-lg font-medium text-white/80 animate-pulse">Weaving reality...</p>
-                  <p className="text-sm text-white/40">Injecting personality traits...</p>
-                </motion.div>
-              ) : generatedImage ? (
-                <motion.div 
-                  key="result"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="relative w-full h-full p-8 flex items-center justify-center"
-                >
-                  <img 
+                </div>
+                <p className="text-lg font-medium text-white/80 animate-pulse">Weaving reality...</p>
+                <p className="text-sm text-white/40">Injecting personality traits...</p>
+              </div>
+            ) : generatedImage ? (
+              <div 
+                key="result"
+                className="relative w-full h-full flex flex-col items-center justify-center gap-6"
+              >
+                {/* Image Container - Constrained Height */}
+                <div className="relative max-h-[60vh] aspect-[3/4] rounded-xl overflow-hidden shadow-2xl border border-white/10 group">
+                    <img 
                     src={generatedImage} 
                     alt="Generated Result" 
-                    className="max-w-full max-h-full rounded-lg shadow-2xl border border-white/10"
-                  />
-                  
-                  {/* Floating Actions */}
-                  <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/80 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-xl">
-                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10 text-white">
-                      <Download className="w-5 h-5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10 text-white">
-                      <Maximize2 className="w-5 h-5" />
-                    </Button>
-                    <div className="w-px h-6 bg-white/20 mx-1" />
-                    <Link href={`/create?image=${encodeURIComponent(generatedImage)}`}>
-                        <Button className="rounded-full bg-primary hover:bg-primary/90 px-6 gap-2">
-                        <UserPlus className="w-4 h-4" />
-                        Create Character
+                    className="w-full h-full object-cover"
+                    />
+                    {/* Hover Overlay Actions */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                        <Button variant="secondary" size="icon" className="rounded-full">
+                            <Maximize2 className="w-5 h-5" />
                         </Button>
-                    </Link>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  key="empty"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center space-y-4 z-10 max-w-md p-6"
-                >
-                  <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
-                    <ImageIcon className="w-10 h-10 text-white/20" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white">Ready to Dream?</h3>
-                  <p className="text-white/50">
-                    Enter a prompt on the left or roll the dice to start your creation journey.
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                        <Button variant="secondary" size="icon" className="rounded-full">
+                            <Download className="w-5 h-5" />
+                        </Button>
+                    </div>
+                </div>
+                
+                {/* Primary Action Button */}
+                <Link href={`/create?image=${encodeURIComponent(generatedImage)}`}>
+                    <Button className="rounded-full bg-primary hover:bg-primary/90 px-8 py-6 text-lg gap-2 shadow-lg hover:shadow-primary/25 transition-all">
+                    <UserPlus className="w-5 h-5" />
+                    Create Character with this Image
+                    </Button>
+                </Link>
+              </div>
+            ) : (
+              <div 
+                key="empty"
+                className="text-center space-y-4 z-10 max-w-md p-6"
+              >
+                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/10">
+                  <ImageIcon className="w-10 h-10 text-white/20" />
+                </div>
+                <h3 className="text-2xl font-bold text-white">Ready to Dream?</h3>
+                <p className="text-white/50">
+                  Enter a prompt on the left or roll the dice to start your creation journey.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Recent History Strip (Bottom) */}

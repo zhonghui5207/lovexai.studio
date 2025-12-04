@@ -16,7 +16,7 @@ import type * as messages from "../messages.js";
 import type * as orders from "../orders.js";
 import type * as seed from "../seed.js";
 import type * as users from "../users.js";
-import type * as utils_flux from "../utils/flux.js";
+import type * as utils_image_gen from "../utils/image_gen.js";
 
 import type {
   ApiFromModules,
@@ -33,7 +33,7 @@ declare const fullApi: ApiFromModules<{
   orders: typeof orders;
   seed: typeof seed;
   users: typeof users;
-  "utils/flux": typeof utils_flux;
+  "utils/image_gen": typeof utils_image_gen;
 }>;
 
 /**

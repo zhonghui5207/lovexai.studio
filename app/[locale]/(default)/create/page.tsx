@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,16 +17,27 @@ import {
   User
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 
 export default function CreateCharacterPage() {
+  const searchParams = useSearchParams();
+  
   // Form State
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [greeting, setGreeting] = useState("");
   const [isPublic, setIsPublic] = useState(true);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+
+  // Check for image param from Generate page
+  useEffect(() => {
+    const imageParam = searchParams.get("image");
+    if (imageParam) {
+      setAvatarPreview(imageParam);
+    }
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen text-white p-6 md:p-12 max-w-7xl mx-auto">
