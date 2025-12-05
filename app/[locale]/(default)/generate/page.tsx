@@ -24,6 +24,7 @@ import { useAction, useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useAppContext } from "@/contexts/app";
 
 // Mock Data for Styles
 const STYLES = [
@@ -94,11 +95,16 @@ export default function GeneratePage() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [loadingLog, setLoadingLog] = useState("Initializing...");
 
-  // Convex Hooks
+  // Get current user from AppContext
+  const { user, setShowSignModal } = useAppContext();
+  const userId = user?.id;
+
+  // Convex Hooks - pass userId for authentication
   const generateAction = useAction(api.images.generate);
   const enhanceAction = useAction(api.actions.enhancePrompt);
   const deleteAction = useMutation(api.images.remove);
-  const history = useQuery(api.images.listMine);
+  // Pass userId to query for history
+  const history = useQuery(api.images.listMine, userId ? { userId } : "skip");
   const [isEnhancing, setIsEnhancing] = useState(false);
 
   // Typewriter Effect
@@ -193,6 +199,14 @@ export default function GeneratePage() {
 
   const handleGenerate = async () => {
     if (!prompt) return;
+    
+    // Check if user is logged in
+    if (!userId) {
+      setShowSignModal(true);
+      toast.error("Please sign in to generate images");
+      return;
+    }
+    
     setIsGenerating(true);
     setGeneratedImage(null);
     
@@ -202,14 +216,16 @@ export default function GeneratePage() {
         style: selectedStyle,
         ratio: "3:4", // Hardcoded for character cards
         model: selectedModel,
+        userId: userId, // Pass userId for authentication
       });
       if (url) {
         setGeneratedImage(url);
         toast.success("Image generated successfully!");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Failed to generate image. Please try again.");
+      const errorMessage = error?.message || "Failed to generate image. Please try again.";
+      toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
     }

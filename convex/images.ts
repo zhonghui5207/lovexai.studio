@@ -10,11 +10,19 @@ export const generate = action({
     style: v.string(),
     ratio: v.string(), // Kept for API compatibility, but ignored in favor of hardcoded 3:4
     model: v.optional(v.string()),
+    userId: v.optional(v.string()), // Accept userId from frontend
   },
   handler: async (ctx, args) => {
-    // 1. Authentication
+    // 1. Authentication - Try multiple methods:
+    // Priority 1: Frontend-passed userId (most reliable with NextAuth)
+    // Priority 2: Convex auth (if OIDC is configured)
+    // Priority 3: Fallback for development
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || "temp-user-id-123";
+    const userId = args.userId || identity?.subject;
+    
+    if (!userId) {
+      throw new Error("Authentication required. Please sign in to generate images.");
+    }
     
     // 2. Check Credits (Placeholder)
     // const user = await ctx.runQuery(api.users.get, { userId });
@@ -97,10 +105,18 @@ export const saveGeneration = internalMutation({
 });
 
 export const listMine = query({
-  args: {},
-  handler: async (ctx) => {
+  args: {
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Try frontend-passed userId first, then fall back to auth
     const identity = await ctx.auth.getUserIdentity();
-    const userId = identity?.subject || "temp-user-id-123";
+    const userId = args.userId || identity?.subject;
+    
+    // If no user, return empty array (guest mode)
+    if (!userId) {
+      return [];
+    }
     
     return await ctx.db
       .query("image_generations")
