@@ -182,3 +182,63 @@ Return ONLY the enhanced prompt text, no explanations or quotes.`;
     }
   }
 });
+
+// Generate character details (scenario, greeting, etc.) for character creation
+export const generateCharacterDetails = action({
+  args: {
+    name: v.string(),
+    traits: v.array(v.string()),
+    scenarioTemplate: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error("OpenAI API Key is missing");
+    }
+
+    const traitsText = args.traits.join(", ");
+    
+    const systemPrompt = `You are an expert at creating compelling AI companion characters for roleplay.
+Given a character name, personality traits, and scenario template, generate rich character details.
+
+Return a JSON object with these fields:
+- scenario: A vivid 2-3 sentence description of the roleplay scenario and setting. Should set up an interesting first encounter.
+- current_state: One sentence describing the character's current emotional/physical state at the start.
+- motivation: One sentence about what the character secretly wants or feels.
+- greeting_message: The character's first message (2-3 sentences with *actions in asterisks*). Should match their personality and scenario.
+- description: A brief character description (2 sentences) covering appearance hints and personality.
+
+Keep the tone engaging and slightly flirtatious. Match the personality traits provided.
+Return ONLY valid JSON, no markdown or explanations.`;
+
+    const userPrompt = `Character Name: ${args.name}
+Personality Traits: ${traitsText}
+Scenario Template: ${args.scenarioTemplate}
+
+Generate the character details now.`;
+
+    const messages = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    try {
+      const result = await callChatCompletion(apiKey, messages, "gpt-4o-mini");
+      
+      // Parse JSON response
+      const cleaned = result?.replace(/```json\n?|\n?```/g, '').trim();
+      const parsed = JSON.parse(cleaned || '{}');
+      
+      return {
+        scenario: parsed.scenario || "",
+        current_state: parsed.current_state || "",
+        motivation: parsed.motivation || "",
+        greeting_message: parsed.greeting_message || "",
+        description: parsed.description || "",
+      };
+    } catch (e) {
+      console.error("Character detail generation failed:", e);
+      throw new Error("Failed to generate character details");
+    }
+  }
+});
