@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ChevronDown, ChevronUp, Lightbulb, Settings, Star, MessageSquare, Image, BookOpen, Target, Heart } from "lucide-react";
+import { ChevronDown, ChevronUp, Lightbulb, Settings, Star, MessageSquare, Image, BookOpen, Target, Heart, Bookmark } from "lucide-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface Character {
   id: string;
@@ -21,11 +24,14 @@ interface Character {
   motivation?: string;
   background?: string;
   suggestions?: string;
+  like_count?: number;
+  favorite_count?: number;
 }
 
 interface CharacterPanelProps {
   character: Character;
   onSuggestionClick?: (suggestion: string) => void;
+  userId?: string;
 }
 
 
@@ -78,7 +84,7 @@ function formatStatePoints(state?: string) {
   });
 }
 
-export default function CharacterPanel({ character, onSuggestionClick }: CharacterPanelProps) {
+export default function CharacterPanel({ character, onSuggestionClick, userId }: CharacterPanelProps) {
   // 基于对标网站的上下折叠状态管理
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showPersona, setShowPersona] = useState(true);
@@ -89,10 +95,89 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
   // 建议点击状态管理
   const [clickedSuggestion, setClickedSuggestion] = useState<string | null>(null);
 
+  // 点赞收藏状态
+  const interactions = useQuery(
+    api.interactions.getUserInteractions, 
+    userId ? { characterId: character.id as Id<"characters">, userId } : "skip"
+  );
+  const toggleLike = useMutation(api.interactions.toggleLike);
+  const toggleFavorite = useMutation(api.interactions.toggleFavorite);
+  const [isLiking, setIsLiking] = useState(false);
+  const [isFavoriting, setIsFavoriting] = useState(false);
+
+  // 乐观更新状态
+  const [optimisticLiked, setOptimisticLiked] = useState<boolean | null>(null);
+  const [optimisticFavorited, setOptimisticFavorited] = useState<boolean | null>(null);
+  const [optimisticLikeCount, setOptimisticLikeCount] = useState<number | null>(null);
+  const [optimisticFavoriteCount, setOptimisticFavoriteCount] = useState<number | null>(null);
+
+  // 计算当前显示值
+  const isLiked = optimisticLiked ?? interactions?.liked ?? false;
+  const isFavorited = optimisticFavorited ?? interactions?.favorited ?? false;
+  const likeCount = optimisticLikeCount ?? character.like_count ?? 0;
+  const favoriteCount = optimisticFavoriteCount ?? character.favorite_count ?? 0;
+
+  // 重置乐观状态当服务器数据更新时
+  useEffect(() => {
+    if (interactions !== undefined) {
+      setOptimisticLiked(null);
+      setOptimisticFavorited(null);
+    }
+  }, [interactions]);
+
+  useEffect(() => {
+    setOptimisticLikeCount(null);
+    setOptimisticFavoriteCount(null);
+  }, [character.like_count, character.favorite_count]);
+
   // 解析剧情信息
   const scenarioInfo = parseScenarioInfo(character.scenario);
   const statePoints = formatStatePoints(character.current_state);
   const characterSuggestions = parseCharacterSuggestions(character.suggestions);
+
+  // 处理点赞
+  const handleLike = async () => {
+    if (!userId || isLiking) return;
+    setIsLiking(true);
+    
+    // 乐观更新
+    const newLiked = !isLiked;
+    setOptimisticLiked(newLiked);
+    setOptimisticLikeCount(newLiked ? likeCount + 1 : Math.max(0, likeCount - 1));
+    
+    try {
+      await toggleLike({ characterId: character.id as Id<"characters">, userId });
+    } catch (e) {
+      console.error("Failed to like:", e);
+      // 回滚
+      setOptimisticLiked(null);
+      setOptimisticLikeCount(null);
+    } finally {
+      setIsLiking(false);
+    }
+  };
+
+  // 处理收藏
+  const handleFavorite = async () => {
+    if (!userId || isFavoriting) return;
+    setIsFavoriting(true);
+    
+    // 乐观更新
+    const newFavorited = !isFavorited;
+    setOptimisticFavorited(newFavorited);
+    setOptimisticFavoriteCount(newFavorited ? favoriteCount + 1 : Math.max(0, favoriteCount - 1));
+    
+    try {
+      await toggleFavorite({ characterId: character.id as Id<"characters">, userId });
+    } catch (e) {
+      console.error("Failed to favorite:", e);
+      // 回滚
+      setOptimisticFavorited(null);
+      setOptimisticFavoriteCount(null);
+    } finally {
+      setIsFavoriting(false);
+    }
+  };
 
   // 处理建议点击
   const handleSuggestionClick = (suggestion: string) => {
@@ -130,6 +215,35 @@ export default function CharacterPanel({ character, onSuggestionClick }: Charact
           <p className="text-sm text-white/90 mb-3 line-clamp-2 font-medium drop-shadow-sm">
             {character.age ? `${character.age}, ` : ''}{character.description}
           </p>
+          
+          {/* Like & Favorite Buttons */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleLike}
+              disabled={!userId || isLiking}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                isLiked 
+                  ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30' 
+                  : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
+              } ${isLiking ? 'opacity-50' : ''}`}
+            >
+              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+              <span>{likeCount}</span>
+            </button>
+            
+            <button
+              onClick={handleFavorite}
+              disabled={!userId || isFavoriting}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                isFavorited 
+                  ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' 
+                  : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/10'
+              } ${isFavoriting ? 'opacity-50' : ''}`}
+            >
+              <Bookmark className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
+              <span>{favoriteCount}</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -7,17 +7,80 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { Search, Filter, Plus, User as UserIcon, Heart } from "lucide-react";
+import { Search, Filter, Plus, User as UserIcon, Heart, Bookmark, MessageCircle, Lock, Globe, X, ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
 import { ProfileSettingsDialog } from "@/components/profile/ProfileSettingsDialog";
 import Link from "next/link";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 export default function ProfilePage() {
   const { user } = useAppContext();
   const router = useRouter();
   const [isNsfw, setIsNsfw] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Convex hooks
+  const ensureUser = useMutation(api.users.ensureUser);
+  const [convexUserId, setConvexUserId] = useState<Id<"users"> | null>(null);
+  
+  // Sync user with Convex
+  useEffect(() => {
+    if (user?.email && !convexUserId) {
+      ensureUser({
+        email: user.email,
+        name: user.nickname || "User",
+        avatar_url: user.avatar_url || "",
+      }).then((id) => {
+        setConvexUserId(id);
+      }).catch((err) => {
+        console.error("Failed to sync user:", err);
+      });
+    }
+  }, [user, convexUserId, ensureUser]);
+
+  // Fetch user's created characters (creator_id is stored as string)
+  const myCharacters = useQuery(
+    api.characters.getByCreator,
+    convexUserId ? { creatorId: convexUserId as string } : "skip"
+  );
+
+  // Fetch user's favorite characters
+  const myFavorites = useQuery(
+    api.interactions.getUserFavorites,
+    convexUserId ? { userId: convexUserId as string } : "skip"
+  );
+
+  // Fetch user's generated images (now using unified convexUserId)
+  const myImages = useQuery(
+    api.images.listMine,
+    convexUserId ? { userId: convexUserId as string } : "skip"
+  );
+
+  // Delete character mutation
+  const deleteCharacter = useMutation(api.characters.remove);
+  const [deletingId, setDeletingId] = useState<Id<"characters"> | null>(null);
+
+  const handleDelete = async (characterId: Id<"characters">, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!convexUserId) return;
+    if (!confirm("Are you sure you want to delete this character? This cannot be undone.")) return;
+    
+    setDeletingId(characterId);
+    try {
+      await deleteCharacter({ id: characterId, creatorId: convexUserId as string });
+    } catch (err) {
+      console.error("Failed to delete:", err);
+      alert("Failed to delete character");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   if (!user) {
     return (
@@ -95,6 +158,8 @@ export default function ProfilePage() {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input 
                         placeholder="Search Companions..." 
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                         className="pl-12 h-12 text-base bg-black/20 border-white/10 focus:bg-black/40 focus:border-primary/50 transition-all rounded-full"
                     />
                 </div>
@@ -135,52 +200,202 @@ export default function ProfilePage() {
 
             {/* 内容网格 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-                {/* 示例卡片 */}
-                <div className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-900 border border-white/5 transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer">
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90 z-10 opacity-60 group-hover:opacity-90 transition-opacity" />
-                    <img 
-                        src="/generated_characters/character_street_fashion.png" 
-                        alt="Jane Doe" 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        onError={(e) => {
-                            e.currentTarget.src = "/placeholder.png";
-                        }}
-                    />
-                    
-                    <div className="absolute top-4 left-4 z-20">
-                        <div className="px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-xs font-semibold text-white border border-white/10 flex items-center gap-1.5 shadow-lg">
-                            <UserIcon className="w-3.5 h-3.5" />
-                            Private
+                {myCharacters === undefined ? (
+                    // Loading state
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="aspect-[3/4] rounded-2xl bg-neutral-900 animate-pulse border border-white/5" />
+                    ))
+                ) : myCharacters.length === 0 ? (
+                    // Empty state
+                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground">
+                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                            <Plus className="w-8 h-8 opacity-50" />
                         </div>
+                        <p className="text-lg mb-4">No companions created yet</p>
+                        <Link href="/create">
+                            <Button className="gap-2">
+                                <Plus className="w-4 h-4" />
+                                Create Your First Companion
+                            </Button>
+                        </Link>
                     </div>
+                ) : (
+                    // Character cards
+                    myCharacters
+                        .filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .map((character) => (
+                        <Link href={`/chat?characterId=${character._id}`} key={character._id}>
+                            <div className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-900 border border-white/5 transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer">
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90 z-10 opacity-60 group-hover:opacity-90 transition-opacity" />
+                                <img 
+                                    src={character.avatar_url || "/generated_characters/character_street_fashion.png"} 
+                                    alt={character.name} 
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    onError={(e) => {
+                                        e.currentTarget.src = "/placeholder.png";
+                                    }}
+                                />
+                                
+                                {/* Status Badge - Left */}
+                                <div className="absolute top-4 left-4 z-20">
+                                    <div className={`px-3 py-1.5 rounded-full backdrop-blur-md text-xs font-semibold border shadow-lg flex items-center gap-1.5 ${
+                                        character.access_level === "free" 
+                                            ? "bg-green-500/20 text-green-400 border-green-500/30" 
+                                            : "bg-black/60 text-white border-white/10"
+                                    }`}>
+                                        {character.access_level === "free" ? (
+                                            <><Globe className="w-3.5 h-3.5" /> Public</>
+                                        ) : (
+                                            <><Lock className="w-3.5 h-3.5" /> Private</>
+                                        )}
+                                    </div>
+                                </div>
 
-                    <div className="absolute bottom-0 left-0 right-0 p-6 z-20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                        <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">Jane Doe</h3>
-                        <p className="text-sm text-white/70 line-clamp-2 group-hover:text-white/90 transition-colors leading-relaxed">
-                            A sassy street fashion enthusiast who loves exploring neon-lit city streets and discovering hidden cafes.
-                        </p>
-                    </div>
-                </div>
-                
+                                {/* Stats + Delete */}
+                                <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+                                    <div className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs text-white/80 flex items-center gap-1">
+                                        <Heart className="w-3 h-3" />
+                                        {character.like_count || 0}
+                                    </div>
+                                    <div className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs text-white/80 flex items-center gap-1">
+                                        <MessageCircle className="w-3 h-3" />
+                                        {character.chat_count || "0"}
+                                    </div>
+                                    <button
+                                        onClick={(e) => handleDelete(character._id, e)}
+                                        disabled={deletingId === character._id}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500/80 hover:bg-red-500 text-white rounded-full p-1 shadow-md"
+                                        title="Delete"
+                                    >
+                                        <X className={`w-3 h-3 ${deletingId === character._id ? 'animate-spin' : ''}`} />
+                                    </button>
+                                </div>
 
+                                <div className="absolute bottom-0 left-0 right-0 p-6 z-20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                    <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">{character.name}</h3>
+                                    <p className="text-sm text-white/70 line-clamp-2 group-hover:text-white/90 transition-colors leading-relaxed">
+                                        {character.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </Link>
+                    ))
+                )}
             </div>
         </TabsContent>
 
-        <TabsContent value="favorites">
-            <div className="flex flex-col items-center justify-center py-32 text-muted-foreground bg-white/5 rounded-2xl border border-white/5 border-dashed">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                    <Heart className="w-8 h-8 opacity-50" />
-                </div>
-                <p className="text-lg">No favorites found yet.</p>
+        <TabsContent value="favorites" className="space-y-8 animate-in fade-in-50 duration-500">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+                {myFavorites === undefined ? (
+                    // Loading state
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="aspect-[3/4] rounded-2xl bg-neutral-900 animate-pulse border border-white/5" />
+                    ))
+                ) : myFavorites.length === 0 ? (
+                    // Empty state
+                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground">
+                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                            <Heart className="w-8 h-8 opacity-50" />
+                        </div>
+                        <p className="text-lg mb-4">No favorites yet</p>
+                        <Link href="/discover">
+                            <Button variant="outline" className="gap-2">
+                                <Heart className="w-4 h-4" />
+                                Discover Characters
+                            </Button>
+                        </Link>
+                    </div>
+                ) : (
+                    // Favorite character cards
+                    myFavorites.map((character: any) => (
+                        <Link href={`/chat?characterId=${character._id}`} key={character._id}>
+                            <div className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-900 border border-white/5 transition-all duration-300 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer">
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/90 z-10 opacity-60 group-hover:opacity-90 transition-opacity" />
+                                <img 
+                                    src={character.avatar_url || "/generated_characters/character_street_fashion.png"} 
+                                    alt={character.name} 
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    onError={(e) => {
+                                        e.currentTarget.src = "/placeholder.png";
+                                    }}
+                                />
+                                
+                                {/* Favorited Badge */}
+                                <div className="absolute top-4 left-4 z-20">
+                                    <div className="px-3 py-1.5 rounded-full bg-yellow-500/20 backdrop-blur-md text-xs font-semibold text-yellow-400 border border-yellow-500/30 shadow-lg flex items-center gap-1.5">
+                                        <Bookmark className="w-3.5 h-3.5 fill-current" />
+                                        Favorited
+                                    </div>
+                                </div>
+
+                                {/* Stats */}
+                                <div className="absolute top-4 right-4 z-20 flex gap-2">
+                                    <div className="px-2 py-1 rounded-full bg-black/60 backdrop-blur-md text-xs text-white/80 flex items-center gap-1">
+                                        <Heart className="w-3 h-3" />
+                                        {character.like_count || 0}
+                                    </div>
+                                </div>
+
+                                <div className="absolute bottom-0 left-0 right-0 p-6 z-20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                    <h3 className="text-xl font-bold text-white mb-2 drop-shadow-md">{character.name}</h3>
+                                    <p className="text-sm text-white/70 line-clamp-2 group-hover:text-white/90 transition-colors leading-relaxed">
+                                        {character.description}
+                                    </p>
+                                </div>
+                            </div>
+                        </Link>
+                    ))
+                )}
             </div>
         </TabsContent>
 
-        <TabsContent value="images">
-             <div className="flex flex-col items-center justify-center py-32 text-muted-foreground bg-white/5 rounded-2xl border border-white/5 border-dashed">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                     <UserIcon className="w-8 h-8 opacity-50" />
-                </div>
-                <p className="text-lg">No images generated yet.</p>
+        <TabsContent value="images" className="space-y-8 animate-in fade-in-50 duration-500">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                {myImages === undefined ? (
+                    // Loading state
+                    Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="aspect-square rounded-xl bg-neutral-900 animate-pulse border border-white/5" />
+                    ))
+                ) : myImages.length === 0 ? (
+                    // Empty state
+                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground">
+                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                            <ImageIcon className="w-8 h-8 opacity-50" />
+                        </div>
+                        <p className="text-lg mb-4">No images generated yet</p>
+                        <Link href="/generate">
+                            <Button variant="outline" className="gap-2">
+                                <ImageIcon className="w-4 h-4" />
+                                Generate Images
+                            </Button>
+                        </Link>
+                    </div>
+                ) : (
+                    // Image cards
+                    myImages.map((image: any) => (
+                        <div key={image._id} className="group relative aspect-square rounded-xl overflow-hidden bg-neutral-900 border border-white/5 transition-all duration-300 hover:border-primary/50 hover:shadow-xl cursor-pointer">
+                            <img 
+                                src={image.image_url} 
+                                alt={image.prompt || "Generated image"} 
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                onError={(e) => {
+                                    e.currentTarget.src = "/placeholder.png";
+                                }}
+                            />
+                            {/* Overlay on hover */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <p className="text-xs text-white/90 line-clamp-2">{image.prompt}</p>
+                            </div>
+                            {/* Status badge */}
+                            {image.status === "failed" && (
+                                <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-red-500/80 text-xs text-white">
+                                    Failed
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
             </div>
         </TabsContent>
 

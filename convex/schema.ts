@@ -42,10 +42,15 @@ export default defineSchema({
     scenario: v.optional(v.string()),
     current_state: v.optional(v.string()),
     motivation: v.optional(v.string()),
+    // Creator and social
+    creator_id: v.optional(v.string()), // User ID of creator
+    like_count: v.optional(v.number()),
+    favorite_count: v.optional(v.number()),
   })
     .index("by_username", ["username"])
     .index("by_access_level", ["access_level"])
     .index("by_sort_order", ["sort_order"])
+    .index("by_creator", ["creator_id"])
     .searchIndex("search_body", {
       searchField: "search_text",
       filterFields: ["is_active", "access_level"],
@@ -135,4 +140,22 @@ export default defineSchema({
     status: v.string(), // 'completed', 'failed'
     credits_cost: v.number(),
   }).index("by_user", ["user_id"]),
+
+  // Character Likes table
+  character_likes: defineTable({
+    user_id: v.string(),
+    character_id: v.id("characters"),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_character", ["character_id"])
+    .index("by_user_character", ["user_id", "character_id"]),
+
+  // Character Favorites table
+  character_favorites: defineTable({
+    user_id: v.string(),
+    character_id: v.id("characters"),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_character", ["character_id"])
+    .index("by_user_character", ["user_id", "character_id"]),
 });

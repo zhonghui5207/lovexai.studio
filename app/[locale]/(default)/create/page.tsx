@@ -23,11 +23,12 @@ import {
   X
 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { useAction } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useSession } from "next-auth/react";
 
 // Step indicator component
 const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => {
@@ -106,6 +107,7 @@ const NAME_SUGGESTIONS = ["Sakura", "Luna", "Yuki", "Hana", "Aria", "Mia"];
 
 export default function CreateCharacterPage() {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   
   // Step state
   const [currentStep, setCurrentStep] = useState(1);
@@ -125,14 +127,81 @@ export default function CreateCharacterPage() {
   const [generatedMotivation, setGeneratedMotivation] = useState("");
   const [generatedGreeting, setGeneratedGreeting] = useState("");
   const [generatedDescription, setGeneratedDescription] = useState("");
+  const [generatedBackground, setGeneratedBackground] = useState("");
+  const [generatedPersonalityDesc, setGeneratedPersonalityDesc] = useState("");
+  const [generatedSuggestions, setGeneratedSuggestions] = useState("");
   
   // Loading states
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [isGeneratingScenario, setIsGeneratingScenario] = useState(false);
   const [isGeneratingGreeting, setIsGeneratingGreeting] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
 
-  // Convex action
+  // Convex hooks
+  const router = useRouter();
   const generateCharacterDetails = useAction(api.actions.generateCharacterDetails);
+  const createCharacter = useMutation(api.characters.create);
+  const ensureUser = useMutation(api.users.ensureUser);
+  const createConversation = useMutation(api.conversations.create);
+
+  // Create character function
+  const handleCreateCharacter = async () => {
+    if (!name) return;
+    
+    setIsCreating(true);
+    try {
+      // Build personality text from traits
+      const traitLabels = selectedTraits
+        .map(t => TRAIT_OPTIONS.find(o => o.id === t)?.label)
+        .filter(Boolean)
+        .join(", ");
+      
+      // 1. Check if user is logged in
+      if (!session?.user?.email) {
+        alert("Please log in to create a character!");
+        router.push(`/api/auth/signin?callbackUrl=/create`);
+        return;
+      }
+      
+      // 2. Ensure user exists and get userId
+      const userId = await ensureUser({
+        email: session.user.email,
+        name: session.user.name || "User",
+        avatar_url: session.user.image || "",
+      });
+      
+      // 3. Create the character with creator_id
+      const characterId = await createCharacter({
+        name,
+        description: generatedDescription || `A ${traitLabels.toLowerCase()} companion`,
+        personality: generatedPersonalityDesc || traitLabels || "friendly",
+        greeting_message: generatedGreeting || `*smiles warmly* "Hi, I'm ${name}. Nice to meet you!"`,
+        avatar_url: avatarPreview || undefined,
+        traits: selectedTraits,
+        scenario: generatedScenario || customScenario || undefined,
+        current_state: generatedCurrentState || undefined,
+        motivation: generatedMotivation || undefined,
+        background: generatedBackground || undefined,
+        suggestions: generatedSuggestions || undefined,
+        is_public: isPublic,
+        creator_id: userId,
+      });
+      
+      // 4. Create a conversation with the new character
+      const conversationId = await createConversation({
+        characterId,
+        userId,
+      });
+      
+      // 5. Redirect to chat
+      router.push(`/chat?c=${conversationId}`);
+    } catch (error) {
+      console.error("Failed to create character:", error);
+      alert("Failed to create character. Please try again.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   // Check for image param from Generate page
   useEffect(() => {
@@ -161,6 +230,9 @@ export default function CreateCharacterPage() {
       setGeneratedMotivation(result.motivation);
       setGeneratedGreeting(result.greeting_message);
       setGeneratedDescription(result.description);
+      setGeneratedBackground(result.background);
+      setGeneratedPersonalityDesc(result.personality_desc);
+      setGeneratedSuggestions(result.suggestions);
     } catch (error) {
       console.error("Failed to generate scenario:", error);
       // Fallback to simple template
@@ -179,9 +251,50 @@ export default function CreateCharacterPage() {
     }
   };
 
+  // Generate from custom scenario description
+  const generateScenarioFromCustom = async () => {
+    if (!name || selectedTraits.length === 0 || !customScenario) return;
+    
+    setIsGeneratingScenario(true);
+    try {
+      const result = await generateCharacterDetails({
+        name,
+        traits: selectedTraits,
+        scenarioTemplate: customScenario, // Use the custom description
+      });
+      
+      setGeneratedScenario(result.scenario);
+      setGeneratedCurrentState(result.current_state);
+      setGeneratedMotivation(result.motivation);
+      setGeneratedGreeting(result.greeting_message);
+      setGeneratedDescription(result.description);
+      setGeneratedBackground(result.background);
+      setGeneratedPersonalityDesc(result.personality_desc);
+      setGeneratedSuggestions(result.suggestions);
+    } catch (error) {
+      console.error("Failed to generate from custom:", error);
+      // Fallback
+      const traitLabels = selectedTraits.map(t => TRAIT_OPTIONS.find(o => o.id === t)?.label).join(", ");
+      setGeneratedScenario(
+        `You are ${name}, a ${traitLabels.toLowerCase()} girl. ${customScenario}`
+      );
+      setGeneratedCurrentState("First time meeting, curious and slightly nervous");
+      setGeneratedMotivation("Hoping to make a good impression");
+      setGeneratedGreeting(
+        `*looks up at you shyly* "Um... hi, I'm ${name}..." *smiles softly* "Nice to meet you..."`
+      );
+    } finally {
+      setIsGeneratingScenario(false);
+    }
+  };
+
   const generateGreeting = async () => {
     // Re-generate using the same action
-    await generateScenario();
+    if (selectedScenario === "custom") {
+      await generateScenarioFromCustom();
+    } else {
+      await generateScenario();
+    }
   };
 
   const handleTraitToggle = (traitId: string) => {
@@ -438,13 +551,61 @@ export default function CreateCharacterPage() {
 
             {/* Custom Scenario Input */}
             {selectedScenario === "custom" && (
-              <div className="max-w-lg mx-auto">
+              <div className="max-w-lg mx-auto space-y-3">
                 <Textarea 
-                  placeholder="Describe your custom scenario..."
+                  placeholder="Describe your custom scenario... (e.g., We meet at a rooftop bar during sunset)"
                   value={customScenario}
                   onChange={(e) => setCustomScenario(e.target.value)}
-                  className="bg-black/40 border-white/10 min-h-[120px] resize-none"
+                  className="bg-black/40 border-white/10 min-h-[100px] resize-none"
                 />
+                
+                {/* Generate from custom description */}
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={() => {
+                      if (customScenario) {
+                        // Use custom scenario as the template
+                        generateScenarioFromCustom();
+                      }
+                    }}
+                    disabled={!customScenario || isGeneratingScenario || !name || selectedTraits.length === 0}
+                    className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    {isGeneratingScenario ? "Generating..." : "Enhance with AI"}
+                  </Button>
+                </div>
+
+                {/* Show generated content if available */}
+                {generatedScenario && (
+                  <div className="bg-black/40 border border-white/10 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm text-white/60 flex items-center gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                        AI Enhanced
+                      </Label>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={generateScenarioFromCustom}
+                        disabled={isGeneratingScenario}
+                        className="h-7 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                      >
+                        <RefreshCw className={cn("w-3 h-3", isGeneratingScenario && "animate-spin")} />
+                        Regenerate
+                      </Button>
+                    </div>
+                    <p className="text-sm text-white/80 leading-relaxed">{generatedScenario}</p>
+                    <div className="pt-2 border-t border-white/10 space-y-1">
+                      <p className="text-xs text-white/50">
+                        <span className="text-primary">State:</span> {generatedCurrentState}
+                      </p>
+                      <p className="text-xs text-white/50">
+                        <span className="text-primary">Drive:</span> {generatedMotivation}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -611,10 +772,21 @@ export default function CreateCharacterPage() {
             </Button>
           ) : (
             <Button 
+              onClick={handleCreateCharacter}
+              disabled={isCreating}
               className="gap-2 bg-gradient-to-r from-primary to-purple-600 px-8"
             >
-              <Heart className="w-4 h-4" />
-              Create Character
+              {isCreating ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Heart className="w-4 h-4" />
+                  Create Character
+                </>
+              )}
             </Button>
           )}
         </div>

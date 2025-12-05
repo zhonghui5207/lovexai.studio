@@ -202,13 +202,16 @@ export const generateCharacterDetails = action({
 Given a character name, personality traits, and scenario template, generate rich character details.
 
 Return a JSON object with these fields:
-- scenario: A vivid 2-3 sentence description of the roleplay scenario and setting. Should set up an interesting first encounter.
+- background: A detailed 2-3 sentence description setting up the roleplay scenario and your relationship with the user. Written in second person ("Your..."). Example: "Your charming café owner Zoe, who has been flirting with you all evening as her last customer. The café is now closed, soft jazz is playing..."
+- scenario: A vivid 1-2 sentence description of the current scene and setting.
 - current_state: One sentence describing the character's current emotional/physical state at the start.
 - motivation: One sentence about what the character secretly wants or feels.
-- greeting_message: The character's first message (2-3 sentences with *actions in asterisks*). Should match their personality and scenario.
+- greeting_message: The character's first message (2-3 sentences with *actions in asterisks*). Should be flirty, match their personality and scenario.
 - description: A brief character description (2 sentences) covering appearance hints and personality.
+- personality_desc: A detailed 2-3 sentence description of the character's personality, going beyond just listing traits. Describe HOW they express these traits.
+- suggestions: Generate exactly 3 conversation starters as a JSON array. Each should be a flirty question or statement the user might say to the character. Example: ["So what kind of after-hours tasting did you have in mind?", "You have been flirting with me all evening, haven't you?", "Is this why you kept me as your last customer?"]
 
-Keep the tone engaging and slightly flirtatious. Match the personality traits provided.
+Keep the tone engaging, slightly flirtatious, and romantic. Match the personality traits provided.
 Return ONLY valid JSON, no markdown or explanations.`;
 
     const userPrompt = `Character Name: ${args.name}
@@ -229,12 +232,21 @@ Generate the character details now.`;
       const cleaned = result?.replace(/```json\n?|\n?```/g, '').trim();
       const parsed = JSON.parse(cleaned || '{}');
       
+      // Format suggestions as a single string (pipe-separated for storage)
+      const suggestionsArray = parsed.suggestions || [];
+      const suggestionsStr = Array.isArray(suggestionsArray) 
+        ? suggestionsArray.join('|') 
+        : suggestionsArray;
+      
       return {
         scenario: parsed.scenario || "",
         current_state: parsed.current_state || "",
         motivation: parsed.motivation || "",
         greeting_message: parsed.greeting_message || "",
         description: parsed.description || "",
+        background: parsed.background || "",
+        personality_desc: parsed.personality_desc || "",
+        suggestions: suggestionsStr,
       };
     } catch (e) {
       console.error("Character detail generation failed:", e);

@@ -12,6 +12,7 @@ import type * as actions from "../actions.js";
 import type * as characters from "../characters.js";
 import type * as conversations from "../conversations.js";
 import type * as images from "../images.js";
+import type * as interactions from "../interactions.js";
 import type * as messages from "../messages.js";
 import type * as orders from "../orders.js";
 import type * as seed from "../seed.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   characters: typeof characters;
   conversations: typeof conversations;
   images: typeof images;
+  interactions: typeof interactions;
   messages: typeof messages;
   orders: typeof orders;
   seed: typeof seed;

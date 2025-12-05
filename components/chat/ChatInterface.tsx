@@ -36,6 +36,8 @@ interface Character {
   motivation?: string;
   background?: string;
   suggestions?: string;
+  like_count?: number;
+  favorite_count?: number;
 }
 
 interface Conversation {
@@ -166,6 +168,7 @@ function ChatInterface({
             <CharacterPanel
               character={character}
               onSuggestionClick={handleSendMessage}
+              userId={convexUserId || undefined}
             />
           </div>
         </div>

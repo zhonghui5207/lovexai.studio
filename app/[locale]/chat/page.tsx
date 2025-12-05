@@ -98,6 +98,8 @@ export default function ChatPage() {
       scenario: c.scenario,
       current_state: c.current_state,
       motivation: c.motivation,
+      like_count: c.like_count,
+      favorite_count: c.favorite_count,
     }));
   }, [rawCharacters]);
 
@@ -167,6 +169,8 @@ export default function ChatPage() {
           scenario: c.scenario,
           current_state: c.current_state,
           motivation: c.motivation,
+          like_count: c.like_count,
+          favorite_count: c.favorite_count,
        };
     }
     

@@ -112,14 +112,31 @@ export default function GeneratePage() {
 
   // Get current user from AppContext
   const { user, setShowSignModal } = useAppContext();
-  const userId = user?.id;
+  
+  // Sync user with Convex and get unified userId
+  const ensureUser = useMutation(api.users.ensureUser);
+  const [convexUserId, setConvexUserId] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (user?.email && !convexUserId) {
+      ensureUser({
+        email: user.email,
+        name: user.name || "User",
+        avatar_url: user.avatar_url || "",
+      }).then((id) => {
+        setConvexUserId(id);
+      }).catch((err) => {
+        console.error("Failed to sync user:", err);
+      });
+    }
+  }, [user, convexUserId, ensureUser]);
 
-  // Convex Hooks - pass userId for authentication
+  // Convex Hooks - use unified convexUserId
   const generateAction = useAction(api.images.generate);
   const enhanceAction = useAction(api.actions.enhancePrompt);
   const deleteAction = useMutation(api.images.remove);
-  // Pass userId to query for history
-  const history = useQuery(api.images.listMine, userId ? { userId } : "skip");
+  // Pass convexUserId to query for history
+  const history = useQuery(api.images.listMine, convexUserId ? { userId: convexUserId } : "skip");
   const [isEnhancing, setIsEnhancing] = useState(false);
 
   // Typewriter Effect
@@ -216,7 +233,7 @@ export default function GeneratePage() {
     if (!prompt) return;
     
     // Check if user is logged in
-    if (!userId) {
+    if (!convexUserId) {
       setShowSignModal(true);
       toast.error("Please sign in to generate images");
       return;
@@ -231,7 +248,7 @@ export default function GeneratePage() {
         style: selectedStyle,
         ratio: "3:4", // Hardcoded for character cards
         model: selectedModel,
-        userId: userId, // Pass userId for authentication
+        userId: convexUserId, // Pass unified convexUserId
       });
       if (url) {
         setGeneratedImage(url);

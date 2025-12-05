@@ -58,6 +58,7 @@ export const getByUsername = query({
   },
 });
 
+
 // Search characters
 export const search = query({
   args: { query: v.string() },
@@ -68,6 +69,17 @@ export const search = query({
         q.search("search_text", args.query).eq("is_active", true)
       )
       .take(20);
+  },
+});
+
+// Get characters created by a specific user
+export const getByCreator = query({
+  args: { creatorId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("characters")
+      .withIndex("by_creator", (q) => q.eq("creator_id", args.creatorId))
+      .collect();
   },
 });
 
@@ -103,27 +115,54 @@ export const incrementChatCount = mutation({
   },
 });
 
-// Create a character (Admin)
+// Create a character (User-generated)
 export const create = mutation({
   args: {
     name: v.string(),
     description: v.string(),
     personality: v.string(),
-    is_active: v.boolean(),
-    access_level: v.string(),
-    sort_order: v.number(),
-    credits_per_message: v.number(),
-    is_premium: v.boolean(),
     greeting_message: v.string(),
-    username: v.string(),
     avatar_url: v.optional(v.string()),
+    traits: v.optional(v.array(v.string())),
+    scenario: v.optional(v.string()),
+    current_state: v.optional(v.string()),
+    motivation: v.optional(v.string()),
+    background: v.optional(v.string()),
+    suggestions: v.optional(v.string()),
+    is_public: v.optional(v.boolean()),
+    creator_id: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Generate a unique username from the name
+    const baseUsername = args.name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    const username = `${baseUsername}-${randomSuffix}`;
+    
     // Construct search text
     const search_text = `${args.name} ${args.description} ${args.personality}`;
     
     const id = await ctx.db.insert("characters", {
-      ...args,
+      name: args.name,
+      description: args.description,
+      personality: args.personality,
+      greeting_message: args.greeting_message,
+      username,
+      avatar_url: args.avatar_url,
+      traits: args.traits,
+      scenario: args.scenario,
+      current_state: args.current_state,
+      motivation: args.motivation,
+      background: args.background,
+      suggestions: args.suggestions,
+      creator_id: args.creator_id,
+      like_count: 0,
+      favorite_count: 0,
+      // Default values for user-created characters
+      is_active: true,
+      access_level: args.is_public ? "free" : "pro", // Public = free access, Private = pro only
+      sort_order: 999, // Put at end of list
+      credits_per_message: 1,
+      is_premium: false,
       chat_count: "0 chats",
       search_text,
     });
@@ -131,4 +170,43 @@ export const create = mutation({
   },
 });
 
-
+// Delete a character (only by creator)
+export const remove = mutation({
+  args: {
+    id: v.id("characters"),
+    creatorId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const character = await ctx.db.get(args.id);
+    if (!character) throw new Error("Character not found");
+    
+    // Verify ownership
+    if (character.creator_id !== args.creatorId) {
+      throw new Error("You can only delete your own characters");
+    }
+    
+    // Delete associated data
+    // 1. Delete likes
+    const likes = await ctx.db
+      .query("character_likes")
+      .withIndex("by_character", (q) => q.eq("character_id", args.id))
+      .collect();
+    for (const like of likes) {
+      await ctx.db.delete(like._id);
+    }
+    
+    // 2. Delete favorites
+    const favorites = await ctx.db
+      .query("character_favorites")
+      .withIndex("by_character", (q) => q.eq("character_id", args.id))
+      .collect();
+    for (const fav of favorites) {
+      await ctx.db.delete(fav._id);
+    }
+    
+    // 3. Delete the character
+    await ctx.db.delete(args.id);
+    
+    return { success: true };
+  },
+});
