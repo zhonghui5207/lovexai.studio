@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   Wand2, 
   Sparkles, 
@@ -94,6 +94,21 @@ export default function GeneratePage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [loadingLog, setLoadingLog] = useState("Initializing...");
+  
+  // Scroll state for showing scrollbar only when scrolling
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const handleScroll = useCallback(() => {
+    setIsScrolling(true);
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1000); // Hide scrollbar 1 second after scrolling stops
+  }, []);
 
   // Get current user from AppContext
   const { user, setShowSignModal } = useAppContext();
@@ -256,10 +271,20 @@ export default function GeneratePage() {
       <div className="max-w-[1600px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-100px)]">
         
         {/* LEFT PANEL: CONTROLS */}
-        <div className="lg:col-span-4 flex flex-col gap-6 h-full overflow-y-auto pr-2 custom-scrollbar">
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className={cn(
+            "lg:col-span-4 flex flex-col gap-8 h-full overflow-y-auto pr-2 custom-scrollbar relative",
+            isScrolling && "is-scrolling"
+          )}
+        >
+          
+          {/* Background glow for left panel */}
+          <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-[100px] pointer-events-none" />
           
           {/* Header */}
-          <div className="space-y-2">
+          <div className="space-y-2 relative">
             <h1 className="text-4xl font-bold tracking-tighter bg-gradient-to-r from-white via-white to-white/50 bg-clip-text text-transparent animate-in fade-in slide-in-from-left duration-700">
               Dream Studio
             </h1>
@@ -268,34 +293,88 @@ export default function GeneratePage() {
             </p>
           </div>
 
-          {/* Model Selector */}
-          <div className="bg-white/5 p-1 rounded-xl flex gap-1 border border-white/10 backdrop-blur-md">
-            {MODELS.map((model) => (
-              <button
-                key={model.id}
-                onClick={() => setSelectedModel(model.id)}
-                className={cn(
-                  "flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all flex flex-col items-center gap-0.5 relative overflow-hidden",
-                  selectedModel === model.id 
-                    ? "bg-primary text-white shadow-lg" 
-                    : "text-white/50 hover:text-white hover:bg-white/5"
-                )}
-              >
-                {selectedModel === model.id && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]" />
-                )}
-                <span>{model.name}</span>
-                <span className="text-[10px] opacity-60 font-normal">{model.desc}</span>
-              </button>
-            ))}
+          {/* Model Selector - Card Style */}
+          <div className="space-y-3">
+            <Label className="text-xs font-medium text-white/50 uppercase tracking-wider flex items-center gap-2">
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              AI Model
+            </Label>
+            <div className="grid grid-cols-3 gap-3">
+              {MODELS.map((model, index) => {
+                const icons = [
+                  // Flux - Creative/Artistic
+                  <svg key="flux" viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>,
+                  // Genesis - Technical/Precise
+                  <svg key="genesis" viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                    <path d="M12 2l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1 3-6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>,
+                  // Gemini - Dual/Creative
+                  <svg key="gemini" viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                    <circle cx="8" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <circle cx="16" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                ];
+                return (
+                  <button
+                    key={model.id}
+                    onClick={() => setSelectedModel(model.id)}
+                    className={cn(
+                      "relative p-4 rounded-2xl transition-all duration-200 flex flex-col items-center gap-2 group",
+                      selectedModel === model.id 
+                        ? "bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/50 shadow-[0_0_20px_rgba(236,72,153,0.2)]" 
+                        : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
+                    )}
+                  >
+                    {selectedModel === model.id && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite] rounded-2xl pointer-events-none" />
+                    )}
+                    <div className={cn(
+                      "transition-colors",
+                      selectedModel === model.id ? "text-primary" : "text-white/50 group-hover:text-white/70"
+                    )}>
+                      {icons[index]}
+                    </div>
+                    <span className={cn(
+                      "text-xs font-medium transition-colors",
+                      selectedModel === model.id ? "text-white" : "text-white/70"
+                    )}>
+                      {model.name.split(' ')[0]}
+                    </span>
+                    <span className={cn(
+                      "text-[10px] transition-colors",
+                      selectedModel === model.id ? "text-white/60" : "text-white/40"
+                    )}>
+                      {model.desc}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Prompt Input */}
-          <div className="space-y-3 bg-white/5 p-5 rounded-2xl border border-white/10 backdrop-blur-md group hover:border-primary/30 transition-all duration-300 shadow-lg hover:shadow-primary/5">
+          {/* Prompt Input - Enhanced Card */}
+          <div className="space-y-4 bg-gradient-to-br from-white/[0.07] to-white/[0.03] p-5 rounded-2xl border border-white/10 backdrop-blur-md group hover:border-primary/30 transition-all duration-300 shadow-lg hover:shadow-primary/5">
             <div className="flex justify-between items-center">
               <Label className="text-sm font-medium flex items-center gap-2 text-white/80">
-                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-                Prompt
+                {/* Custom Prompt Icon - Thought Bubble */}
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                  <defs>
+                    <linearGradient id="prompt-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#ec4899" />
+                      <stop offset="100%" stopColor="#a855f7" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M12 3C7.03 3 3 6.58 3 11c0 2.52 1.29 4.76 3.32 6.22L5 21l4.5-2.25c.79.16 1.63.25 2.5.25 4.97 0 9-3.58 9-8s-4.03-8-9-8z" stroke="url(#prompt-grad)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  <circle cx="8" cy="11" r="1" fill="url(#prompt-grad)"/>
+                  <circle cx="12" cy="11" r="1" fill="url(#prompt-grad)"/>
+                  <circle cx="16" cy="11" r="1" fill="url(#prompt-grad)"/>
+                </svg>
+                Your Vision
               </Label>
               <div className="flex gap-2">
                 <Button 
@@ -305,7 +384,16 @@ export default function GeneratePage() {
                     disabled={isEnhancing || !prompt}
                     className="h-7 text-xs text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 gap-1"
                 >
-                    <Wand2 className={cn("w-3 h-3", isEnhancing && "animate-spin")} />
+                    {/* Custom Enhance Icon - Lightning Bolt */}
+                    <svg viewBox="0 0 24 24" className={cn("w-3 h-3", isEnhancing && "animate-spin")} fill="none">
+                      <defs>
+                        <linearGradient id="enhance-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#c084fc" />
+                          <stop offset="100%" stopColor="#818cf8" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke="url(#enhance-grad)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                     {isEnhancing ? "Enhancing..." : "Enhance"}
                 </Button>
                 <Button 
@@ -324,40 +412,87 @@ export default function GeneratePage() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder={placeholderText}
-                className="bg-black/40 border-white/10 min-h-[120px] text-base focus:border-primary/50 resize-none placeholder:text-white/20 transition-all caret-primary [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
+                className="bg-black/40 border-white/10 min-h-[120px] text-base focus:border-primary/50 resize-none placeholder:text-white/30 transition-all caret-primary [&::-webkit-scrollbar]:hidden [scrollbar-width:none]"
                 />
             </div>
             
-            <div className="flex flex-wrap gap-2 pt-1">
-              {["Silver Hair", "Blue Eyes", "Cyberpunk", "Maid", "Gothic"].map((tag) => (
-                <Badge 
-                  key={tag} 
-                  variant="outline" 
-                  className="cursor-pointer bg-white/5 hover:bg-white/10 border-white/10 text-white/70 hover:text-white hover:border-primary/30 px-3 py-1 rounded-full text-xs"
-                  onClick={() => setPrompt(prev => prev ? `${prev}, ${tag}` : tag)}
-                >
-                  + {tag}
-                </Badge>
-              ))}
+            {/* Quick Tags - Categorized & Lightweight */}
+            <div className="space-y-3 pt-2">
+              <p className="text-[10px] text-white/40 uppercase tracking-wider">Quick Add</p>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { tag: "Big Breasts", color: "from-pink-400/20 to-rose-500/20" },
+                  { tag: "Curvy", color: "from-rose-400/20 to-pink-500/20" },
+                  { tag: "Petite", color: "from-purple-400/20 to-pink-500/20" },
+                  { tag: "Lingerie", color: "from-red-400/20 to-rose-500/20" },
+                  { tag: "Bunny Girl", color: "from-pink-400/20 to-purple-500/20" },
+                  { tag: "Maid Outfit", color: "from-slate-400/20 to-pink-500/20" },
+                  { tag: "Seductive", color: "from-red-400/20 to-orange-500/20" },
+                  { tag: "Shy", color: "from-pink-300/20 to-rose-400/20" },
+                  { tag: "Bedroom", color: "from-purple-400/20 to-indigo-500/20" },
+                ].map(({ tag, color }) => (
+                  <button 
+                    key={tag} 
+                    className={cn(
+                      "px-2.5 py-1 rounded-md text-[11px] font-medium border border-white/10 text-white/50",
+                      "hover:text-white hover:border-white/30 transition-all duration-200",
+                      "active:scale-95",
+                      prompt.toLowerCase().includes(tag.toLowerCase()) && `bg-gradient-to-r ${color} border-white/30 text-white`
+                    )}
+                    onClick={() => setPrompt(prev => prev ? `${prev}, ${tag}` : tag)}
+                  >
+                    <span className="opacity-60">+</span> {tag}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
-          {/* Style Selector (Updated to Tags) */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-white/80">Art Style</Label>
-            <div className="flex flex-wrap gap-2">
-              {STYLES.map((style) => (
+          {/* Art Style - Card Grid with Icons */}
+          <div className="space-y-4">
+            <Label className="text-xs font-medium text-white/50 uppercase tracking-wider flex items-center gap-2">
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none">
+                <path d="M12 2l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5l2-5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Art Style
+              <span className="text-[10px] text-white/30 font-normal normal-case ml-1">(choose one)</span>
+            </Label>
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { id: "anime", name: "Anime", icon: "M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zM9 9h.01M15 9h.01M9 15c1 1 2.5 1.5 3 1.5s2-.5 3-1.5" },
+                { id: "realistic", name: "Realistic", icon: "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" },
+                { id: "hentai", name: "Hentai", icon: "M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" },
+                { id: "pinup", name: "Pin-up", icon: "M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8zM12 6a1 1 0 0 0-1 1v5a1 1 0 0 0 2 0V7a1 1 0 0 0-1-1zm0 10a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" },
+                { id: "fantasy", name: "Fantasy", icon: "M12 3l1.5 4.5H18l-3.5 3 1 4.5L12 12.5 8.5 15l1-4.5-3.5-3h4.5L12 3z" },
+                { id: "ecchi", name: "Ecchi", icon: "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" },
+                { id: "soft", name: "Soft", icon: "M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z" },
+                { id: "glamour", name: "Glamour", icon: "M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z" },
+              ].map((style) => (
                 <button
                   key={style.id}
                   onClick={() => setSelectedStyle(style.id)}
                   className={cn(
-                    "px-4 py-2 rounded-full text-sm font-medium transition-all border duration-300",
-                    selectedStyle === style.id
-                      ? "bg-gradient-to-r from-primary/20 to-purple-500/20 border-primary/50 text-white shadow-[0_0_15px_rgba(var(--primary),0.2)]"
-                      : "bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white hover:border-white/20"
+                    "relative p-3 rounded-xl transition-all duration-200 flex flex-col items-center gap-1.5 group",
+                    selectedStyle === style.id 
+                      ? "bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/50 shadow-[0_0_15px_rgba(236,72,153,0.2)]" 
+                      : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
                   )}
                 >
-                  {style.name}
+                  {selectedStyle === style.id && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite] rounded-xl pointer-events-none" />
+                  )}
+                  <svg viewBox="0 0 24 24" className={cn(
+                    "w-5 h-5 transition-colors",
+                    selectedStyle === style.id ? "text-primary" : "text-white/40 group-hover:text-white/60"
+                  )} fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={style.icon} />
+                  </svg>
+                  <span className={cn(
+                    "text-[10px] font-medium transition-colors",
+                    selectedStyle === style.id ? "text-white" : "text-white/50 group-hover:text-white/70"
+                  )}>
+                    {style.name}
+                  </span>
                 </button>
               ))}
             </div>
@@ -382,7 +517,19 @@ export default function GeneratePage() {
                 </div>
                 ) : (
                 <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 group-hover:animate-spin" />
+                    {/* Custom Manifest Icon - Orbital Ring */}
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 group-hover:animate-spin" fill="none">
+                      <defs>
+                        <linearGradient id="manifest-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#ffffff" />
+                          <stop offset="50%" stopColor="#f0abfc" />
+                          <stop offset="100%" stopColor="#c084fc" />
+                        </linearGradient>
+                      </defs>
+                      <circle cx="12" cy="12" r="3" fill="url(#manifest-grad)"/>
+                      <ellipse cx="12" cy="12" rx="9" ry="4" stroke="url(#manifest-grad)" strokeWidth="1.5" transform="rotate(-30 12 12)"/>
+                      <ellipse cx="12" cy="12" rx="9" ry="4" stroke="url(#manifest-grad)" strokeWidth="1" opacity="0.5" transform="rotate(30 12 12)"/>
+                    </svg>
                     <span>Manifest Reality</span>
                     <span className="text-xs font-normal opacity-70 ml-1">(5)</span>
                 </div>
@@ -392,11 +539,19 @@ export default function GeneratePage() {
       </div>
 
       {/* RIGHT PANEL: PREVIEW */}
-      <div className="lg:col-span-8 h-full bg-neutral-900/50 rounded-3xl border border-white/10 relative overflow-hidden flex flex-col backdrop-blur-sm shadow-2xl">
+      <div className="lg:col-span-8 h-full bg-neutral-950 rounded-3xl border border-white/10 relative overflow-hidden flex flex-col shadow-2xl">
             
-            {/* Grid Pattern Overlay */}
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 pointer-events-none" />
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+            {/* Premium Background Effects */}
+            {/* 1. Subtle noise texture */}
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04] pointer-events-none" />
+            
+            {/* 2. Ambient glow effects - more visible */}
+            <div className="absolute -top-20 -left-20 w-80 h-80 bg-purple-500/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-pink-500/20 rounded-full blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
+            
+            {/* 3. Subtle center highlight */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[60px] pointer-events-none" />
 
             {/* Main Canvas Area */}
             <div className="flex-1 relative flex items-center justify-center p-8 overflow-hidden">
@@ -432,88 +587,148 @@ export default function GeneratePage() {
                         </div>
                     </div>
                 ) : isGenerating ? (
-                    // GENERATING STATE
-                    <div className="flex flex-col items-center gap-8 z-10">
-                        {/* Custom Animated X Logo - App Icon Style (Matching Sidebar Logo) */}
-                        <div className="relative group">
-                            {/* Outer Glow Pulse */}
-                            <div className="absolute inset-0 bg-purple-500/30 blur-2xl rounded-[2.5rem] animate-pulse" />
+                    // GENERATING STATE - Premium 3D Floating Card
+                    <div className="flex flex-col items-center justify-center gap-8 z-10">
+                        
+                        {/* 3D Floating Card Container */}
+                        <div className="relative perspective-1000">
                             
-                            {/* Icon Container */}
-                            <div className="relative w-32 h-32 bg-[#130d14] rounded-[2.5rem] flex items-center justify-center shadow-2xl border border-white/10 overflow-hidden">
-                                {/* Inner Gradient Glow */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10 opacity-50" />
+                            {/* Ambient Glow Behind Card */}
+                            <div className="absolute -inset-8 bg-gradient-to-r from-purple-600/30 via-pink-500/20 to-blue-600/30 rounded-[3rem] blur-3xl animate-pulse" />
+                            
+                            {/* Floating Card */}
+                            <div 
+                                className="relative w-72 h-96 rounded-3xl overflow-hidden shadow-2xl animate-float"
+                                style={{
+                                    transform: 'translateZ(50px) rotateX(5deg)',
+                                    transformStyle: 'preserve-3d',
+                                }}
+                            >
+                                {/* Glass Border */}
+                                <div className="absolute inset-0 rounded-3xl border border-white/20 bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm z-20 pointer-events-none" />
                                 
-                                {/* The Logo SVG */}
-                                <svg viewBox="0 0 100 100" className="w-20 h-20 drop-shadow-[0_0_15px_rgba(255,255,255,0.4)] relative z-10 animate-[spin_4s_linear_infinite]">
-                                    <defs>
-                                        <linearGradient id="loading-love-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#ff006e" />
-                                            <stop offset="100%" stopColor="#ff5c8d" />
-                                        </linearGradient>
-                                        <linearGradient id="loading-ai-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stopColor="#8338ec" />
-                                            <stop offset="100%" stopColor="#3a86ff" />
-                                        </linearGradient>
-                                        <filter id="loading-glow-strong">
-                                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                                            <feMerge>
-                                                <feMergeNode in="coloredBlur"/>
-                                                <feMergeNode in="SourceGraphic"/>
-                                            </feMerge>
-                                        </filter>
-                                    </defs>
-                                    
-                                    {/* The "Love" Curve (Bottom-Left to Top-Right) */}
-                                    <path 
-                                        d="M 20,80 C 20,80 40,80 50,50 C 60,20 80,20 80,20" 
-                                        stroke="url(#loading-love-gradient)" 
-                                        strokeWidth="10" 
-                                        strokeLinecap="round" 
-                                        fill="none"
-                                        filter="url(#loading-glow-strong)"
-                                        className="animate-[dash_3s_ease-in-out_infinite]"
+                                {/* Glow Border Effect */}
+                                <div className="absolute inset-0 rounded-3xl z-30 pointer-events-none animate-border-glow">
+                                    <div className="absolute inset-0 rounded-3xl border-2 border-transparent" 
+                                         style={{
+                                             background: 'linear-gradient(135deg, rgba(168,85,247,0.5), rgba(236,72,153,0.5), rgba(59,130,246,0.5)) border-box',
+                                             mask: 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+                                             maskComposite: 'exclude',
+                                             WebkitMaskComposite: 'xor',
+                                         }}
                                     />
-                                    
-                                    {/* The "AI" Beam (Top-Left to Bottom-Right) - Segmented */}
-                                    <path 
-                                        d="M 20,20 L 40,40" 
-                                        stroke="url(#loading-ai-gradient)" 
-                                        strokeWidth="10" 
-                                        strokeLinecap="round" 
-                                        fill="none" 
-                                        filter="url(#loading-glow-strong)"
-                                        className="animate-[dash_3s_ease-in-out_infinite_0.5s]"
-                                    />
-                                    <path 
-                                        d="M 60,60 L 80,80" 
-                                        stroke="url(#loading-ai-gradient)" 
-                                        strokeWidth="10" 
-                                        strokeLinecap="round" 
-                                        fill="none" 
-                                        filter="url(#loading-glow-strong)"
-                                        className="animate-[dash_3s_ease-in-out_infinite_0.7s]"
-                                    />
-                                    
-                                    {/* Center Bright Spot */}
-                                    <circle cx="50" cy="50" r="8" fill="white" className="animate-ping opacity-50" />
-                                    <circle cx="50" cy="50" r="5" fill="white" className="drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                                </div>
 
-                                    {/* Tech Accents */}
-                                    <rect x="55" y="55" width="5" height="5" fill="white" opacity="0.8" />
-                                    <rect x="65" y="65" width="5" height="5" fill="white" opacity="0.6" />
-                                </svg>
+                                {/* Inner Nebula/Galaxy Content */}
+                                <div className="absolute inset-0 bg-black/80">
+                                    {/* Animated Nebula Layers */}
+                                    <div className="absolute inset-0 opacity-80">
+                                        {/* Layer 1 - Slow rotating purple */}
+                                        <div 
+                                            className="absolute inset-0 animate-nebula-1"
+                                            style={{
+                                                background: 'radial-gradient(ellipse at 30% 40%, rgba(168,85,247,0.6) 0%, transparent 50%)',
+                                            }}
+                                        />
+                                        {/* Layer 2 - Pink center */}
+                                        <div 
+                                            className="absolute inset-0 animate-nebula-2"
+                                            style={{
+                                                background: 'radial-gradient(ellipse at 60% 50%, rgba(236,72,153,0.5) 0%, transparent 45%)',
+                                            }}
+                                        />
+                                        {/* Layer 3 - Blue accent */}
+                                        <div 
+                                            className="absolute inset-0 animate-nebula-3"
+                                            style={{
+                                                background: 'radial-gradient(ellipse at 70% 70%, rgba(59,130,246,0.5) 0%, transparent 40%)',
+                                            }}
+                                        />
+                                        {/* Layer 4 - Bright core */}
+                                        <div 
+                                            className="absolute inset-0 animate-pulse"
+                                            style={{
+                                                background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.15) 0%, transparent 30%)',
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Particle Stars */}
+                                    <div className="absolute inset-0 overflow-hidden">
+                                        {[...Array(20)].map((_, i) => (
+                                            <div
+                                                key={i}
+                                                className="absolute w-1 h-1 bg-white rounded-full animate-twinkle"
+                                                style={{
+                                                    left: `${Math.random() * 100}%`,
+                                                    top: `${Math.random() * 100}%`,
+                                                    animationDelay: `${Math.random() * 3}s`,
+                                                    animationDuration: `${2 + Math.random() * 2}s`,
+                                                    opacity: 0.3 + Math.random() * 0.7,
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Light Rays from center */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <div className="w-32 h-32 animate-spin-slow">
+                                            {[...Array(6)].map((_, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="absolute left-1/2 top-1/2 w-1 h-24 -ml-0.5 origin-bottom"
+                                                    style={{
+                                                        transform: `rotate(${i * 60}deg) translateY(-100%)`,
+                                                        background: 'linear-gradient(to top, rgba(255,255,255,0.3), transparent)',
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Center Icon/Symbol */}
+                                <div className="absolute inset-0 flex items-center justify-center z-10">
+                                    <div className="relative">
+                                        {/* Pulsing ring */}
+                                        <div className="absolute inset-0 w-16 h-16 -m-2 rounded-full border-2 border-white/30 animate-ping" />
+                                        {/* Inner glow */}
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-white/30 to-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                                            <Sparkles className="w-6 h-6 text-white animate-pulse" />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Shadow beneath card */}
+                            <div 
+                                className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-48 h-8 bg-purple-500/30 rounded-full blur-2xl animate-shadow-pulse"
+                            />
                         </div>
 
-                        <div className="text-center space-y-3">
-                            <h3 className="text-3xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
-                                Manifesting...
+                        {/* Text Section */}
+                        <div className="text-center space-y-4 mt-4">
+                            <h3 className="text-3xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent animate-gradient-x">
+                                Dreaming your image...
                             </h3>
-                            <p className="text-white/50 font-mono text-sm h-6 flex items-center gap-2 justify-center">
-                                <span className="w-2 h-2 rounded-full bg-primary animate-bounce" />
-                                {loadingLog}
-                            </p>
+                            <div className="flex items-center justify-center gap-3">
+                                {/* Animated dots */}
+                                <div className="flex gap-1.5">
+                                    {[0, 1, 2].map((i) => (
+                                        <div
+                                            key={i}
+                                            className="w-2 h-2 rounded-full bg-gradient-to-r from-pink-500 to-purple-500"
+                                            style={{
+                                                animation: `bounce 1s ease-in-out infinite`,
+                                                animationDelay: `${i * 0.15}s`,
+                                            }}
+                                        />
+                                    ))}
+                                </div>
+                                <p className="text-white/50 font-mono text-sm">
+                                    {loadingLog}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 ) : (

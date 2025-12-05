@@ -46,11 +46,16 @@ html {
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: transparent;
     border-radius: 10px;
+    transition: background 0.3s ease;
+  }
+  /* Only show scrollbar when actively scrolling */
+  .custom-scrollbar.is-scrolling::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.3);
   }
   
   .no-scrollbar::-webkit-scrollbar {
@@ -60,4 +65,146 @@ html {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* 3D perspective for floating card */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+}
+
+/* Premium Loading Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateZ(50px) rotateX(5deg) translateY(0);
+  }
+  50% {
+    transform: translateZ(50px) rotateX(5deg) translateY(-15px);
+  }
+}
+
+@keyframes nebula-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  33% {
+    transform: translate(10%, -10%) scale(1.1);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translate(-5%, 5%) scale(0.95);
+    opacity: 0.5;
+  }
+}
+
+@keyframes nebula-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-15%, 10%) scale(1.15);
+    opacity: 0.7;
+  }
+}
+
+@keyframes nebula-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(10%, -15%) scale(1.2);
+    opacity: 0.65;
+  }
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes shadow-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateX(-50%) scale(1.1);
+  }
+}
+
+@keyframes border-glow {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes gradient-x {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Animation utility classes */
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-nebula-1 {
+  animation: nebula-1 8s ease-in-out infinite;
+}
+
+.animate-nebula-2 {
+  animation: nebula-2 10s ease-in-out infinite;
+}
+
+.animate-nebula-3 {
+  animation: nebula-3 12s ease-in-out infinite;
+}
+
+.animate-twinkle {
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-shadow-pulse {
+  animation: shadow-pulse 4s ease-in-out infinite;
+}
+
+.animate-border-glow {
+  animation: border-glow 2s ease-in-out infinite;
+}
+
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
 }
