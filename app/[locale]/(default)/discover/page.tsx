@@ -20,12 +20,10 @@ interface SwipeCharacter {
   id: string;
   _id: Id<"characters">;
   name: string;
-  age: number;
   role: string;
   image: string;
   tags: string[];
   bio: string;
-  distance: string;
   color: string;
 }
 
@@ -61,12 +59,10 @@ export default function DiscoverPage() {
         id: c._id,
         _id: c._id,
         name: c.name,
-        age: c.age || 20 + (i % 10),
         role: c.personality?.split(' ')[0] || "Companion", // Simple fallback
         image: c.avatar_url || "",
         tags: c.traits || ["Friendly"],
         bio: c.description,
-        distance: c.location || "Unknown",
         color: ["#ef4444", "#3b82f6", "#a855f7", "#e11d48", "#eab308"][i % 5]
       }));
       setCards(mapped);
@@ -120,8 +116,6 @@ export default function DiscoverPage() {
     setHistory([...history, cardToRemove]);
     setCards(cards.filter((c) => c.id !== id));
     setIsFlipped(false);
-    
-    console.log(`Swiped ${direction} on ${cardToRemove.name}`);
   };
 
   return (
@@ -597,7 +591,7 @@ function SwipeCard({
                         <div className="flex items-end justify-between mb-2">
                             <div>
                                 <h2 className="text-4xl font-bold text-white drop-shadow-md">
-                                    {data.name}, <span className="text-2xl font-medium text-white/80">{data.age}</span>
+                                    {data.name}
                                 </h2>
                                 <p className="text-lg text-primary font-medium flex items-center gap-1">
                                     {data.role}
@@ -618,9 +612,7 @@ function SwipeCard({
                                     {tag}
                                 </Badge>
                             ))}
-                            <Badge variant="outline" className="text-white/60 border-white/20 gap-1">
-                                <MapPin className="w-3 h-3" /> {data.distance}
-                            </Badge>
+
                         </div>
                     </div>
                 </div>
@@ -651,10 +643,7 @@ function SwipeCard({
                                 <h3 className="text-xs font-bold text-white/50 uppercase mb-1">Role</h3>
                                 <p className="font-medium">{data.role}</p>
                              </div>
-                             <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                <h3 className="text-xs font-bold text-white/50 uppercase mb-1">Distance</h3>
-                                <p className="font-medium">{data.distance}</p>
-                             </div>
+
                         </div>
 
                         <div className="p-4 bg-white/5 rounded-xl border border-white/10">

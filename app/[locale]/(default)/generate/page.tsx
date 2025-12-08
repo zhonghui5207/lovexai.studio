@@ -13,7 +13,8 @@ import {
   AlertCircle,
   History,
   Trash2,
-  X
+  X,
+  Copy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,7 +44,7 @@ const MODELS = [
   { id: "gpt-image-1", name: "GPT Image", desc: "Realism" },
   { id: "gemini-3-pro-image-preview", name: "Gemini 3", desc: "Creative" },
   { id: "doubao-seedream-4-5-251128", name: "Doubao", desc: "Seedream" },
-  { id: "gpt-4o-image-async", name: "GPT-4o", desc: "Async" },
+  { id: "gpt-4o-image-vip", name: "GPT-4o", desc: "VIP" },
   { id: "gemini-2.5-flash-image-vip", name: "Gemini 2.5", desc: "Flash VIP" },
 ];
 
@@ -90,6 +91,7 @@ export default function GeneratePage() {
   // const [aspectRatio, setAspectRatio] = useState("9:16"); // Removed, defaulting to 3:4
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [currentPrompt, setCurrentPrompt] = useState<string | null>(null); // Track prompt for current image
   
   // UI States
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
@@ -255,6 +257,7 @@ export default function GeneratePage() {
       });
       if (url) {
         setGeneratedImage(url);
+        setCurrentPrompt(prompt); // Save the prompt used for this image
         toast.success("Image generated successfully!");
       }
     } catch (error: any) {
@@ -269,10 +272,28 @@ export default function GeneratePage() {
   const handleDelete = async (e: React.MouseEvent, id: any) => {
     e.stopPropagation(); // Prevent clicking the item
     try {
+        // Find the index of the item being deleted
+        const deletedIndex = history?.findIndex(h => h._id === id) ?? -1;
+        const deletedImageUrl = history?.find(h => h._id === id)?.image_url;
+        
         await deleteAction({ id });
         toast.success("Image deleted");
-        if (generatedImage === history?.find(h => h._id === id)?.image_url) {
-            setGeneratedImage(null);
+        
+        // If the deleted image was the currently displayed one, show the next available image
+        if (generatedImage === deletedImageUrl && history) {
+            // After deletion, history will be re-fetched, so we need to calculate what the next item would be
+            const remainingImages = history.filter(h => h._id !== id);
+            if (remainingImages.length > 0) {
+                // Show the next image (or the previous one if we deleted the last item)
+                const nextIndex = Math.min(deletedIndex, remainingImages.length - 1);
+                const nextImage = remainingImages[nextIndex];
+                setGeneratedImage(nextImage.image_url);
+                setCurrentPrompt(nextImage.prompt);
+            } else {
+                // No more images left
+                setGeneratedImage(null);
+                setCurrentPrompt(null);
+            }
         }
     } catch (error) {
         toast.error("Failed to delete image");
@@ -593,29 +614,52 @@ export default function GeneratePage() {
             <div className="flex-1 relative flex items-center justify-center p-8 overflow-hidden">
                 {generatedImage ? (
                     // RESULT VIEW
-                    <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in-95 duration-500">
-                        <div className="relative max-h-full aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
+                    <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in-95 duration-500 gap-3">
+                        {/* Image Container */}
+                        <div className="relative max-h-[75%] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                             <img src={generatedImage} alt="Generated" className="w-full h-full object-cover" />
+                        </div>
+                        
+                        {/* Compact Action Bar with Prompt */}
+                        <div className="w-full max-w-sm bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-3">
+                            {/* Prompt Text */}
+                            {currentPrompt && (
+                                <p className="text-xs text-white/60 line-clamp-2 mb-3 leading-relaxed">
+                                    {currentPrompt}
+                                </p>
+                            )}
                             
-                            {/* Overlay Actions (Bottom Toolbar) */}
-                            <div className="absolute inset-x-0 bottom-0 p-6 flex items-center justify-between bg-gradient-to-t from-black/90 via-black/50 to-transparent translate-y-4 group-hover:translate-y-0 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20">
-                                {/* Left: Utility Actions */}
+                            {/* Action Buttons Row */}
+                            <div className="flex items-center justify-between gap-2">
                                 <div className="flex gap-2">
-                                    <Button 
-                                        variant="outline" 
-                                        size="icon" 
-                                        className="h-9 w-9 rounded-full bg-white/10 border-white/20 hover:bg-white/20 text-white backdrop-blur-md"
+                                    {/* Copy Prompt */}
+                                    {currentPrompt && (
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(currentPrompt);
+                                                toast.success("Copied!");
+                                            }}
+                                            className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors flex items-center justify-center"
+                                            title="Copy prompt"
+                                        >
+                                            <Copy className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                    
+                                    {/* Download */}
+                                    <button
                                         onClick={handleDownload}
-                                        title="Download Image"
+                                        className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors flex items-center justify-center"
+                                        title="Download"
                                     >
-                                        <Download className="w-4 h-4" />
-                                    </Button>
+                                        <Download className="w-3.5 h-3.5" />
+                                    </button>
                                 </div>
-
-                                {/* Right: Primary Action */}
+                                
+                                {/* Create Character */}
                                 <Link href={`/create?image=${encodeURIComponent(generatedImage)}`}>
-                                    <Button className="h-9 bg-primary hover:bg-primary/90 text-white gap-2 shadow-lg shadow-primary/20 rounded-full px-4 font-medium backdrop-blur-md">
-                                        <UserPlus className="w-4 h-4" />
+                                    <Button size="sm" className="h-8 bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-lg shadow-primary/20 rounded-lg px-3 text-xs font-medium">
+                                        <UserPlus className="w-3.5 h-3.5" />
                                         Create Character
                                     </Button>
                                 </Link>
@@ -823,7 +867,10 @@ export default function GeneratePage() {
                         history.map((item) => (
                             <div key={item._id} className="relative group flex-shrink-0">
                                 <div 
-                                    onClick={() => setGeneratedImage(item.image_url)}
+                                    onClick={() => {
+                                        setGeneratedImage(item.image_url);
+                                        setCurrentPrompt(item.prompt);
+                                    }}
                                     className={cn(
                                         "w-[70px] h-[70px] rounded-xl overflow-hidden border cursor-pointer transition-all duration-300 relative",
                                         generatedImage === item.image_url 
@@ -839,7 +886,7 @@ export default function GeneratePage() {
                                     )}
                                 </div>
                                 
-                                {/* Delete Button (Centered on Top-Right Corner) */}
+                                {/* Delete Button */}
                                 <button 
                                     className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity z-30 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 hover:scale-110"
                                     onClick={(e) => handleDelete(e, item._id)}
