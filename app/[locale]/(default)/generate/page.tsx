@@ -39,9 +39,12 @@ const STYLES = [
 ];
 
 const MODELS = [
-  { id: "flux-kontext-pro", name: "Flux Dreamer", desc: "Best for Anime & Art" },
-  { id: "gpt-image-1", name: "Genesis Core", desc: "Best for Realism" },
-  { id: "gemini-3-pro-image-preview", name: "Gemini Horizon", desc: "Best for Creativity" },
+  { id: "flux-kontext-pro", name: "Flux Dreamer", desc: "Anime & Art" },
+  { id: "gpt-image-1", name: "GPT Image", desc: "Realism" },
+  { id: "gemini-3-pro-image-preview", name: "Gemini 3", desc: "Creative" },
+  { id: "doubao-seedream-4-5-251128", name: "Doubao", desc: "Seedream" },
+  { id: "gpt-4o-image-async", name: "GPT-4o", desc: "Async" },
+  { id: "gemini-2.5-flash-image-vip", name: "Gemini 2.5", desc: "Flash VIP" },
 ];
 
 // Inspiration Gallery Data
@@ -318,22 +321,36 @@ export default function GeneratePage() {
               </svg>
               AI Model
             </Label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               {MODELS.map((model, index) => {
                 const icons = [
                   // Flux - Creative/Artistic
-                  <svg key="flux" viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                  <svg key="flux" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
                     <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" stroke="currentColor" strokeWidth="1.5"/>
                     <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                   </svg>,
-                  // Genesis - Technical/Precise
-                  <svg key="genesis" viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                  // GPT Image - Star
+                  <svg key="gpt" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
                     <path d="M12 2l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1 3-6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>,
-                  // Gemini - Dual/Creative
-                  <svg key="gemini" viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                  // Gemini 3 - Dual circles
+                  <svg key="gemini3" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
                     <circle cx="8" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/>
                     <circle cx="16" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>,
+                  // Doubao - Mountain/Seedream
+                  <svg key="doubao" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                    <path d="M3 20L9 10L13 16L17 11L21 20H3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="17" cy="6" r="2" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>,
+                  // GPT-4o - Lightning
+                  <svg key="gpt4o" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                    <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>,
+                  // Gemini 2.5 Flash - Diamond
+                  <svg key="gemini25" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                    <path d="M12 2L2 12L12 22L22 12L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 6L12 18M6 12L18 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
                   </svg>
                 ];
                 return (
@@ -341,33 +358,35 @@ export default function GeneratePage() {
                     key={model.id}
                     onClick={() => setSelectedModel(model.id)}
                     className={cn(
-                      "relative p-4 rounded-2xl transition-all duration-200 flex flex-col items-center gap-2 group",
+                      "relative p-3 rounded-xl transition-all duration-200 flex items-center gap-3 group",
                       selectedModel === model.id 
-                        ? "bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/50 shadow-[0_0_20px_rgba(236,72,153,0.2)]" 
+                        ? "bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/50 shadow-[0_0_15px_rgba(236,72,153,0.2)]" 
                         : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
                     )}
                   >
                     {selectedModel === model.id && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite] rounded-2xl pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite] rounded-xl pointer-events-none" />
                     )}
                     <div className={cn(
-                      "transition-colors",
+                      "transition-colors flex-shrink-0",
                       selectedModel === model.id ? "text-primary" : "text-white/50 group-hover:text-white/70"
                     )}>
                       {icons[index]}
                     </div>
-                    <span className={cn(
-                      "text-xs font-medium transition-colors",
-                      selectedModel === model.id ? "text-white" : "text-white/70"
-                    )}>
-                      {model.name.split(' ')[0]}
-                    </span>
-                    <span className={cn(
-                      "text-[10px] transition-colors",
-                      selectedModel === model.id ? "text-white/60" : "text-white/40"
-                    )}>
-                      {model.desc}
-                    </span>
+                    <div className="flex flex-col items-start min-w-0">
+                      <span className={cn(
+                        "text-xs font-medium transition-colors truncate",
+                        selectedModel === model.id ? "text-white" : "text-white/70"
+                      )}>
+                        {model.name}
+                      </span>
+                      <span className={cn(
+                        "text-[10px] transition-colors truncate",
+                        selectedModel === model.id ? "text-white/60" : "text-white/40"
+                      )}>
+                        {model.desc}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
@@ -576,7 +595,7 @@ export default function GeneratePage() {
                     // RESULT VIEW
                     <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in-95 duration-500">
                         <div className="relative max-h-full aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10 group">
-                            <img src={generatedImage} alt="Generated" className="w-full h-full object-contain bg-black/50" />
+                            <img src={generatedImage} alt="Generated" className="w-full h-full object-cover" />
                             
                             {/* Overlay Actions (Bottom Toolbar) */}
                             <div className="absolute inset-x-0 bottom-0 p-6 flex items-center justify-between bg-gradient-to-t from-black/90 via-black/50 to-transparent translate-y-4 group-hover:translate-y-0 transition-all duration-300 opacity-0 group-hover:opacity-100 z-20">

@@ -64,6 +64,10 @@ export default function ProfilePage() {
   const deleteCharacter = useMutation(api.characters.remove);
   const [deletingId, setDeletingId] = useState<Id<"characters"> | null>(null);
 
+  // Delete image mutation
+  const deleteImage = useMutation(api.images.remove);
+  const [deletingImageId, setDeletingImageId] = useState<string | null>(null);
+
   const handleDelete = async (characterId: Id<"characters">, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -79,6 +83,23 @@ export default function ProfilePage() {
       alert("Failed to delete character");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleDeleteImage = async (imageId: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!confirm("Are you sure you want to delete this image?")) return;
+    
+    setDeletingImageId(imageId);
+    try {
+      await deleteImage({ id: imageId });
+    } catch (err) {
+      console.error("Failed to delete image:", err);
+      alert("Failed to delete image");
+    } finally {
+      setDeletingImageId(null);
     }
   };
 
@@ -384,12 +405,21 @@ export default function ProfilePage() {
                             />
                             {/* Overlay on hover */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 <p className="text-xs text-white/90 line-clamp-2">{image.prompt}</p>
                             </div>
+                            {/* Delete button */}
+                            <button 
+                                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20 bg-red-500 text-white rounded-full p-1.5 shadow-md hover:bg-red-600 hover:scale-110"
+                                onClick={(e) => handleDeleteImage(image._id, e)}
+                                disabled={deletingImageId === image._id}
+                                title="Delete image"
+                            >
+                                <X className={`w-3.5 h-3.5 ${deletingImageId === image._id ? 'animate-spin' : ''}`} />
+                            </button>
                             {/* Status badge */}
                             {image.status === "failed" && (
-                                <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-red-500/80 text-xs text-white">
+                                <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-red-500/80 text-xs text-white">
                                     Failed
                                 </div>
                             )}

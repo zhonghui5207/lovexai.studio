@@ -46,9 +46,10 @@ export const generate = action({
       // Unified call for all models (Flux, GPT, Gemini)
       // The utility function handles model-specific parameters (aspect_ratio vs size)
       imageUrl = await callImageGeneration(apiKey, fullPrompt, modelName);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Image generation error:", error);
-      throw new Error("Image generation failed. Please try again.");
+      // Re-throw with the original error message (already user-friendly from image_gen.ts)
+      throw new Error(error.message || "Image generation failed. Please try again.");
     }
 
     if (!imageUrl || !imageUrl.startsWith("http")) {
@@ -95,7 +96,6 @@ export const saveGeneration = internalMutation({
     await ctx.db.insert("image_generations", {
       user_id: args.userId,
       prompt: args.prompt,
-      // style: args.style, // Removed as it's not in schema yet
       image_url: args.image_url,
       credits_cost: args.creditsCost,
       status: args.status,
@@ -109,11 +109,9 @@ export const listMine = query({
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Try frontend-passed userId first, then fall back to auth
     const identity = await ctx.auth.getUserIdentity();
     const userId = args.userId || identity?.subject;
     
-    // If no user, return empty array (guest mode)
     if (!userId) {
       return [];
     }
