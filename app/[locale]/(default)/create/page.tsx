@@ -140,9 +140,130 @@ export default function CreateCharacterPage() {
   // Convex hooks
   const router = useRouter();
   const generateCharacterDetails = useAction(api.actions.generateCharacterDetails);
+  const generateImage = useAction(api.images.generate);
+  const uploadAvatarAction = useAction(api.images.uploadAvatar);
   const createCharacter = useMutation(api.characters.create);
   const ensureUser = useMutation(api.users.ensureUser);
   const createConversation = useMutation(api.conversations.create);
+  
+  // Track if the avatar is a local file (base64) that needs to be uploaded
+  const [isLocalImage, setIsLocalImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Compress image to target size using Canvas API
+  const compressImage = (file: File, maxSize: number = 512): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        // Calculate new dimensions maintaining aspect ratio
+        let { width, height } = img;
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        // Draw to canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convert to JPEG with 85% quality for good balance
+        const compressed = canvas.toDataURL('image/jpeg', 0.85);
+        resolve(compressed);
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+  
+  // Handle file selection with compression
+  const handleFileSelect = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+    
+    try {
+      // Compress image to 512px max dimension
+      const compressedBase64 = await compressImage(file, 512);
+      setAvatarPreview(compressedBase64);
+      setIsLocalImage(true); // Mark as local file needing upload
+    } catch (error) {
+      console.error('Failed to compress image:', error);
+      // Fallback to original file
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string;
+        setAvatarPreview(base64);
+        setIsLocalImage(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // Handle drag and drop
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  };
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+  
+  // Quick Generate avatar function
+  const handleQuickGenerate = async () => {
+    if (!avatarPrompt) return;
+    
+    setIsGeneratingAvatar(true);
+    try {
+      // Ensure user is logged in
+      if (!session?.user?.email) {
+        alert("Please log in to generate images!");
+        return;
+      }
+      
+      // Get userId
+      const userId = await ensureUser({
+        email: session.user.email,
+        name: session.user.name || "User",
+        avatar_url: session.user.image || "",
+      });
+      
+      // Generate image using Gemini 2.5 Flash model
+      const imageUrl = await generateImage({
+        prompt: avatarPrompt,
+        style: "anime",
+        ratio: "3:4",
+        model: "gemini-2.5-flash-image-vip",
+        userId,
+      });
+      
+      // Set the generated image as avatar preview
+      if (imageUrl) {
+        setAvatarPreview(imageUrl);
+      }
+    } catch (error: any) {
+      console.error("Failed to generate avatar:", error);
+      alert(error.message || "Failed to generate image. Please try again.");
+    } finally {
+      setIsGeneratingAvatar(false);
+    }
+  };
 
   // Create character function
   const handleCreateCharacter = async () => {
@@ -170,13 +291,31 @@ export default function CreateCharacterPage() {
         avatar_url: session.user.image || "",
       });
       
-      // 3. Create the character with creator_id
+      // 3. Handle avatar upload if it's a local file
+      let finalAvatarUrl = avatarPreview;
+      if (avatarPreview && isLocalImage) {
+        // Upload the base64 image to R2 first
+        const uploadResult = await uploadAvatarAction({
+          base64Data: avatarPreview,
+          userId,
+        });
+        
+        if (uploadResult.success && uploadResult.imageUrl) {
+          finalAvatarUrl = uploadResult.imageUrl;
+        } else {
+          console.error("Failed to upload avatar:", uploadResult.error);
+          // Continue without avatar if upload fails
+          finalAvatarUrl = null;
+        }
+      }
+      
+      // 4. Create the character with creator_id
       const characterId = await createCharacter({
         name,
         description: generatedDescription || `A ${traitLabels.toLowerCase()} companion`,
         personality: generatedPersonalityDesc || traitLabels || "friendly",
         greeting_message: generatedGreeting || `*smiles warmly* "Hi, I'm ${name}. Nice to meet you!"`,
-        avatar_url: avatarPreview || undefined,
+        avatar_url: finalAvatarUrl || undefined,
         traits: selectedTraits,
         scenario: generatedScenario || customScenario || undefined,
         current_state: generatedCurrentState || undefined,
@@ -187,13 +326,25 @@ export default function CreateCharacterPage() {
         creator_id: userId,
       });
       
-      // 4. Create a conversation with the new character
+      // 5. Create a conversation with the new character
       const conversationId = await createConversation({
         characterId,
         userId,
       });
       
-      // 5. Redirect to chat
+      // 6. Preload the avatar image before redirecting
+      if (finalAvatarUrl) {
+        await new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve();
+          img.onerror = () => resolve(); // Don't block on error
+          img.src = finalAvatarUrl;
+          // Timeout after 2 seconds to not block too long
+          setTimeout(() => resolve(), 2000);
+        });
+      }
+      
+      // 7. Redirect to chat
       router.push(`/chat?c=${conversationId}`);
     } catch (error) {
       console.error("Failed to create character:", error);
@@ -408,13 +559,29 @@ export default function CreateCharacterPage() {
               <div className="grid grid-cols-5 gap-4">
                 {/* Upload */}
                 <div className="col-span-2 aspect-[3/4] relative group">
-                  <div className="absolute inset-0 rounded-2xl bg-black/40 border-2 border-dashed border-white/20 flex items-center justify-center hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer overflow-hidden">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+                  />
+                  <div 
+                    className={`absolute inset-0 rounded-2xl flex items-center justify-center transition-all cursor-pointer overflow-hidden ${
+                      avatarPreview 
+                        ? "border-2 border-primary/50 shadow-lg shadow-primary/20" 
+                        : "bg-black/40 border-2 border-dashed border-white/20 hover:border-primary/50 hover:bg-primary/5"
+                    }`}
+                    onClick={() => !avatarPreview && fileInputRef.current?.click()}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                  >
                     {avatarPreview ? (
                       <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center p-4">
                         <ImagePlus className="w-10 h-10 mx-auto mb-2 text-white/30 group-hover:text-primary/70 transition-colors" />
-                        <p className="text-sm text-white/50 group-hover:text-white/70">Upload</p>
+                        <p className="text-sm text-white/50 group-hover:text-white/70">Click to upload</p>
                         <p className="text-xs text-white/30 mt-1">or drag & drop</p>
                       </div>
                     )}
@@ -425,6 +592,7 @@ export default function CreateCharacterPage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         setAvatarPreview(null);
+                        setIsLocalImage(false);
                       }}
                       className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-black/80 flex items-center justify-center text-white/70 hover:text-white hover:bg-red-500 transition-all shadow-lg opacity-0 group-hover:opacity-100 z-10"
                     >
@@ -445,6 +613,7 @@ export default function CreateCharacterPage() {
                     <Button 
                       className="flex-1 gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
                       disabled={!avatarPrompt || isGeneratingAvatar}
+                      onClick={handleQuickGenerate}
                     >
                       <Sparkles className="w-4 h-4" />
                       {isGeneratingAvatar ? "Generating..." : "Quick Generate"}

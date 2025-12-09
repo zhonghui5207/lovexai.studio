@@ -75,3 +75,49 @@ export async function uploadImageToR2(imageUrl: string, prompt: string): Promise
     return imageUrl;
   }
 }
+
+// Upload base64 image data directly to R2 (for file uploads)
+export async function uploadBase64ToR2(base64Data: string, filename?: string): Promise<string> {
+  // Validate configuration
+  if (!R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME || !R2_ENDPOINT) {
+    throw new Error("R2 Configuration missing. Cannot upload image.");
+  }
+
+  try {
+    // Parse base64 data
+    // Expected format: data:image/png;base64,iVBORw0KGgo...
+    const matches = base64Data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      throw new Error("Invalid base64 image data");
+    }
+
+    const contentType = matches[1];
+    const base64Content = matches[2];
+    const buffer = Uint8Array.from(atob(base64Content), c => c.charCodeAt(0));
+
+    // Generate filename
+    const extension = contentType.split('/')[1] || 'png';
+    const finalFilename = filename || `avatar-${Date.now()}-${Math.random().toString(36).substring(7)}.${extension}`;
+
+    // Upload to R2
+    await S3.send(new PutObjectCommand({
+      Bucket: R2_BUCKET_NAME,
+      Key: finalFilename,
+      Body: buffer,
+      ContentType: contentType,
+    }));
+
+    console.log(`[R2] Base64 upload successful: ${finalFilename}`);
+
+    // Return the public URL
+    if (R2_PUBLIC_DOMAIN) {
+      return `${R2_PUBLIC_DOMAIN}/${finalFilename}`;
+    } else {
+      return `https://${R2_BUCKET_NAME}.${R2_ENDPOINT.replace('https://', '')}/${finalFilename}`;
+    }
+
+  } catch (error) {
+    console.error("[R2] Base64 Upload Error:", error);
+    throw error;
+  }
+}

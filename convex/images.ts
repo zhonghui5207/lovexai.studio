@@ -130,3 +130,23 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+// Upload avatar image to R2 (for character creation, doesn't save to image_generations)
+export const uploadAvatar = action({
+  args: {
+    base64Data: v.string(),
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Import dynamically to avoid issues with server-side code
+    const { uploadBase64ToR2 } = await import("./utils/r2");
+    
+    try {
+      const imageUrl = await uploadBase64ToR2(args.base64Data);
+      return { success: true, imageUrl };
+    } catch (error: any) {
+      console.error("Avatar upload failed:", error);
+      return { success: false, error: error.message || "Upload failed" };
+    }
+  },
+});

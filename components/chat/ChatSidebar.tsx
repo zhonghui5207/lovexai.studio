@@ -250,13 +250,21 @@ export default function ChatSidebar({
                 <div className="flex items-start gap-4">
                   {/* 角色头像 */}
                   <div className="relative w-12 h-12 flex-shrink-0">
-                    <Image
-                      src={conversation.characterAvatar}
-                      alt={conversation.characterName}
-                      fill
-                      className="rounded-xl object-cover shadow-sm"
-                      sizes="48px"
-                    />
+                    {conversation.characterAvatar ? (
+                      <Image
+                        src={conversation.characterAvatar}
+                        alt={conversation.characterName}
+                        fill
+                        className="rounded-xl object-cover shadow-sm"
+                        sizes="48px"
+                      />
+                    ) : (
+                      <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary/30 to-purple-500/30 flex items-center justify-center shadow-sm">
+                        <span className="text-lg font-bold text-white/80">
+                          {conversation.characterName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* 对话信息文本区域 */}

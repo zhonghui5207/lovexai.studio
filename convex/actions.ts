@@ -232,10 +232,10 @@ Generate the character details now.`;
       const cleaned = result?.replace(/```json\n?|\n?```/g, '').trim();
       const parsed = JSON.parse(cleaned || '{}');
       
-      // Format suggestions as a single string (pipe-separated for storage)
+      // Format suggestions as JSON array string for proper rendering
       const suggestionsArray = parsed.suggestions || [];
       const suggestionsStr = Array.isArray(suggestionsArray) 
-        ? suggestionsArray.join('|') 
+        ? JSON.stringify(suggestionsArray) 
         : suggestionsArray;
       
       return {
