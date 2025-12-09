@@ -160,6 +160,7 @@ function ChatInterface({
               // isTyping={isTyping} // Removed
               isLoading={rawMessages === undefined && !!conversationId}
               creditsPerMessage={character.credits_per_message}
+              convexUserId={convexUserId}
             />
           </div>
 

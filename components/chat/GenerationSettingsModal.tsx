@@ -238,10 +238,10 @@ export default function GenerationSettingsModal({
                   <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-lg border border-white/5">
                     <button
                       onClick={() => updateSetting("pov", "first_person")}
-                      className={`flex flex-col items-center justify-center py-3 px-2 rounded-md text-xs transition-all ${
+                      className={`flex flex-col items-center justify-center py-3 px-2 rounded-md text-xs transition-all border ${
                         localSettings.pov === "first_person"
-                          ? "bg-primary/20 text-primary border border-primary/20 shadow-sm"
-                          : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
+                          ? "bg-primary/20 text-primary border-primary/20 shadow-sm"
+                          : "text-gray-400 hover:bg-white/5 hover:text-gray-200 border-transparent"
                       }`}
                     >
                       <User className="w-4 h-4 mb-1.5" />
@@ -250,10 +250,10 @@ export default function GenerationSettingsModal({
                     </button>
                     <button
                       onClick={() => updateSetting("pov", "third_person")}
-                      className={`flex flex-col items-center justify-center py-3 px-2 rounded-md text-xs transition-all ${
+                      className={`flex flex-col items-center justify-center py-3 px-2 rounded-md text-xs transition-all border ${
                         localSettings.pov === "third_person"
-                          ? "bg-primary/20 text-primary border border-primary/20 shadow-sm"
-                          : "text-gray-400 hover:bg-white/5 hover:text-gray-200"
+                          ? "bg-primary/20 text-primary border-primary/20 shadow-sm"
+                          : "text-gray-400 hover:bg-white/5 hover:text-gray-200 border-transparent"
                       }`}
                     >
                       <Users className="w-4 h-4 mb-1.5" />

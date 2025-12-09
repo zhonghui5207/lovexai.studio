@@ -21,6 +21,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import InsufficientCreditsDialog from "./InsufficientCreditsDialog";
 import { useCredits } from "@/contexts/CreditsContext";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 
 interface Message {
   id: string;
@@ -54,9 +57,10 @@ interface ChatWindowProps {
   isTyping?: boolean;
   isLoading?: boolean;
   creditsPerMessage?: number;
+  convexUserId?: Id<"users"> | null;
 }
 
-export default function ChatWindow({ character, messages, onSendMessage, isTyping = false, isLoading = false, creditsPerMessage = 1 }: ChatWindowProps) {
+export default function ChatWindow({ character, messages, onSendMessage, isTyping = false, isLoading = false, creditsPerMessage = 1, convexUserId }: ChatWindowProps) {
   const { data: session } = useSession();
   const { credits } = useCredits();
   const [newMessage, setNewMessage] = useState("");
@@ -64,12 +68,49 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   const [isCreditsDialogOpen, setIsCreditsDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<'network' | 'server' | 'credits' | 'permission' | 'general' | 'timeout' | 'empty_message'>('general');
-  const [generationSettings, setGenerationSettings] = useState<GenerationSettings>({
+  
+  // Default settings
+  const defaultSettings: GenerationSettings = {
     responseLength: "default",
     selectedModel: "nova",
     pov: "first_person",
     creativity: "balanced"
-  });
+  };
+  
+  // Load user settings from Convex
+  const savedSettings = useQuery(
+    api.users.getGenerationSettings,
+    convexUserId ? { userId: convexUserId } : "skip"
+  );
+  const updateSettingsMutation = useMutation(api.users.updateGenerationSettings);
+  
+  // Use saved settings or defaults
+  const [generationSettings, setGenerationSettings] = useState<GenerationSettings>(defaultSettings);
+  
+  // Sync with saved settings when loaded
+  useEffect(() => {
+    if (savedSettings) {
+      setGenerationSettings(savedSettings as GenerationSettings);
+    }
+  }, [savedSettings]);
+  
+  // Handle settings change and save to backend
+  const handleSettingsChange = async (newSettings: GenerationSettings) => {
+    setGenerationSettings(newSettings);
+    
+    // Save to backend if user is logged in
+    if (convexUserId) {
+      try {
+        await updateSettingsMutation({
+          userId: convexUserId,
+          settings: newSettings,
+        });
+      } catch (error) {
+        console.error("Failed to save settings:", error);
+      }
+    }
+  };
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -322,7 +363,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         settings={generationSettings}
-        onSettingsChange={setGenerationSettings}
+        onSettingsChange={handleSettingsChange}
       />
 
       {/* Insufficient Credits Dialog */}

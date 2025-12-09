@@ -222,4 +222,42 @@ export const syncUser = mutation({
   },
 });
 
+// Get user's generation settings
+export const getGenerationSettings = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return null;
+    
+    // Return saved settings or defaults
+    return user.generation_settings || {
+      pov: "first_person",
+      creativity: "balanced",
+      responseLength: "default",
+      selectedModel: "nova",
+    };
+  },
+});
 
+// Update user's generation settings
+export const updateGenerationSettings = mutation({
+  args: {
+    userId: v.id("users"),
+    settings: v.object({
+      pov: v.string(),
+      creativity: v.string(),
+      responseLength: v.string(),
+      selectedModel: v.string(),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error("User not found");
+    
+    await ctx.db.patch(args.userId, {
+      generation_settings: args.settings,
+    });
+    
+    return args.settings;
+  },
+});

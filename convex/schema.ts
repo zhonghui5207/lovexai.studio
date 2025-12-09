@@ -14,6 +14,13 @@ export default defineSchema({
     subscription_expires_at: v.optional(v.string()),
     // External Auth Provider ID (e.g. from NextAuth/Clerk)
     tokenIdentifier: v.optional(v.string()),
+    // Generation settings for AI responses
+    generation_settings: v.optional(v.object({
+      pov: v.string(), // 'first_person' | 'third_person'
+      creativity: v.string(), // 'precise' | 'balanced' | 'creative'
+      responseLength: v.string(), // 'short' | 'default' | 'long'
+      selectedModel: v.string(), // 'nova' | 'pulsar' | 'nebula' | 'quasar'
+    })),
   })
     .index("by_email", ["email"])
     .index("by_token", ["tokenIdentifier"])
