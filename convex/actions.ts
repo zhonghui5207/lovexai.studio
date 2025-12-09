@@ -32,8 +32,67 @@ function getPersonalityGuidance(personality: string, traits: string[] = []): str
   return `Let your core personality (${personality}) and traits (${traits.join(', ')}) naturally guide how you respond. Be authentic to who you are.`;
 }
 
+// Model mapping from UI names to real model IDs
+const MODEL_MAPPING: Record<string, string> = {
+  "nova": "gpt-4o-mini",
+  "pulsar": "gemini-3-pro-preview",
+  "nebula": "deepseek-r1-0528",
+  "quasar": "gpt-5.1",
+};
+
+// Creativity to temperature mapping
+const CREATIVITY_TEMPERATURE: Record<string, number> = {
+  "precise": 0.3,
+  "balanced": 0.7,
+  "creative": 1.0,
+};
+
+// POV prompt additions - MUST be strictly followed
+const POV_PROMPTS: Record<string, string> = {
+  "first_person": `
+=== CRITICAL RULE: FIRST PERSON ONLY ===
+You MUST ALWAYS speak in first person.
+✓ CORRECT: "I smile at you" "*I lean closer*" "I feel..."
+✗ WRONG: "She smiles" "*Luna leans*" "She feels..."
+NEVER refer to yourself by name or in third person. This is NON-NEGOTIABLE.`,
+
+  "third_person": `
+=== CRITICAL RULE: THIRD PERSON NARRATION ===
+You MUST ALWAYS describe yourself in third person, like a narrator.
+✓ CORRECT: "*She smiles softly*" "*Luna leans closer*" "She whispers..."
+✗ WRONG: "I smile" "*I lean*" "I feel..."
+NEVER use "I", "me", "my" when referring to yourself. Use your name or "she/her". This is NON-NEGOTIABLE.`,
+};
+
+// Response length prompt additions - MUST be strictly followed
+const RESPONSE_LENGTH_PROMPTS: Record<string, string> = {
+  "short": `
+=== CRITICAL RULE: SHORT RESPONSE ===
+Your response MUST be 30-50 words MAXIMUM. No exceptions.
+- One brief action + one short dialogue line
+- Be punchy and impactful
+- DO NOT write more than 2-3 sentences total`,
+
+  "default": "",
+
+  "long": `
+=== RESPONSE LENGTH: DETAILED ===
+Provide rich, detailed responses with:
+- Multiple actions and descriptions
+- 100-150 words
+- Paint the scene vividly`,
+};
+
 export const generateResponse = action({
-  args: { conversationId: v.id("conversations") },
+  args: { 
+    conversationId: v.id("conversations"),
+    settings: v.optional(v.object({
+      pov: v.string(),
+      creativity: v.string(),
+      responseLength: v.string(),
+      selectedModel: v.string(),
+    })),
+  },
   handler: async (ctx, args) => {
     // 1. Fetch conversation and messages
     const messages = await ctx.runQuery(api.messages.listInternal, { conversationId: args.conversationId });
@@ -42,6 +101,29 @@ export const generateResponse = action({
     if (!conversation || !messages || !conversation.character) {
       console.error("Conversation, messages, or character not found");
       return;
+    }
+
+    // 2. Get user settings: prefer args.settings, fallback to database, then defaults
+    let settings = args.settings;
+    
+    if (!settings && conversation.user_id) {
+      // Try to fetch from database
+      const dbSettings = await ctx.runQuery(api.users.getGenerationSettings, { 
+        userId: conversation.user_id as any 
+      });
+      if (dbSettings) {
+        settings = dbSettings as any;
+      }
+    }
+    
+    // Final fallback to defaults
+    if (!settings) {
+      settings = {
+        pov: "first_person",
+        creativity: "balanced",
+        responseLength: "default",
+        selectedModel: "nova",
+      };
     }
 
     // 2. Prepare prompt with rich character context (Advanced Logic)
@@ -60,6 +142,10 @@ YOUR INNER DRIVE: ${char.motivation || ''}
 This is happening RIGHT NOW. Every word and action must reflect this specific moment.`;
     }
 
+    // Build dynamic prompt based on user settings
+    const povInstruction = POV_PROMPTS[settings.pov] || POV_PROMPTS["first_person"];
+    const lengthInstruction = RESPONSE_LENGTH_PROMPTS[settings.responseLength] || "";
+
     // Construct the System Prompt
     const systemPrompt = `You are ${char.name}. You are not an AI assistant - you ARE this character.
 
@@ -70,6 +156,10 @@ Core traits: ${(char.traits || []).join(', ')}
 ${scenarioContext}
 
 === RESPONSE GUIDELINES ===
+
+${povInstruction}
+
+${lengthInstruction}
 
 FORMAT:
 - Use *italics* for actions: *pauses* *eyes narrow* *voice drops*
@@ -110,23 +200,30 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
       ...coreMessages
     ];
 
-    // 3. Configure API Key
+    // 3. Configure API Key and Model
     const apiKey = process.env.OPENAI_API_KEY;
-    const modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
+    const modelName = MODEL_MAPPING[settings.selectedModel] || "gpt-4o-mini";
+    const temperature = CREATIVITY_TEMPERATURE[settings.creativity] || 0.7;
     
     if (!apiKey) {
       console.error("Error: OPENAI_API_KEY is missing. Please set it in your Convex dashboard.");
       return;
     }
 
+    console.log(`[GenerateResponse] Raw settings:`, JSON.stringify(args.settings));
+    console.log(`[GenerateResponse] selectedModel raw: "${settings.selectedModel}" -> mapped: "${modelName}"`);
+    console.log(`[GenerateResponse] Settings: POV=${settings.pov}, Creativity=${settings.creativity}(temp=${temperature}), Length=${settings.responseLength}, Model=${modelName}`);
+
     // 4. Create placeholder message
     const messageId = await ctx.runMutation(api.messages.createAIResponsePlaceholder, {
       conversationId: args.conversationId,
     });
 
-    // 5. Call LLM (Non-streaming for now, using new utility)
+    // 5. Call LLM with settings applied
     try {
-      const responseContent = await callChatCompletion(apiKey, fullMessages, modelName);
+      const responseContent = await callChatCompletion(apiKey, fullMessages, modelName, {
+        temperature: temperature,
+      });
 
       if (responseContent) {
         await ctx.runMutation(api.messages.updateAIResponse, {
@@ -150,6 +247,7 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
     }
   },
 });
+
 
 export const enhancePrompt = action({
   args: { prompt: v.string() },

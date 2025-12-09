@@ -102,7 +102,12 @@ function ChatInterface({
   }));
 
   // Handle Send
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, settings?: {
+    pov: string;
+    creativity: string;
+    responseLength: string;
+    selectedModel: string;
+  }) => {
     if (!conversationId || !convexUserId) return;
 
     try {
@@ -113,8 +118,11 @@ function ChatInterface({
         userId: convexUserId,
       });
 
-      // 2. Trigger AI (Don't await to unblock UI)
-      generateResponse({ conversationId: conversationId as Id<"conversations"> })
+      // 2. Trigger AI with user settings (Don't await to unblock UI)
+      generateResponse({ 
+        conversationId: conversationId as Id<"conversations">,
+        settings: settings,
+      })
         .catch((error) => {
           console.error("Failed to generate response:", error);
         });

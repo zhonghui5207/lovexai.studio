@@ -1,6 +1,16 @@
 import OpenAI from "openai";
 
-export async function callChatCompletion(apiKey: string, messages: any[], model: string = "gpt-4o-mini") {
+interface ChatCompletionOptions {
+  temperature?: number;
+  maxTokens?: number;
+}
+
+export async function callChatCompletion(
+  apiKey: string, 
+  messages: any[], 
+  model: string = "gpt-4o-mini",
+  options: ChatCompletionOptions = {}
+) {
   const startTime = Date.now();
 
   const client = new OpenAI({
@@ -12,10 +22,12 @@ export async function callChatCompletion(apiKey: string, messages: any[], model:
     const completion = await client.chat.completions.create({
       model: model,
       messages: messages,
+      temperature: options.temperature ?? 0.7,
+      ...(options.maxTokens && { max_tokens: options.maxTokens }),
     });
 
     const duration = Date.now() - startTime;
-    console.log(`[LLM] Model: ${model} | Time: ${duration}ms`);
+    console.log(`[LLM] Model: ${model} | Temp: ${options.temperature ?? 0.7} | Time: ${duration}ms`);
 
     return completion.choices[0].message.content;
   } catch (error) {
