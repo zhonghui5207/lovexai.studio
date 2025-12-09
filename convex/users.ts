@@ -231,7 +231,6 @@ export const getGenerationSettings = query({
     
     // Return saved settings or defaults
     return user.generation_settings || {
-      pov: "first_person",
       creativity: "balanced",
       responseLength: "default",
       selectedModel: "nova",
@@ -244,7 +243,6 @@ export const updateGenerationSettings = mutation({
   args: {
     userId: v.id("users"),
     settings: v.object({
-      pov: v.string(),
       creativity: v.string(),
       responseLength: v.string(),
       selectedModel: v.string(),

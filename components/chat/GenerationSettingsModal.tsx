@@ -35,7 +35,6 @@ interface AIModel {
 interface GenerationSettings {
   responseLength: "short" | "default" | "long";
   selectedModel: string;
-  pov: "first_person" | "third_person";
   creativity: "precise" | "balanced" | "creative";
 }
 
@@ -225,86 +224,72 @@ export default function GenerationSettingsModal({
         <div className="overflow-y-auto max-h-[calc(85vh-80px)] custom-scrollbar">
           <div className="p-6 space-y-8">
 
-            {/* Roleplay Preferences (New) */}
+            {/* Creativity Setting */}
             <section>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <User className="w-4 h-4" /> Roleplay Preferences
+                <Zap className="w-4 h-4" /> Creativity
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* POV Setting */}
-                <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-200">Point of View</label>
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-lg border border-white/5">
-                    <button
-                      onClick={() => updateSetting("pov", "first_person")}
-                      className={`flex flex-col items-center justify-center py-3 px-2 rounded-md text-xs transition-all border ${
-                        localSettings.pov === "first_person"
-                          ? "bg-primary/20 text-primary border-primary/20 shadow-sm"
-                          : "text-gray-400 hover:bg-white/5 hover:text-gray-200 border-transparent"
-                      }`}
-                    >
-                      <User className="w-4 h-4 mb-1.5" />
-                      <span className="font-medium">First Person</span>
-                      <span className="text-[10px] opacity-60 mt-0.5">"I look at you..."</span>
-                    </button>
-                    <button
-                      onClick={() => updateSetting("pov", "third_person")}
-                      className={`flex flex-col items-center justify-center py-3 px-2 rounded-md text-xs transition-all border ${
-                        localSettings.pov === "third_person"
-                          ? "bg-primary/20 text-primary border-primary/20 shadow-sm"
-                          : "text-gray-400 hover:bg-white/5 hover:text-gray-200 border-transparent"
-                      }`}
-                    >
-                      <Users className="w-4 h-4 mb-1.5" />
-                      <span className="font-medium">Third Person</span>
-                      <span className="text-[10px] opacity-60 mt-0.5">"She looks at you..."</span>
-                    </button>
-                  </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-gray-500">Controls how creative and unpredictable the AI responses are</span>
+                  <span className="text-xs text-primary font-medium capitalize">{localSettings.creativity}</span>
                 </div>
-
-                {/* Creativity Setting */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <label className="text-sm font-medium text-gray-200">Creativity</label>
-                    <span className="text-xs text-primary font-medium capitalize">{localSettings.creativity}</span>
-                  </div>
-                  <div className="pt-2 px-1">
-                    <div className="relative flex justify-between mb-2">
-                      <div 
-                        className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${localSettings.creativity === 'precise' ? 'opacity-100 scale-105' : 'opacity-40 hover:opacity-70'}`}
-                        onClick={() => updateSetting("creativity", "precise")}
-                      >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${localSettings.creativity === 'precise' ? 'bg-blue-500/20 border-blue-500 text-blue-400' : 'bg-gray-800 border-gray-700'}`}>
-                          <Zap className="w-4 h-4" />
-                        </div>
-                        <span className="text-[10px]">Precise</span>
-                      </div>
-                      
-                      <div 
-                        className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${localSettings.creativity === 'balanced' ? 'opacity-100 scale-105' : 'opacity-40 hover:opacity-70'}`}
-                        onClick={() => updateSetting("creativity", "balanced")}
-                      >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${localSettings.creativity === 'balanced' ? 'bg-primary/20 border-primary text-primary' : 'bg-gray-800 border-gray-700'}`}>
-                          <Brain className="w-4 h-4" />
-                        </div>
-                        <span className="text-[10px]">Balanced</span>
-                      </div>
-
-                      <div 
-                        className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${localSettings.creativity === 'creative' ? 'opacity-100 scale-105' : 'opacity-40 hover:opacity-70'}`}
-                        onClick={() => updateSetting("creativity", "creative")}
-                      >
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border ${localSettings.creativity === 'creative' ? 'bg-purple-500/20 border-purple-500 text-purple-400' : 'bg-gray-800 border-gray-700'}`}>
-                          <Sparkles className="w-4 h-4" />
-                        </div>
-                        <span className="text-[10px]">Creative</span>
-                      </div>
-                      
-                      {/* Connecting Line */}
-                      <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-800 -z-10" />
+                
+                <div className="relative flex justify-between items-center px-8 py-4 bg-black/40 rounded-lg border border-white/5 overflow-hidden">
+                  {/* Precise */}
+                  <div 
+                    className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${
+                      localSettings.creativity === 'precise' ? 'opacity-100' : 'opacity-40 hover:opacity-70'
+                    }`}
+                    onClick={() => updateSetting("creativity", "precise")}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                      localSettings.creativity === 'precise' 
+                        ? 'bg-blue-500/20 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]' 
+                        : 'bg-gray-800 border-gray-700 text-gray-500'
+                    }`}>
+                      <Zap className="w-5 h-5" />
                     </div>
+                    <span className="text-xs font-medium">Precise</span>
                   </div>
+                  
+                  {/* Balanced */}
+                  <div 
+                    className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${
+                      localSettings.creativity === 'balanced' ? 'opacity-100' : 'opacity-40 hover:opacity-70'
+                    }`}
+                    onClick={() => updateSetting("creativity", "balanced")}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                      localSettings.creativity === 'balanced' 
+                        ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_hsl(var(--primary)/0.4)]' 
+                        : 'bg-gray-800 border-gray-700 text-gray-500'
+                    }`}>
+                      <Brain className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-medium">Balanced</span>
+                  </div>
+
+                  {/* Creative */}
+                  <div 
+                    className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${
+                      localSettings.creativity === 'creative' ? 'opacity-100' : 'opacity-40 hover:opacity-70'
+                    }`}
+                    onClick={() => updateSetting("creativity", "creative")}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                      localSettings.creativity === 'creative' 
+                        ? 'bg-purple-500/20 border-purple-500 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]' 
+                        : 'bg-gray-800 border-gray-700 text-gray-500'
+                    }`}>
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-medium">Creative</span>
+                  </div>
+                  
+                  {/* Connecting Line */}
+                  <div className="absolute top-[38px] left-[72px] right-[72px] h-0.5 bg-gray-700 -z-10" />
                 </div>
               </div>
             </section>

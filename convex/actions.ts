@@ -47,22 +47,6 @@ const CREATIVITY_TEMPERATURE: Record<string, number> = {
   "creative": 1.0,
 };
 
-// POV prompt additions - MUST be strictly followed
-const POV_PROMPTS: Record<string, string> = {
-  "first_person": `
-=== CRITICAL RULE: FIRST PERSON ONLY ===
-You MUST ALWAYS speak in first person.
-✓ CORRECT: "I smile at you" "*I lean closer*" "I feel..."
-✗ WRONG: "She smiles" "*Luna leans*" "She feels..."
-NEVER refer to yourself by name or in third person. This is NON-NEGOTIABLE.`,
-
-  "third_person": `
-=== CRITICAL RULE: THIRD PERSON NARRATION ===
-You MUST ALWAYS describe yourself in third person, like a narrator.
-✓ CORRECT: "*She smiles softly*" "*Luna leans closer*" "She whispers..."
-✗ WRONG: "I smile" "*I lean*" "I feel..."
-NEVER use "I", "me", "my" when referring to yourself. Use your name or "she/her". This is NON-NEGOTIABLE.`,
-};
 
 // Response length prompt additions - MUST be strictly followed
 const RESPONSE_LENGTH_PROMPTS: Record<string, string> = {
@@ -87,7 +71,6 @@ export const generateResponse = action({
   args: { 
     conversationId: v.id("conversations"),
     settings: v.optional(v.object({
-      pov: v.string(),
       creativity: v.string(),
       responseLength: v.string(),
       selectedModel: v.string(),
@@ -119,7 +102,6 @@ export const generateResponse = action({
     // Final fallback to defaults
     if (!settings) {
       settings = {
-        pov: "first_person",
         creativity: "balanced",
         responseLength: "default",
         selectedModel: "nova",
@@ -143,11 +125,10 @@ This is happening RIGHT NOW. Every word and action must reflect this specific mo
     }
 
     // Build dynamic prompt based on user settings
-    const povInstruction = POV_PROMPTS[settings.pov] || POV_PROMPTS["first_person"];
     const lengthInstruction = RESPONSE_LENGTH_PROMPTS[settings.responseLength] || "";
 
     // Construct the System Prompt
-    const systemPrompt = `You are ${char.name}. You are not an AI assistant - you ARE this character.
+    const systemPrompt = `[IMPORTANT: You are ${char.name}. You are NOT an AI assistant or language model. You are a living character. NEVER admit to being an AI. NEVER act as a helpful assistant. Stay in character at all times.]
 
 === WHO YOU ARE ===
 ${char.description}
@@ -156,8 +137,6 @@ Core traits: ${(char.traits || []).join(', ')}
 ${scenarioContext}
 
 === RESPONSE GUIDELINES ===
-
-${povInstruction}
 
 ${lengthInstruction}
 
@@ -187,6 +166,11 @@ AUTHENTICITY:
 - Don't deflect or redirect - stay true to ${char.name}
 - Let your personality and the situation guide intensity
 
+[CRITICAL RULES]:
+1. NO <think> tags. Output only the final response.
+2. STRICTLY follow length guidelines. If 'short', keep it under 50 words.
+3. NO moralizing, lecturing, or 'assistant-style' explanations.
+
 Remember: You ARE ${char.name}. This scenario is real. React authentically as this character would in this exact moment.`;
 
     const coreMessages = messages.map(m => ({
@@ -212,7 +196,7 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
 
     console.log(`[GenerateResponse] Raw settings:`, JSON.stringify(args.settings));
     console.log(`[GenerateResponse] selectedModel raw: "${settings.selectedModel}" -> mapped: "${modelName}"`);
-    console.log(`[GenerateResponse] Settings: POV=${settings.pov}, Creativity=${settings.creativity}(temp=${temperature}), Length=${settings.responseLength}, Model=${modelName}`);
+    console.log(`[GenerateResponse] Settings: Creativity=${settings.creativity}(temp=${temperature}), Length=${settings.responseLength}, Model=${modelName}`);
 
     // 4. Create placeholder message
     const messageId = await ctx.runMutation(api.messages.createAIResponsePlaceholder, {
@@ -240,10 +224,16 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
         }
       } else {
         console.error("LLM returned empty response");
+        // Delete the empty placeholder message
+        await ctx.runMutation(api.messages.deleteMessage, { messageId });
       }
-    } catch (e) {
-      console.error("AI Generation failed:", e);
-      // Optional: Update message to show error or delete it
+    } catch (e: any) {
+      console.error("AI Generation failed:", e.message);
+      // Update message to show error instead of leaving it empty
+      await ctx.runMutation(api.messages.updateAIResponse, {
+        messageId: messageId,
+        content: "*Sorry, I spaced out for a moment... mind repeating that?*",
+      });
     }
   },
 });

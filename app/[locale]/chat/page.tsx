@@ -182,11 +182,21 @@ export default function ChatPage() {
 
   useEffect(() => {
     // Only redirect if we are NOT loading
-    // We need to check loading state here because these variables depend on data being loaded
     const isLoading = status === "loading" || (session && !convexUserId) || rawConversations === undefined || rawCharacters === undefined;
     
-    if (!isLoading && (isConversationNotFound || noActiveConversation)) {
-      router.push('/discover');
+    if (!isLoading) {
+      if (isConversationNotFound) {
+        // If current conversation allows not found, check if we have any other conversations
+        if (rawConversations && rawConversations.length > 0) {
+          // Switch to the first available conversation instead of discover
+          const nextConv = rawConversations[0];
+          router.replace(`/chat?c=${nextConv._id}`);
+        } else {
+          router.push('/discover');
+        }
+      } else if (noActiveConversation) {
+        router.push('/discover');
+      }
     }
   }, [isConversationNotFound, noActiveConversation, router, status, session, convexUserId, rawConversations, rawCharacters]);
 

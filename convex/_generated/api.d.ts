@@ -14,6 +14,7 @@ import type * as conversations from "../conversations.js";
 import type * as images from "../images.js";
 import type * as interactions from "../interactions.js";
 import type * as messages from "../messages.js";
+import type * as migrations_cleanupOldSettings from "../migrations/cleanupOldSettings.js";
 import type * as orders from "../orders.js";
 import type * as seed from "../seed.js";
 import type * as users from "../users.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   images: typeof images;
   interactions: typeof interactions;
   messages: typeof messages;
+  "migrations/cleanupOldSettings": typeof migrations_cleanupOldSettings;
   orders: typeof orders;
   seed: typeof seed;
   users: typeof users;

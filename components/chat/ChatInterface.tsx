@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
 import CharacterPanel from "./CharacterPanel";
@@ -79,6 +80,7 @@ function ChatInterface({
   availableCharacters,
   convexUserId
 }: ChatInterfaceProps) {
+  const router = useRouter();
   const { updateCredits } = useCredits();
   // const [isTyping, setIsTyping] = useState(false); // Removed
 
@@ -103,7 +105,6 @@ function ChatInterface({
 
   // Handle Send
   const handleSendMessage = async (content: string, settings?: {
-    pov: string;
     creativity: string;
     responseLength: string;
     selectedModel: string;
@@ -169,6 +170,24 @@ function ChatInterface({
               isLoading={rawMessages === undefined && !!conversationId}
               creditsPerMessage={character.credits_per_message}
               convexUserId={convexUserId}
+              conversationId={conversationId as any}
+              onConversationDeleted={() => {
+                console.log("[Delete Callback] Current conversationId:", conversationId);
+                console.log("[Delete Callback] All conversations:", conversations);
+                
+                // Find another conversation to switch to
+                const otherConversation = conversations.find(c => c.id !== conversationId);
+                console.log("[Delete Callback] Found other conversation:", otherConversation);
+                
+                if (otherConversation) {
+                  console.log("[Delete Callback] Switching to:", otherConversation.id);
+                  onConversationSwitch(otherConversation);
+                } else {
+                  console.log("[Delete Callback] No other conversations, going to discover");
+                  // No other conversations, go to discover
+                  router.push('/discover');
+                }
+              }}
             />
           </div>
 

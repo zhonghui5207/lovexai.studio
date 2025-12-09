@@ -293,7 +293,7 @@ export default function ChatSidebar({
                     <p className={`text-sm truncate italic ${
                       conversation.id === currentConversationId ? 'text-white/70' : 'text-white/50'
                     }`}>
-                      <FormattedMessage content={conversation.lastMessage || "No messages yet"} />
+                      {(conversation.lastMessage || "No messages yet").replace(/\*/g, '')}
                     </p>
                   </div>
                 </div>

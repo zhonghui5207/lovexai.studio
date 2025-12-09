@@ -16,7 +16,6 @@ export default defineSchema({
     tokenIdentifier: v.optional(v.string()),
     // Generation settings for AI responses
     generation_settings: v.optional(v.object({
-      pov: v.string(), // 'first_person' | 'third_person'
       creativity: v.string(), // 'precise' | 'balanced' | 'creative'
       responseLength: v.string(), // 'short' | 'default' | 'long'
       selectedModel: v.string(), // 'nova' | 'pulsar' | 'nebula' | 'quasar'

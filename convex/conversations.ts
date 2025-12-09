@@ -165,4 +165,105 @@ export const create = mutation({
   },
 });
 
+// Delete a conversation and all its messages
+export const deleteConversation = mutation({
+  args: { 
+    conversationId: v.id("conversations"),
+    userId: v.optional(v.id("users"))
+  },
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation) throw new Error("Conversation not found");
 
+    // Verify ownership
+    let userId = args.userId;
+    if (!userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (identity) {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+          .unique();
+        userId = user?._id;
+      }
+    }
+
+    if (!userId || conversation.user_id !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Delete all messages in the conversation
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversation_id", args.conversationId))
+      .collect();
+
+    for (const message of messages) {
+      await ctx.db.delete(message._id);
+    }
+
+    // Delete the conversation
+    await ctx.db.delete(args.conversationId);
+
+    return { success: true };
+  },
+});
+
+// Reset a conversation (delete all messages except greeting)
+export const resetConversation = mutation({
+  args: { 
+    conversationId: v.id("conversations"),
+    userId: v.optional(v.id("users"))
+  },
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation) throw new Error("Conversation not found");
+
+    // Verify ownership
+    let userId = args.userId;
+    if (!userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (identity) {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+          .unique();
+        userId = user?._id;
+      }
+    }
+
+    if (!userId || conversation.user_id !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    // Get the character for greeting message
+    const character = await ctx.db.get(conversation.character_id);
+    if (!character) throw new Error("Character not found");
+
+    // Delete all messages in the conversation
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversation_id", args.conversationId))
+      .collect();
+
+    for (const message of messages) {
+      await ctx.db.delete(message._id);
+    }
+
+    // Reset conversation stats
+    await ctx.db.patch(args.conversationId, {
+      message_count: 1,
+      last_message_at: new Date().toISOString(),
+    });
+
+    // Add back the greeting message
+    await ctx.db.insert("messages", {
+      conversation_id: args.conversationId,
+      sender_type: "character",
+      content: character.greeting_message,
+      credits_used: 0,
+    });
+
+    return { success: true };
+  },
+});

@@ -156,4 +156,23 @@ export const saveAIResponse = mutation({
   },
 });
 
-
+// Delete a message (for cleanup when AI generation fails)
+export const deleteMessage = mutation({
+  args: {
+    messageId: v.id("messages"),
+  },
+  handler: async (ctx, args) => {
+    const message = await ctx.db.get(args.messageId);
+    if (!message) return;
+    
+    // Update conversation message count
+    const conversation = await ctx.db.get(message.conversation_id);
+    if (conversation && conversation.message_count > 0) {
+      await ctx.db.patch(message.conversation_id, {
+        message_count: conversation.message_count - 1,
+      });
+    }
+    
+    await ctx.db.delete(args.messageId);
+  },
+});
