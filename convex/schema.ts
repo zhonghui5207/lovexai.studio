@@ -7,7 +7,7 @@ export default defineSchema({
     email: v.string(),
     name: v.string(),
     avatar_url: v.optional(v.string()),
-    subscription_tier: v.string(), // 'free', 'basic', 'pro', 'ultra'
+    subscription_tier: v.string(), // 'free', 'plus', 'pro', 'ultimate'
     credits_balance: v.number(),
     invite_code: v.optional(v.string()),
     invited_by: v.optional(v.string()),
@@ -20,6 +20,11 @@ export default defineSchema({
       responseLength: v.string(), // 'short' | 'default' | 'long'
       selectedModel: v.string(), // 'nova' | 'pulsar' | 'nebula' | 'quasar'
     })),
+    // Daily swipe tracking for Discover
+    daily_swipes_used: v.optional(v.number()),
+    last_swipe_reset_date: v.optional(v.string()),
+    // Custom characters count
+    custom_characters_count: v.optional(v.number()),
   })
     .index("by_email", ["email"])
     .index("by_token", ["tokenIdentifier"])

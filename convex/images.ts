@@ -3,6 +3,7 @@ import { action, internalMutation, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { callImageGeneration } from "./utils/image_gen";
 import { uploadImageToR2 } from "./utils/r2";
+import { IMAGE_CREDITS, SubscriptionTier } from "./utils/permissions";
 
 export const generate = action({
   args: {
@@ -24,9 +25,27 @@ export const generate = action({
       throw new Error("Authentication required. Please sign in to generate images.");
     }
     
-    // 2. Check Credits (Placeholder)
-    // const user = await ctx.runQuery(api.users.get, { userId });
-    // if (user.credits < 5) throw new Error("Insufficient credits");
+    // 2. Get user and check credits
+    let user = null;
+    let creditsCost = 10; // Default cost
+    
+    try {
+      user = await ctx.runQuery(api.users.get, { id: userId as any });
+    } catch (e) {
+      // Try finding by tokenIdentifier
+      user = await ctx.runQuery(api.users.current);
+    }
+    
+    if (user) {
+      // Get credit cost based on subscription tier
+      const tier = (user.subscription_tier || 'free') as SubscriptionTier;
+      creditsCost = IMAGE_CREDITS[tier] || 10;
+      
+      // Check if user has enough credits
+      if (user.credits_balance < creditsCost) {
+        throw new Error(`Insufficient credits. You need ${creditsCost} credits but have ${user.credits_balance}. Please purchase more credits.`);
+      }
+    }
 
     // 3. Call AI API
     const apiKey = process.env.OPENAI_API_KEY;
@@ -73,7 +92,7 @@ export const generate = action({
       prompt: args.prompt,
       style: args.style,
       image_url: finalImageUrl, // Use the R2 URL (or fallback)
-      creditsCost: 5,
+      creditsCost,
       status: "completed",
       model: modelName,
     });
@@ -93,6 +112,37 @@ export const saveGeneration = internalMutation({
     model: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // First, deduct credits from user
+    // Find user by various methods
+    let user = null;
+    
+    try {
+      user = await ctx.db.get(args.userId as any);
+    } catch (e) {}
+    
+    if (!user) {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q) => q.eq("tokenIdentifier", args.userId))
+        .unique();
+    }
+    
+    if (user && 'credits_balance' in user) {
+      const currentBalance = (user as any).credits_balance || 0;
+      const newBalance = Math.max(0, currentBalance - args.creditsCost);
+      await ctx.db.patch(user._id, {
+        credits_balance: newBalance,
+      } as any);
+      
+      // Record credit transaction
+      await ctx.db.insert("credits", {
+        user_id: user._id,
+        amount: -args.creditsCost,
+        type: "image_generation",
+      } as any);
+    }
+    
+    // Save generation record
     await ctx.db.insert("image_generations", {
       user_id: args.userId,
       prompt: args.prompt,

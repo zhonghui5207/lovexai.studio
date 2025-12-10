@@ -2,130 +2,154 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Check, Loader, Zap, Sparkles, Crown, Star } from "lucide-react";
+import { Check, Loader } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { loadStripe } from "@stripe/stripe-js";
 import { toast } from "sonner";
 import { useAppContext } from "@/contexts/app";
+import { useSearchParams } from "next/navigation";
 
-// Mock Data for Subscriptions
+// ========================================
+// Subscription Plans Configuration
+// ========================================
 const SUBSCRIPTION_PLANS = [
   {
     id: "free",
     name: "FREE",
-    description: "All the Basics",
+    description: "Experience the Basics",
     price: { monthly: 0, yearly: 0 },
+    credits: 150,
+    creditsNote: "one-time",
     features: [
-      "10 Generations / Day",
-      "4 customizations",
-      "15 Messages / Day",
-      "15 Messages in Memory",
-      "1 Photo Message"
+      "150 Credits (one-time)",
+      "10 Discover swipes/day",
+      "10 messages in memory",
+      "Nova basic model",
+      "Free characters",
     ],
     highlight: false,
     buttonText: "Current Plan",
     disabled: true
   },
   {
-    id: "premium",
-    name: "PREMIUM",
-    description: "Create Your Dreams",
+    id: "plus",
+    name: "PLUS",
+    description: "Unlock More Possibilities",
     price: { monthly: 9.99, yearly: 6.99 },
+    credits: 500,
+    creditsNote: "per month",
     originalPrice: { monthly: 9.99, yearly: 9.99 },
-    save: "$36/year",
     features: [
-      "100 Generations / Day",
-      "45+ addt'l customizations",
-      "6000 Messages/Mo",
-      "25 Messages in Memory",
-      "Faster Messaging Time"
+      "500 Credits/month",
+      "30 Discover swipes/day",
+      "20 messages in memory",
+      "Nova + Pulsar models",
+      "Free + Plus characters",
+      "5 custom characters",
     ],
     highlight: false,
     buttonText: "Subscribe",
-    product_id: "price_premium_id" // Replace with real Stripe ID
+    product_id: "price_plus"
   },
   {
     id: "pro",
     name: "PRO",
-    description: "Fuel Your Fantasy",
+    description: "Professional Experience",
     price: { monthly: 19.99, yearly: 13.99 },
+    credits: 2000,
+    creditsNote: "per month",
     originalPrice: { monthly: 19.99, yearly: 19.99 },
-    save: "$72/year",
     features: [
-      "Unlimited Generations",
-      "95+ addt'l customizations",
-      "HD Generations",
-      "9000 Messages/Mo",
-      "35 Messages in Memory"
+      "2,000 Credits/month",
+      "50 Discover swipes/day",
+      "30 messages in memory",
+      "Nova + Pulsar + Nebula",
+      "All Pro & below characters",
+      "15 custom characters",
+      "Advanced image model",
     ],
     highlight: false,
     buttonText: "Subscribe",
-    product_id: "price_pro_id"
+    product_id: "price_pro"
   },
   {
     id: "ultimate",
     name: "ULTIMATE",
-    description: "Limitless Creativity",
+    description: "Unlimited Creative Freedom",
     price: { monthly: 29.99, yearly: 20.99 },
+    credits: 5000,
+    creditsNote: "per month",
     originalPrice: { monthly: 29.99, yearly: 29.99 },
-    save: "$108/year",
     features: [
-      "Unlimited HD Generations",
-      "Create Unlimited Photos of Custom Girls",
-      "Best models & all 350+ customizations",
-      "Landscape and portrait modes",
-      "Unlimited messaging (incl photos)"
+      "5,000 Credits/month",
+      "Unlimited Discover swipes",
+      "50 messages in memory",
+      "All AI models (incl. Quasar)",
+      "All characters (incl. exclusive)",
+      "Unlimited custom characters",
+      "Best image model",
     ],
     highlight: true,
     buttonText: "Subscribe",
-    product_id: "price_ultimate_id"
+    product_id: "price_ultimate"
   }
 ];
 
-// Mock Data for Credits
+// ========================================
+// Credit Packs Configuration
+// ========================================
 const CREDIT_PACKS = [
   {
-    credits: 2500,
-    price: 4.99,
+    credits: 500,
+    price: 2.99,
     bonus: 0,
-    product_id: "credits_2500"
+    product_id: "credits_500"
   },
   {
-    credits: 5500,
-    price: 10.99,
+    credits: 1500,
+    price: 7.99,
     bonus: 100,
-    product_id: "credits_5500"
+    popular: false,
+    product_id: "credits_1500"
   },
   {
-    credits: 11000,
-    price: 21.99,
-    bonus: 600,
-    product_id: "credits_11000"
+    credits: 3000,
+    price: 14.99,
+    bonus: 300,
+    popular: true,
+    product_id: "credits_3000"
   },
   {
-    credits: 18000,
-    price: 35.99,
-    bonus: 2000,
-    product_id: "credits_18000"
+    credits: 6000,
+    price: 27.99,
+    bonus: 800,
+    product_id: "credits_6000"
   },
   {
-    credits: 25000,
+    credits: 12000,
     price: 49.99,
-    bonus: 5000,
-    product_id: "credits_25000"
+    bonus: 2000,
+    product_id: "credits_12000"
   },
   {
-    credits: 50000,
+    credits: 30000,
     price: 99.99,
-    bonus: 15000,
-    product_id: "credits_50000"
+    bonus: 7500,
+    product_id: "credits_30000"
   }
 ];
 
-import { useSearchParams } from "next/navigation";
-
-// ...
+// ========================================
+// Credits Usage Reference
+// ========================================
+const CREDITS_USAGE = [
+  { action: "Chat (Nova)", cost: "2 credits/msg" },
+  { action: "Chat (Pulsar)", cost: "4 credits/msg" },
+  { action: "Chat (Nebula)", cost: "6 credits/msg" },
+  { action: "Chat (Quasar)", cost: "10 credits/msg" },
+  { action: "Image Generation", cost: "10-20 credits" },
+  { action: "Prompt Enhance", cost: "2 credits" },
+];
 
 export default function PricingPage() {
   const searchParams = useSearchParams();
@@ -137,7 +161,7 @@ export default function PricingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const handleCheckout = async (productId: string, price: number, interval?: 'month' | 'year' | 'one-time') => {
+  const handleCheckout = async (productId: string, price: number, credits: number, interval?: 'month' | 'year' | 'one-time', productName?: string) => {
     if (!user) {
       setShowSignModal(true);
       return;
@@ -152,12 +176,12 @@ export default function PricingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           product_id: productId,
-          product_name: productId.includes("credits") ? `${price} Credits` : "Subscription",
-          amount: Math.round(price * 100), // Stripe expects cents
+          product_name: productName || (productId.includes("credits") ? `${credits} Credits` : "Subscription"),
+          amount: Math.round(price * 100),
           currency: "usd",
           interval: interval || "one-time",
           valid_months: interval === "year" ? 12 : 1,
-          credits: productId.includes("credits") ? parseInt(productId.split("_")[1]) : 0,
+          credits: credits,
         })
       });
 
@@ -176,9 +200,10 @@ export default function PricingPage() {
 
       if (error) throw error;
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Checkout error:", error);
-      toast.error(error.message || "Checkout failed");
+      const errorMessage = error instanceof Error ? error.message : "Checkout failed";
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
       setProcessingId(null);
@@ -227,9 +252,9 @@ export default function PricingPage() {
               transition={{ duration: 0.3 }}
             >
               <div className="mb-10">
-                <h1 className="text-4xl font-bold mb-4">Upgrade Your Experience.</h1>
+                <h1 className="text-4xl font-bold mb-4">Unlock Unlimited Creativity</h1>
                 <p className="text-muted-foreground max-w-2xl">
-                  Join 500,000+ users and take your journey to the next level by creating unlimited fantasies, characters, and images.
+                  Choose the plan that suits you best and embark on an amazing journey with your AI companions.
                 </p>
               </div>
 
@@ -242,7 +267,7 @@ export default function PricingPage() {
                       billingCycle === 'yearly' ? 'bg-white/10 text-white shadow-sm' : 'text-white/60 hover:text-white'
                     }`}
                   >
-                    Yearly <span className="text-primary text-xs ml-1">30% off</span>
+                    Yearly <span className="text-primary text-xs ml-1">Save 30%</span>
                   </button>
                   <button
                     onClick={() => setBillingCycle('monthly')}
@@ -268,9 +293,15 @@ export default function PricingPage() {
                         isSelected
                           ? 'bg-gradient-to-b from-primary/10 to-background border-primary shadow-[0_0_30px_rgba(255,0,110,0.15)] scale-[1.02]'
                           : 'bg-card border-white/5 hover:border-white/10 hover:bg-white/5'
-                      } ${plan.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      } ${plan.disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
-                      {isSelected && (
+                      {plan.highlight && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-secondary text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                          RECOMMENDED
+                        </div>
+                      )}
+
+                      {isSelected && !plan.highlight && (
                         <div className="absolute -top-3 right-6 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                           SELECTED
                         </div>
@@ -282,28 +313,33 @@ export default function PricingPage() {
                         
                         <div className="flex items-baseline gap-1">
                           <span className="text-3xl font-bold text-white">
-                            ${plan.price[billingCycle]}
+                            ${plan.price[billingCycle].toFixed(2)}
                           </span>
                           <span className="text-white/40 text-sm">/mo</span>
                         </div>
                         
-                        {billingCycle === 'yearly' && plan.price.yearly > 0 && (
-                          <div className="text-xs mt-1 space-y-1">
+                        {billingCycle === 'yearly' && plan.price.yearly > 0 && plan.originalPrice && (
+                          <div className="text-xs mt-2 space-y-1">
                             <div className="text-white/40">Billed annually at ${(plan.price.yearly * 12).toFixed(2)}</div>
-                            {plan.originalPrice && (
-                              <div className="text-primary font-medium">
-                                <span className="line-through text-white/30 mr-2">${(plan.originalPrice.yearly * 12).toFixed(2)}</span>
-                                Save ${((plan.originalPrice.yearly - plan.price.yearly) * 12).toFixed(2)}/year
-                              </div>
-                            )}
+                            <div className="text-primary font-medium">
+                              <span className="line-through text-white/30 mr-2">${(plan.originalPrice.yearly * 12).toFixed(2)}</span>
+                              Save ${((plan.originalPrice.yearly - plan.price.yearly) * 12).toFixed(0)}/year
+                            </div>
                           </div>
                         )}
+
+                        {/* Credits Badge */}
+                        <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+                          <span className="text-2xl">🪙</span>
+                          <span className="text-sm font-bold text-primary">{plan.credits.toLocaleString()} Credits</span>
+                          <span className="text-xs text-white/50">{plan.creditsNote}</span>
+                        </div>
                       </div>
 
                       <div className="flex-grow space-y-3 mb-8">
                         {plan.features.map((feature, i) => (
                           <div key={i} className="flex items-start gap-3 text-sm text-white/80">
-                            <Check className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-primary' : 'text-white/40'}`} />
+                            <Check className={`w-4 h-4 shrink-0 mt-0.5 ${isSelected ? 'text-primary' : 'text-green-500'}`} />
                             <span>{feature}</span>
                           </div>
                         ))}
@@ -312,7 +348,15 @@ export default function PricingPage() {
                       <Button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (plan.product_id) handleCheckout(plan.product_id, plan.price[billingCycle], billingCycle === 'monthly' ? 'month' : 'year');
+                          if (plan.product_id) {
+                            handleCheckout(
+                              plan.product_id, 
+                              plan.price[billingCycle], 
+                              plan.credits,
+                              billingCycle === 'monthly' ? 'month' : 'year',
+                              `${plan.name} ${billingCycle === 'yearly' ? 'Annual' : 'Monthly'}`
+                            );
+                          }
                         }}
                         disabled={plan.disabled || isLoading}
                         className={`w-full py-6 rounded-xl font-bold text-base transition-all ${
@@ -341,34 +385,60 @@ export default function PricingPage() {
               transition={{ duration: 0.3 }}
             >
               <div className="mb-10">
-                <h1 className="text-4xl font-bold mb-4 text-primary">Credits</h1>
-                <h2 className="text-2xl font-bold mb-2">Enhance Your Journey.</h2>
+                <h1 className="text-4xl font-bold mb-4">
+                  <span className="text-primary">Credits</span>
+                </h1>
+                <h2 className="text-2xl font-bold mb-2">Pay As You Go</h2>
                 <p className="text-muted-foreground max-w-2xl">
-                  Credits unlock significant roleplay upgrades including improved storytelling and contextual memory.
+                  Use credits for chat, image generation, and prompt enhancement. Buy more, get more bonus credits!
                 </p>
+              </div>
+
+              {/* Credits Usage Info */}
+              <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/10">
+                <h3 className="text-sm font-bold text-white/60 mb-3">Credits Usage Reference</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                  {CREDITS_USAGE.map((item, i) => (
+                    <div key={i} className="text-center">
+                      <div className="text-white font-medium text-sm">{item.action}</div>
+                      <div className="text-primary text-xs">{item.cost}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {CREDIT_PACKS.map((pack, index) => (
                   <div
                     key={index}
-                    className="group relative overflow-hidden rounded-2xl bg-card border border-white/5 p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer"
-                    onClick={() => handleCheckout(pack.product_id, pack.price, 'one-time')}
+                    className={`group relative overflow-hidden rounded-2xl bg-card border p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer ${
+                      pack.popular ? 'border-primary/30 shadow-[0_0_20px_rgba(255,0,110,0.1)]' : 'border-white/5'
+                    }`}
+                    onClick={() => handleCheckout(pack.product_id, pack.price, pack.credits + (pack.bonus || 0), 'one-time', `${pack.credits} Credits`)}
                   >
+                    {pack.popular && (
+                      <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
+                        POPULAR
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-start relative z-10">
                       <div>
                         <div className="text-2xl font-bold text-white mb-1">
                           {pack.credits.toLocaleString()} Credits
                         </div>
                         {pack.bonus > 0 && (
-                          <div className="text-primary font-bold text-sm mb-6">
-                            +{pack.bonus.toLocaleString()} Credits FREE!
+                          <div className="text-primary font-bold text-sm mb-4">
+                            +{pack.bonus.toLocaleString()} Bonus Credits!
                           </div>
                         )}
-                        {!pack.bonus && <div className="h-5 mb-6"></div>}
+                        {!pack.bonus && <div className="h-5 mb-4"></div>}
                         
-                        <div className="text-xl font-bold text-white">
+                        <div className="text-2xl font-bold text-white">
                           ${pack.price}
+                        </div>
+                        <div className="text-xs text-white/40 mt-1">
+                          ${(pack.price / (pack.credits + (pack.bonus || 0)) * 100).toFixed(2)} per 100 credits
                         </div>
                       </div>
                       
@@ -381,9 +451,15 @@ export default function PricingPage() {
                     {/* Background Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
-                    <div className="absolute bottom-4 right-4 text-white/20 group-hover:text-primary transition-colors">
-                      →
-                    </div>
+                    {isLoading && processingId === pack.product_id ? (
+                      <div className="absolute bottom-4 right-4">
+                        <Loader className="w-5 h-5 animate-spin text-primary" />
+                      </div>
+                    ) : (
+                      <div className="absolute bottom-4 right-4 text-white/20 group-hover:text-primary transition-colors">
+                        →
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

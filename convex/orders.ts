@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { TIER_LIMITS, SubscriptionTier } from "./utils/permissions";
 
 export const getByOrderNo = query({
   args: { orderNo: v.string() },
@@ -49,38 +50,46 @@ export const processPaidOrder = mutation({
     } catch (e) {}
 
     if (!user) {
-        // Try as legacy_id
-        // Legacy migration logic removed
-        // user = await ctx.db.query("users").filter(q => q.eq(q.field("legacy_id"), order.user_id)).unique();
-    }
-    
-    if (!user) {
         // Try as tokenIdentifier
         user = await ctx.db.query("users").withIndex("by_token", q => q.eq("tokenIdentifier", order.user_id)).unique();
     }
 
-    if (user && order.credits > 0) {
-        // Determine new tier
-        let newTier = (user as any).subscription_tier || "free";
+    if (user) {
         const productName = order.product_name?.toLowerCase() || "";
+        const productId = (order as any).product_id?.toLowerCase() || "";
         
-        if (productName.includes("premium")) {
-            newTier = "basic";
-        } else if (productName.includes("pro")) {
+        // Determine new tier based on product
+        let newTier: SubscriptionTier = (user as any).subscription_tier || "free";
+        
+        if (productName.includes("ultimate") || productId.includes("ultimate")) {
+            newTier = "ultimate";
+        } else if (productName.includes("pro") || productId.includes("pro")) {
             newTier = "pro";
+        } else if (productName.includes("plus") || productId.includes("plus")) {
+            newTier = "plus";
+        }
+
+        // Calculate credits to add
+        let creditsToAdd = order.credits || 0;
+        
+        // If it's a subscription (has expired_at), add monthly credits based on tier
+        if (order.expired_at && newTier !== "free") {
+            creditsToAdd = TIER_LIMITS[newTier]?.monthly_credits || creditsToAdd;
         }
 
         // Add credits
         const currentCredits = (user as any).credits_balance || 0;
         
         const patchData: any = {
-            credits_balance: currentCredits + order.credits
+            credits_balance: currentCredits + creditsToAdd
         };
 
-        // If it's a subscription order (has expired_at), update subscription info
+        // If it's a subscription order, update subscription info
         if (order.expired_at) {
             patchData.subscription_tier = newTier;
             patchData.subscription_expires_at = order.expired_at;
+            // Reset daily swipe counter for new subscription
+            patchData.daily_swipes_used = 0;
         }
 
         await ctx.db.patch(user._id, patchData);
@@ -88,8 +97,8 @@ export const processPaidOrder = mutation({
         // Record transaction
         await ctx.db.insert("credits", {
             user_id: user._id,
-            amount: order.credits,
-            type: "purchase",
+            amount: creditsToAdd,
+            type: order.expired_at ? "subscription" : "purchase",
             order_no: order.order_no,
         } as any);
     }

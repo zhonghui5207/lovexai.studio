@@ -26,6 +26,7 @@ import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useAppContext } from "@/contexts/app";
+import { IMAGE_CREDITS, SubscriptionTier } from "@/lib/permissions";
 
 // Mock Data for Styles
 const STYLES = [
@@ -143,6 +144,12 @@ export default function GeneratePage() {
   // Pass convexUserId to query for history
   const history = useQuery(api.images.listMine, convexUserId ? { userId: convexUserId } : "skip");
   const [isEnhancing, setIsEnhancing] = useState(false);
+  
+  // Get user data for credits and tier
+  const convexUser = useQuery(api.users.current);
+  const userCredits = convexUser?.credits_balance ?? 0;
+  const userTier = (convexUser?.subscription_tier || 'free') as SubscriptionTier;
+  const imageCreditsCost = IMAGE_CREDITS[userTier] || 10;
 
   // Typewriter Effect
   useEffect(() => {
@@ -588,7 +595,7 @@ export default function GeneratePage() {
                       <ellipse cx="12" cy="12" rx="9" ry="4" stroke="url(#manifest-grad)" strokeWidth="1" opacity="0.5" transform="rotate(30 12 12)"/>
                     </svg>
                     <span>Manifest Reality</span>
-                    <span className="text-xs font-normal opacity-70 ml-1">(5)</span>
+                    <span className="text-xs font-normal opacity-70 ml-1">({imageCreditsCost} credits)</span>
                 </div>
                 )}
             </Button>

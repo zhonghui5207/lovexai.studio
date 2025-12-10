@@ -74,7 +74,7 @@ export const store = mutation({
       avatar_url: identity.pictureUrl,
       tokenIdentifier: identity.tokenIdentifier,
       subscription_tier: "free",
-      credits_balance: 100, // Default starting credits
+      credits_balance: 150, // New user signup credits
       invite_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
     });
 
@@ -113,7 +113,7 @@ export const ensureUser = mutation({
       email: args.email,
       avatar_url: args.avatar_url,
       subscription_tier: "free",
-      credits_balance: 100,
+      credits_balance: 150,
       invite_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
     });
 
@@ -214,7 +214,7 @@ export const syncUser = mutation({
       avatar_url: args.avatar_url,
       tokenIdentifier: args.externalId,
       subscription_tier: "free",
-      credits_balance: 100,
+      credits_balance: 150,
       invite_code: Math.random().toString(36).substring(2, 8).toUpperCase(),
     });
 
@@ -257,5 +257,110 @@ export const updateGenerationSettings = mutation({
     });
     
     return args.settings;
+  },
+});
+
+// ========================================
+// Discover Swipe Functions
+// ========================================
+
+import { 
+  TIER_LIMITS, 
+  SubscriptionTier, 
+  getTodayDateString, 
+  shouldResetDaily 
+} from "./utils/permissions";
+
+// Check remaining swipes for today
+export const getRemainingSwipes = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return { remaining: 0, limit: 0 };
+    
+    const tier = (user.subscription_tier || 'free') as SubscriptionTier;
+    const limit = TIER_LIMITS[tier]?.daily_swipes || 10;
+    
+    // Check if we need to reset daily counter
+    if (shouldResetDaily(user.last_swipe_reset_date)) {
+      return { remaining: limit, limit };
+    }
+    
+    const used = user.daily_swipes_used || 0;
+    const remaining = Math.max(0, limit - used);
+    
+    return { remaining, limit };
+  },
+});
+
+// Use a swipe (call this when user swipes in Discover)
+export const useSwipe = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) throw new Error("User not found");
+    
+    const tier = (user.subscription_tier || 'free') as SubscriptionTier;
+    const limit = TIER_LIMITS[tier]?.daily_swipes || 10;
+    
+    // Unlimited for ultimate
+    if (limit === Infinity) {
+      return { success: true, remaining: Infinity };
+    }
+    
+    const today = getTodayDateString();
+    
+    // Reset if new day
+    let currentUsed = user.daily_swipes_used || 0;
+    if (shouldResetDaily(user.last_swipe_reset_date)) {
+      currentUsed = 0;
+    }
+    
+    // Check limit
+    if (currentUsed >= limit) {
+      return { success: false, remaining: 0, error: "Daily swipe limit reached" };
+    }
+    
+    // Increment counter
+    await ctx.db.patch(args.userId, {
+      daily_swipes_used: currentUsed + 1,
+      last_swipe_reset_date: today,
+    });
+    
+    return { success: true, remaining: limit - currentUsed - 1 };
+  },
+});
+
+// Check if user can access a character
+export const canAccessCharacter = query({
+  args: { 
+    userId: v.id("users"),
+    characterAccessLevel: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return false;
+    
+    const userTier = (user.subscription_tier || 'free') as SubscriptionTier;
+    const charLevel = args.characterAccessLevel as SubscriptionTier;
+    
+    const allowedLevels = TIER_LIMITS[userTier]?.character_access || ['free'];
+    return allowedLevels.includes(charLevel);
+  },
+});
+
+// Check if user can use a specific model
+export const canUseModel = query({
+  args: { 
+    userId: v.id("users"),
+    model: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId);
+    if (!user) return false;
+    
+    const userTier = (user.subscription_tier || 'free') as SubscriptionTier;
+    const allowedModels = TIER_LIMITS[userTier]?.models || ['nova'];
+    return allowedModels.includes(args.model as any);
   },
 });

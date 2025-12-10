@@ -51,7 +51,7 @@ const AI_MODELS: AIModel[] = [
     name: "Nova",
     type: "Basic",
     description: "Fast and efficient. A bright new star perfect for casual chatting.",
-    credits: 0,
+    credits: 2,
     performance: { consistency: 3, creativity: 2, descriptiveness: 2, memory: 2 }
   },
   {
@@ -59,7 +59,7 @@ const AI_MODELS: AIModel[] = [
     name: "Pulsar",
     type: "Balanced",
     description: "Rhythmic and precise. The perfect balance of logic and creativity.",
-    credits: 2,
+    credits: 4,
     performance: { consistency: 4, creativity: 4, descriptiveness: 3, memory: 3 }
   },
   {
@@ -67,7 +67,7 @@ const AI_MODELS: AIModel[] = [
     name: "Nebula",
     type: "Creative",
     description: "Vast and colorful. Designed for infinite imagination and rich descriptions.",
-    credits: 4,
+    credits: 6,
     performance: { consistency: 3, creativity: 5, descriptiveness: 5, memory: 3 }
   },
   {
@@ -135,13 +135,9 @@ function ModelCard({ model, isSelected, onSelect }: {
 
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2">
-             {model.credits === 0 ? (
-               <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">Free</Badge>
-             ) : (
-               <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                 {model.credits} Credits
-               </Badge>
-             )}
+             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+               {model.credits} Credits/msg
+             </Badge>
           </div>
         </div>
       </div>

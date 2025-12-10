@@ -3,6 +3,7 @@ import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { callChatCompletion } from "./utils/llm";
+import { MODEL_CREDITS, MODEL_MAPPING, ChatModel } from "./utils/permissions";
 
 // Helper function for dynamic personality guidance
 function getPersonalityGuidance(personality: string, traits: string[] = []): string {
@@ -32,13 +33,7 @@ function getPersonalityGuidance(personality: string, traits: string[] = []): str
   return `Let your core personality (${personality}) and traits (${traits.join(', ')}) naturally guide how you respond. Be authentic to who you are.`;
 }
 
-// Model mapping from UI names to real model IDs
-const MODEL_MAPPING: Record<string, string> = {
-  "nova": "gpt-4o-mini",
-  "pulsar": "gemini-3-pro-preview",
-  "nebula": "deepseek-r1-0528",
-  "quasar": "gpt-5.1",
-};
+// Note: MODEL_MAPPING is now imported from ./utils/permissions
 
 // Creativity to temperature mapping
 const CREATIVITY_TEMPERATURE: Record<string, number> = {
@@ -186,7 +181,7 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
 
     // 3. Configure API Key and Model
     const apiKey = process.env.OPENAI_API_KEY;
-    const modelName = MODEL_MAPPING[settings.selectedModel] || "gpt-4o-mini";
+    const modelName = MODEL_MAPPING[settings.selectedModel as ChatModel] || "gpt-4o-mini";
     const temperature = CREATIVITY_TEMPERATURE[settings.creativity] || 0.7;
     
     if (!apiKey) {
@@ -215,10 +210,12 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
           content: responseContent,
         });
 
-        // 6. Deduct credits
+        // 6. Deduct credits based on model used
         if (conversation.user_id) {
+          const modelKey = (settings.selectedModel || 'nova') as ChatModel;
+          const creditsCost = MODEL_CREDITS[modelKey] || 2;
           await ctx.runMutation(api.users.deductCredits, {
-            amount: char.credits_per_message || 1,
+            amount: creditsCost,
             userId: conversation.user_id as any,
           });
         }
@@ -240,8 +237,21 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
 
 
 export const enhancePrompt = action({
-  args: { prompt: v.string() },
+  args: { 
+    prompt: v.string(),
+    userId: v.optional(v.string()),
+  },
   handler: async (ctx, args) => {
+    const PROMPT_ENHANCE_CREDITS = 2;
+    
+    // Check credits if userId provided
+    if (args.userId) {
+      const user = await ctx.runQuery(api.users.get, { id: args.userId as any });
+      if (user && user.credits_balance < PROMPT_ENHANCE_CREDITS) {
+        throw new Error(`Insufficient credits. You need ${PROMPT_ENHANCE_CREDITS} credits for prompt enhancement.`);
+      }
+    }
+    
     const apiKey = process.env.OPENAI_API_KEY;
     const modelName = process.env.OPENAI_MODEL || "gpt-4o-mini";
 
@@ -263,6 +273,15 @@ Return ONLY the enhanced prompt text, no explanations or quotes.`;
 
     try {
       const enhanced = await callChatCompletion(apiKey, messages, modelName);
+      
+      // Deduct credits after successful enhancement
+      if (args.userId) {
+        await ctx.runMutation(api.users.deductCredits, {
+          amount: PROMPT_ENHANCE_CREDITS,
+          userId: args.userId as any,
+        });
+      }
+      
       return enhanced;
     } catch (e) {
       console.error("Prompt enhancement failed:", e);

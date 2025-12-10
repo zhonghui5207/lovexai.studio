@@ -11,15 +11,18 @@
 import type * as actions from "../actions.js";
 import type * as characters from "../characters.js";
 import type * as conversations from "../conversations.js";
+import type * as crons from "../crons.js";
 import type * as images from "../images.js";
 import type * as interactions from "../interactions.js";
 import type * as messages from "../messages.js";
 import type * as migrations_cleanupOldSettings from "../migrations/cleanupOldSettings.js";
 import type * as orders from "../orders.js";
 import type * as seed from "../seed.js";
+import type * as subscriptions from "../subscriptions.js";
 import type * as users from "../users.js";
 import type * as utils_image_gen from "../utils/image_gen.js";
 import type * as utils_llm from "../utils/llm.js";
+import type * as utils_permissions from "../utils/permissions.js";
 import type * as utils_r2 from "../utils/r2.js";
 
 import type {
@@ -32,15 +35,18 @@ declare const fullApi: ApiFromModules<{
   actions: typeof actions;
   characters: typeof characters;
   conversations: typeof conversations;
+  crons: typeof crons;
   images: typeof images;
   interactions: typeof interactions;
   messages: typeof messages;
   "migrations/cleanupOldSettings": typeof migrations_cleanupOldSettings;
   orders: typeof orders;
   seed: typeof seed;
+  subscriptions: typeof subscriptions;
   users: typeof users;
   "utils/image_gen": typeof utils_image_gen;
   "utils/llm": typeof utils_llm;
+  "utils/permissions": typeof utils_permissions;
   "utils/r2": typeof utils_r2;
 }>;
 

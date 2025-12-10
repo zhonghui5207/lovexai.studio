@@ -11,12 +11,15 @@ import {
   PlusCircle, 
   Image as ImageIcon, 
   CreditCard, 
-  ChevronDown
+  ChevronDown,
+  Coins
 } from "lucide-react";
 import SignToggle from "@/components/sign/toggle";
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAppContext } from "@/contexts/app";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 const NAVIGATION_ITEMS = [
   { name: 'Home', href: '/', icon: Home },
@@ -27,12 +30,25 @@ const NAVIGATION_ITEMS = [
   { name: 'Pricing', href: '/pricing', icon: CreditCard },
 ];
 
+const TIER_DISPLAY: Record<string, { name: string; color: string }> = {
+  free: { name: "Free", color: "text-white/60" },
+  plus: { name: "Plus", color: "text-blue-400" },
+  pro: { name: "Pro", color: "text-purple-400" },
+  ultimate: { name: "Ultimate", color: "text-yellow-400" },
+};
+
 export default function Sidebar() {
   const pathname = usePathname();
   const [isHovered, setIsHovered] = useState(false);
   const { user } = useAppContext();
   const [gender, setGender] = useState<'girls' | 'guys' | 'anime'>('girls');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  // Get real-time user data from Convex
+  const convexUser = useQuery(api.users.current);
+  const credits = convexUser?.credits_balance ?? 0;
+  const tier = convexUser?.subscription_tier || 'free';
+  const tierInfo = TIER_DISPLAY[tier] || TIER_DISPLAY.free;
 
   // 当侧边栏收起时，强制关闭下拉菜单
   useEffect(() => {
@@ -65,6 +81,27 @@ export default function Sidebar() {
           </span>
         </Link>
       </div>
+
+      {/* Credits Display - Only when hovered and user is logged in */}
+      {isHovered && convexUser && (
+        <Link 
+          href="/pricing?tab=credits" 
+          className="mx-3 mb-2 p-3 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 hover:border-yellow-500/40 transition-all group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-500/20">
+                <Coins className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <p className="text-xs text-white/60">Credits</p>
+                <p className="text-lg font-bold text-white">{credits.toLocaleString()}</p>
+              </div>
+            </div>
+            <span className="text-xs text-yellow-400 group-hover:text-yellow-300">Get More →</span>
+          </div>
+        </Link>
+      )}
 
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
@@ -145,7 +182,7 @@ export default function Sidebar() {
                 </Avatar>
                 <div className="flex-1 min-w-0 text-left">
                   <p className="text-sm font-medium text-white truncate leading-none mb-1">{user.name}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Free Plan</p>
+                  <p className={cn("text-[10px] font-medium", tierInfo.color)}>{tierInfo.name} Plan</p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
               </div>
@@ -157,3 +194,4 @@ export default function Sidebar() {
     </aside>
   );
 }
+
