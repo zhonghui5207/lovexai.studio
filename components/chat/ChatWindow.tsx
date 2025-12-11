@@ -138,7 +138,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
   };
 
   useEffect(() => {

@@ -152,6 +152,7 @@ export default function HeroBanner() {
               size="lg" 
               variant="outline"
               className="border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 font-semibold px-8 py-6 text-lg rounded-2xl backdrop-blur-sm transition-all"
+              onClick={() => router.push('/discover')}
             >
               Explore Characters
             </Button>
@@ -171,7 +172,7 @@ export default function HeroBanner() {
               ))}
             </div>
             <div className="text-sm text-muted-foreground">
-              <span className="text-foreground font-bold">10,000+</span> users online
+              <span className="text-foreground font-bold">10,000+</span> conversations daily
             </div>
           </motion.div>
         </div>
