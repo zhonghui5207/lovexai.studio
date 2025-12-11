@@ -5,7 +5,7 @@ import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info, Trash2, Loader2 } from "lucide-react";
+import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info, Trash2, Loader2, Lock, Crown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
@@ -14,6 +14,8 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import Link from "next/link";
 
 // Interface for mapped character data
 interface SwipeCharacter {
@@ -43,6 +45,14 @@ export default function DiscoverPage() {
   const rawCharacters = useQuery(api.characters.list, { activeOnly: true });
   const ensureUser = useMutation(api.users.ensureUser);
   const createConversation = useMutation(api.conversations.create);
+  const useSwipeMutation = useMutation(api.users.useSwipe);
+  
+  // User ID for swipe tracking
+  const [userId, setUserId] = useState<Id<"users"> | null>(null);
+  const [localSwipesUsed, setLocalSwipesUsed] = useState(0);
+  
+  // Swipe info query (depends on userId)
+  const swipeInfo = useQuery(api.users.getRemainingSwipes, userId ? { userId } : "skip");
 
   const [cards, setCards] = useState<SwipeCharacter[]>([]);
   const [history, setHistory] = useState<SwipeCharacter[]>([]);
@@ -51,6 +61,14 @@ export default function DiscoverPage() {
   const [likedCharacters, setLikedCharacters] = useState<SwipeCharacter[]>([]);
   const [isCollectionBounce, setIsCollectionBounce] = useState(false);
   const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  
+  // Sync local swipes counter with server data
+  useEffect(() => {
+    if (swipeInfo) {
+      setLocalSwipesUsed(swipeInfo.limit - swipeInfo.remaining);
+    }
+  }, [swipeInfo]);
 
   // Load characters when data is available
   useEffect(() => {
@@ -68,6 +86,17 @@ export default function DiscoverPage() {
       setCards(mapped);
     }
   }, [rawCharacters]);
+  
+  // Sync user and get userId for swipe tracking
+  useEffect(() => {
+    if (session?.user?.email && !userId) {
+      ensureUser({
+        email: session.user.email,
+        name: session.user.name || "User",
+        avatar_url: session.user.image || "",
+      }).then(setUserId).catch(console.error);
+    }
+  }, [session, userId, ensureUser]);
 
   const handleStartChat = async (characterId: Id<"characters">) => {
     if (!session?.user?.email) {
@@ -98,10 +127,30 @@ export default function DiscoverPage() {
     }
   };
 
-  // Swipe Logic
+  // Swipe Logic - Optimistic update (no await)
   const removeCard = (id: string, direction: "left" | "right") => {
     const cardToRemove = cards.find(c => c.id === id);
     if (!cardToRemove) return;
+    
+    // Check limit locally first (instant check)
+    const limit = swipeInfo?.limit ?? 10;
+    if (localSwipesUsed >= limit) {
+      setShowLimitModal(true);
+      return;
+    }
+    
+    // Update local counter immediately
+    setLocalSwipesUsed(prev => prev + 1);
+    
+    // Track swipe in background (non-blocking)
+    if (userId) {
+      useSwipeMutation({ userId }).then(result => {
+        if (!result.success) {
+          // Server says limit reached - show modal
+          setShowLimitModal(true);
+        }
+      }).catch(console.error);
+    }
 
     if (direction === 'right') {
         setMatch(cardToRemove);
@@ -131,6 +180,56 @@ export default function DiscoverPage() {
         }
       `}</style>
       
+      {/* Swipe Limit Reached Modal */}
+      <Dialog open={showLimitModal} onOpenChange={setShowLimitModal}>
+        <DialogContent className="sm:max-w-md bg-neutral-900 border-white/10 text-white">
+            <DialogHeader className="text-center">
+                <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-4">
+                    <Lock className="w-8 h-8 text-white" />
+                </div>
+                <DialogTitle className="text-2xl font-bold text-white mb-2">
+                    Daily Limit Reached
+                </DialogTitle>
+                <DialogDescription className="text-neutral-400 text-base">
+                    You've used all your daily swipes. Upgrade your plan to get more swipes and discover more amazing companions!
+                </DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-6 space-y-4">
+                <div className="grid grid-cols-3 gap-3 text-center">
+                    <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <p className="text-2xl font-bold text-white">Plus</p>
+                        <p className="text-xs text-white/60">30 swipes/day</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-purple-500/20 border border-purple-500/30">
+                        <p className="text-2xl font-bold text-purple-400">Pro</p>
+                        <p className="text-xs text-white/60">50 swipes/day</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-yellow-500/20 border border-yellow-500/30">
+                        <p className="text-2xl font-bold text-yellow-400">Ultimate</p>
+                        <p className="text-xs text-white/60">Unlimited</p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+                <Link href="/pricing" className="w-full">
+                    <Button className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 h-12 text-lg rounded-xl">
+                        <Crown className="w-5 h-5 mr-2" />
+                        Upgrade Now
+                    </Button>
+                </Link>
+                <Button 
+                    variant="outline" 
+                    className="w-full border-white/10 hover:bg-white/5 h-12 text-lg rounded-xl"
+                    onClick={() => setShowLimitModal(false)}
+                >
+                    Maybe Later
+                </Button>
+            </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Match Modal */}
       <Dialog open={!!match} onOpenChange={(open) => !open && setMatch(null)}>
         <DialogContent className="sm:max-w-md bg-neutral-900 border-white/10 text-white">

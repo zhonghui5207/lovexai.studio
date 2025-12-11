@@ -235,18 +235,10 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
 
   return (
     <div className="flex flex-col h-full">
-      {/* Chat Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/10 bg-background/20 backdrop-blur-md z-20">
-        {/* Left side - Back button and character info */}
+      {/* Chat Header - Transparent blend with background */}
+      <div className="flex items-center justify-between px-4 py-3 z-20">
+        {/* Left side - Character info */}
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push("/")}
-            className="mr-2 h-9 w-9 hover:bg-primary/20 hover:text-primary rounded-xl transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
 
           <div className="relative">
             <img
@@ -257,12 +249,11 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
               }}
             />
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-background"></div>
           </div>
           <div>
             <h3 className="font-semibold">{character.name}</h3>
             <p className="text-sm text-muted-foreground">
-              {character.chat_count} chats • Online
+              {character.traits?.slice(0, 2).join(' • ') || 'AI Companion'}
             </p>
           </div>
         </div>
@@ -415,10 +406,6 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
               className="resize-none border-0 bg-white/5 focus-visible:ring-1 focus-visible:ring-white/20 rounded-xl shadow-inner text-white placeholder:text-white/40 h-12"
             />
           </div>
-
-          <Button variant="ghost" size="icon" className="mb-2">
-            <Smile className="h-4 w-4" />
-          </Button>
 
           <Button
             onClick={handleSend}

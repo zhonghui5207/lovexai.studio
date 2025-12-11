@@ -81,9 +81,9 @@ export const SIGNUP_CREDITS = 150;
 // Model name mapping (UI -> actual API model)
 export const MODEL_MAPPING: Record<ChatModel, string> = {
   nova: 'gpt-4o-mini',
-  pulsar: 'gemini-2.0-flash-exp',
-  nebula: 'deepseek-r1-0528',
-  quasar: 'gpt-4.5-preview',
+  pulsar: 'o4-mini',
+  nebula: 'deepseek-v3-250324',
+  quasar: 'gemini-3-pro-preview',
 };
 
 // ========================================

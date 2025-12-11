@@ -12,11 +12,21 @@ import {
   AlignJustify, 
   FileText,
   MessageSquare,
-  MessageSquarePlus
+  MessageSquarePlus,
+  Lock,
+  Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useAppContext } from "@/contexts/app";
+import Link from "next/link";
+import { toast } from "sonner";
+
+// Subscription tier for model access
+type SubscriptionTier = 'free' | 'plus' | 'pro' | 'ultimate';
 
 interface AIModel {
   id: string;
@@ -24,6 +34,7 @@ interface AIModel {
   type: "Basic" | "Balanced" | "Creative" | "Premium";
   description: string;
   credits: number;
+  requiredTier: SubscriptionTier;
   performance: {
     consistency: number;
     creativity: number;
@@ -31,6 +42,21 @@ interface AIModel {
     memory: number;
   };
 }
+
+// Tier hierarchy for access check
+const TIER_HIERARCHY: Record<SubscriptionTier, number> = {
+  free: 0,
+  plus: 1,
+  pro: 2,
+  ultimate: 3,
+};
+
+const TIER_LABELS: Record<SubscriptionTier, string> = {
+  free: 'Free',
+  plus: 'Plus',
+  pro: 'Pro',
+  ultimate: 'Ultimate',
+};
 
 interface GenerationSettings {
   responseLength: "short" | "default" | "long";
@@ -52,6 +78,7 @@ const AI_MODELS: AIModel[] = [
     type: "Basic",
     description: "Fast and efficient. A bright new star perfect for casual chatting.",
     credits: 2,
+    requiredTier: 'free',
     performance: { consistency: 3, creativity: 2, descriptiveness: 2, memory: 2 }
   },
   {
@@ -60,6 +87,7 @@ const AI_MODELS: AIModel[] = [
     type: "Balanced",
     description: "Rhythmic and precise. The perfect balance of logic and creativity.",
     credits: 4,
+    requiredTier: 'plus',
     performance: { consistency: 4, creativity: 4, descriptiveness: 3, memory: 3 }
   },
   {
@@ -68,6 +96,7 @@ const AI_MODELS: AIModel[] = [
     type: "Creative",
     description: "Vast and colorful. Designed for infinite imagination and rich descriptions.",
     credits: 6,
+    requiredTier: 'pro',
     performance: { consistency: 3, creativity: 5, descriptiveness: 5, memory: 3 }
   },
   {
@@ -76,6 +105,7 @@ const AI_MODELS: AIModel[] = [
     type: "Premium",
     description: "The brightest light. Deeply immersive, highly intelligent, and powerful.",
     credits: 10,
+    requiredTier: 'ultimate',
     performance: { consistency: 5, creativity: 5, descriptiveness: 5, memory: 5 }
   }
 ];
@@ -97,23 +127,53 @@ function PerformanceBar({ level, total = 5 }: { level: number; total?: number })
   );
 }
 
-function ModelCard({ model, isSelected, onSelect }: {
+function ModelCard({ model, isSelected, onSelect, userTier, onLockedClick }: {
   model: AIModel;
   isSelected: boolean;
   onSelect: () => void;
+  userTier: SubscriptionTier;
+  onLockedClick: (model: AIModel) => void;
 }) {
+  const userTierLevel = TIER_HIERARCHY[userTier];
+  const requiredLevel = TIER_HIERARCHY[model.requiredTier];
+  const isLocked = userTierLevel < requiredLevel;
+  
+  const handleClick = () => {
+    if (isLocked) {
+      onLockedClick(model);
+      return;
+    }
+    onSelect();
+  };
+  
   return (
     <div
-      className={`relative group rounded-xl border transition-all duration-300 cursor-pointer overflow-hidden ${
-        isSelected
-          ? "border-primary bg-primary/10 shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
-          : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+      className={`relative group rounded-xl border transition-all duration-300 overflow-hidden ${
+        isLocked 
+          ? "border-white/5 bg-white/[0.02] cursor-not-allowed opacity-60"
+          : isSelected
+            ? "border-primary bg-primary/10 shadow-[0_0_20px_hsl(var(--primary)/0.15)] cursor-pointer"
+            : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10 cursor-pointer"
       }`}
-      onClick={onSelect}
+      onClick={handleClick}
     >
+      {/* Lock Overlay for locked models */}
+      {isLocked && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-white/60" />
+            </div>
+            <span className="text-xs font-medium text-white/60">
+              {TIER_LABELS[model.requiredTier]}+ Required
+            </span>
+          </div>
+        </div>
+      )}
+      
       {/* Selection Indicator */}
-      {isSelected && (
-        <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)] animate-pulse" />
+      {isSelected && !isLocked && (
+        <div className="absolute top-3 right-3 w-3 h-3 rounded-full bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.8)] animate-pulse z-20" />
       )}
 
       <div className="p-5">
@@ -123,8 +183,16 @@ function ModelCard({ model, isSelected, onSelect }: {
               <h3 className={`font-bold text-lg ${isSelected ? "text-white" : "text-gray-200"}`}>
                 {model.name}
               </h3>
-              <Badge variant={isSelected ? "default" : "secondary"} className="text-[10px] px-1.5 py-0 h-5">
-                {model.type}
+              <Badge 
+                variant={isSelected ? "default" : "secondary"} 
+                className={`text-[10px] px-1.5 py-0 h-5 ${
+                  model.requiredTier === 'ultimate' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
+                  model.requiredTier === 'pro' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
+                  model.requiredTier === 'plus' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                  ''
+                }`}
+              >
+                {TIER_LABELS[model.requiredTier]}
               </Badge>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed pr-6">
@@ -188,6 +256,12 @@ export default function GenerationSettingsModal({
   onSettingsChange
 }: GenerationSettingsModalProps) {
   const [localSettings, setLocalSettings] = useState<GenerationSettings>(settings);
+  const [lockedModel, setLockedModel] = useState<AIModel | null>(null);
+  const { user } = useAppContext();
+  
+  // Get user subscription tier from Convex
+  const convexUser = useQuery(api.users.getByEmail, user?.email ? { email: user.email } : "skip");
+  const userTier: SubscriptionTier = (convexUser?.subscription_tier as SubscriptionTier) || 'free';
 
   const updateSetting = <K extends keyof GenerationSettings>(
     key: K,
@@ -299,29 +373,58 @@ export default function GenerationSettingsModal({
               </h3>
               
               <div className="grid grid-cols-3 gap-3">
-                {(["short", "default", "long"] as const).map((length) => (
-                  <button
-                    key={length}
-                    onClick={() => updateSetting("responseLength", length)}
-                    className={`relative flex flex-col items-center gap-3 p-4 rounded-xl border transition-all duration-200 ${
-                      localSettings.responseLength === length
-                        ? "bg-primary/10 border-primary text-primary shadow-[0_0_15px_hsl(var(--primary)/0.1)]"
-                        : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20"
-                    }`}
-                  >
-                    {length === "short" && <MessageSquare className="w-6 h-6" />}
-                    {length === "default" && <MessageSquarePlus className="w-6 h-6" />}
-                    {length === "long" && <FileText className="w-6 h-6" />}
-                    
-                    <span className="text-xs font-medium capitalize">{length}</span>
-                    
-                    {length === "long" && localSettings.responseLength !== "long" && (
-                      <div className="absolute top-2 right-2">
-                        <span className="text-[10px] opacity-50">🔒</span>
-                      </div>
-                    )}
-                  </button>
-                ))}
+                {([
+                  { id: "short" as const, label: "Short", icon: MessageSquare, requiredTier: 'free' as SubscriptionTier },
+                  { id: "default" as const, label: "Default", icon: MessageSquarePlus, requiredTier: 'free' as SubscriptionTier },
+                  { id: "long" as const, label: "Long", icon: FileText, requiredTier: 'pro' as SubscriptionTier },
+                ]).map((option) => {
+                  const isLongLocked = option.id === 'long' && TIER_HIERARCHY[userTier] < TIER_HIERARCHY['pro'];
+                  const IconComponent = option.icon;
+                  
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => {
+                        if (isLongLocked) {
+                          setLockedModel({ 
+                            id: 'long-response', 
+                            name: 'Long Response', 
+                            type: 'Premium',
+                            description: 'Extended AI responses',
+                            credits: 0,
+                            requiredTier: 'pro',
+                            performance: { consistency: 0, creativity: 0, descriptiveness: 0, memory: 0 }
+                          } as AIModel);
+                          return;
+                        }
+                        updateSetting("responseLength", option.id);
+                      }}
+                      className={`relative flex flex-col items-center gap-3 p-4 rounded-xl border transition-all duration-200 ${
+                        isLongLocked
+                          ? "bg-white/[0.02] border-white/10 text-gray-500 cursor-pointer hover:bg-white/5"
+                          : localSettings.responseLength === option.id
+                            ? "bg-primary/10 border-primary text-primary shadow-[0_0_15px_hsl(var(--primary)/0.1)]"
+                            : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <IconComponent className="w-6 h-6" />
+                      <span className="text-xs font-medium capitalize">{option.label}</span>
+                      
+                      {isLongLocked && (
+                        <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 bg-purple-500/20 rounded">
+                          <Lock className="w-2.5 h-2.5 text-purple-400" />
+                          <span className="text-[9px] text-purple-400 font-medium">PRO</span>
+                        </div>
+                      )}
+                      
+                      {option.id === 'long' && !isLongLocked && (
+                        <div className="absolute top-2 right-2">
+                          <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded font-medium">PRO</span>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </section>
 
@@ -343,6 +446,8 @@ export default function GenerationSettingsModal({
                     model={model}
                     isSelected={localSettings.selectedModel === model.id}
                     onSelect={() => updateSetting("selectedModel", model.id)}
+                    userTier={userTier}
+                    onLockedClick={setLockedModel}
                   />
                 ))}
               </div>
@@ -350,6 +455,39 @@ export default function GenerationSettingsModal({
           </div>
         </div>
       </DialogContent>
+      
+      {/* Upgrade Required Modal */}
+      <Dialog open={!!lockedModel} onOpenChange={() => setLockedModel(null)}>
+        <DialogContent className="max-w-sm p-0 bg-neutral-900 border-white/10 text-white overflow-hidden">
+          <div className="p-6 text-center">
+            <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mb-4">
+              <Lock className="w-8 h-8 text-white" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-white mb-2">
+              {lockedModel?.name} Requires {TIER_LABELS[lockedModel?.requiredTier || 'plus']}
+            </DialogTitle>
+            <p className="text-sm text-white/60 mb-6">
+              Upgrade your plan to unlock {lockedModel?.name} and enjoy more powerful AI capabilities.
+            </p>
+            
+            <div className="flex flex-col gap-3">
+              <Link href="/pricing" className="w-full" onClick={() => setLockedModel(null)}>
+                <Button className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 h-11">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to {TIER_LABELS[lockedModel?.requiredTier || 'plus']}
+                </Button>
+              </Link>
+              <Button 
+                variant="ghost" 
+                className="w-full text-white/60 hover:text-white hover:bg-white/5"
+                onClick={() => setLockedModel(null)}
+              >
+                Maybe Later
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
