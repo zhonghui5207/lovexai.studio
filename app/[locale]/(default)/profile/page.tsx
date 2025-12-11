@@ -27,6 +27,10 @@ export default function ProfilePage() {
   const ensureUser = useMutation(api.users.ensureUser);
   const [convexUserId, setConvexUserId] = useState<Id<"users"> | null>(null);
   
+  // Get real user data from Convex by email
+  const convexUser = useQuery(api.users.getByEmail, user?.email ? { email: user.email } : "skip");
+  const subscriptionTier = convexUser?.subscription_tier || 'free';
+  
   // Sync user with Convex
   useEffect(() => {
     if (user?.email && !convexUserId) {
@@ -139,9 +143,12 @@ export default function ProfilePage() {
                 <div className="flex-1 flex flex-col md:flex-row items-end justify-between gap-4 w-full pb-2">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight drop-shadow-lg">{user.nickname || "User"}</h1>
-                            <Badge variant={user.credits?.is_pro ? "default" : "secondary"} className="h-6 px-3 shadow-lg">
-                                {user.credits?.is_pro ? "PRO" : "FREE"}
+                            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight drop-shadow-lg">{convexUser?.name || user.nickname || "User"}</h1>
+                            <Badge 
+                              variant={subscriptionTier !== 'free' ? "default" : "secondary"} 
+                              className={`h-6 px-3 shadow-lg ${subscriptionTier === 'ultimate' ? 'bg-yellow-500' : subscriptionTier === 'pro' ? 'bg-purple-500' : subscriptionTier === 'plus' ? 'bg-blue-500' : ''}`}
+                            >
+                                {subscriptionTier.toUpperCase()}
                             </Badge>
                         </div>
                         <p className="text-white/80 text-base font-medium drop-shadow-md">{user.email || "user@example.com"}</p>

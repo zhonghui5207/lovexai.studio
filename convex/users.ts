@@ -9,10 +9,22 @@ export const current = query({
     if (!identity) {
       return null;
     }
-    return await ctx.db
+    
+    // First try by tokenIdentifier
+    let user = await ctx.db
       .query("users")
       .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
       .unique();
+    
+    // Fallback: try by email if tokenIdentifier doesn't match
+    if (!user && identity.email) {
+      user = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", identity.email as string))
+        .unique();
+    }
+    
+    return user;
   },
 });
 
@@ -20,6 +32,34 @@ export const get = query({
   args: { id: v.id("users") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
+  },
+});
+
+export const getByEmail = query({
+  args: { email: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .unique();
+  },
+});
+
+export const updateProfile = mutation({
+  args: {
+    userId: v.id("users"),
+    name: v.optional(v.string()),
+    avatar_url: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const updateData: Record<string, any> = {};
+    if (args.name !== undefined) updateData.name = args.name;
+    if (args.avatar_url !== undefined) updateData.avatar_url = args.avatar_url;
+    
+    if (Object.keys(updateData).length > 0) {
+      await ctx.db.patch(args.userId, updateData);
+    }
+    return true;
   },
 });
 

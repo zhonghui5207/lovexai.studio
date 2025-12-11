@@ -44,8 +44,8 @@ export default function Sidebar() {
   const [gender, setGender] = useState<'girls' | 'guys' | 'anime'>('girls');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   
-  // Get real-time user data from Convex
-  const convexUser = useQuery(api.users.current);
+  // Get real-time user data from Convex by email
+  const convexUser = useQuery(api.users.getByEmail, user?.email ? { email: user.email } : "skip");
   const credits = convexUser?.credits_balance ?? 0;
   const tier = convexUser?.subscription_tier || 'free';
   const tierInfo = TIER_DISPLAY[tier] || TIER_DISPLAY.free;
@@ -60,7 +60,7 @@ export default function Sidebar() {
   return (
     <aside 
       className={cn(
-        "hidden md:flex flex-col h-screen fixed left-0 top-0 bg-background/20 border-r border-white/5 z-50 backdrop-blur-xl transition-all duration-300 ease-in-out",
+        "hidden md:flex flex-col h-screen fixed left-0 top-0 bg-background/20 border-r border-white/5 z-50 backdrop-blur-xl",
         isHovered ? "w-64 shadow-[10px_0_30px_rgba(0,0,0,0.5)]" : "w-20"
       )}
       onMouseEnter={() => setIsHovered(true)}
@@ -82,26 +82,6 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      {/* Credits Display - Only when hovered and user is logged in */}
-      {isHovered && convexUser && (
-        <Link 
-          href="/pricing?tab=credits" 
-          className="mx-3 mb-2 p-3 rounded-xl bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 hover:border-yellow-500/40 transition-all group"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 flex items-center justify-center shadow-lg shadow-yellow-500/20">
-                <Coins className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <p className="text-xs text-white/60">Credits</p>
-                <p className="text-lg font-bold text-white">{credits.toLocaleString()}</p>
-              </div>
-            </div>
-            <span className="text-xs text-yellow-400 group-hover:text-yellow-300">Get More →</span>
-          </div>
-        </Link>
-      )}
 
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
@@ -135,9 +115,27 @@ export default function Sidebar() {
 
       {/* Bottom Actions */}
       <div className="p-3 border-t border-white/10 flex-shrink-0">
-        {/* Extended Footer Content - Only visible when hovered */}
-          {isHovered && (
-          <div className="mb-4 space-y-4 px-2">
+        {/* Extended Footer Content - instant show/hide */}
+        <div className={cn(
+          "space-y-3 px-2",
+          isHovered ? "opacity-100 visible mb-4" : "opacity-0 invisible h-0 overflow-hidden"
+        )}>
+            {/* Credits Display - At top */}
+            {convexUser && (
+              <Link 
+                href="/pricing?tab=credits" 
+                className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-colors group flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                    <Coins className="w-2.5 h-2.5 text-white" />
+                  </div>
+                  <span className="text-sm font-semibold text-white">{credits.toLocaleString()}</span>
+                </div>
+                <span className="text-[10px] text-white/40 group-hover:text-white/60">+</span>
+              </Link>
+            )}
+
             {/* Links */}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground font-medium px-1">
               {['Discord', 'Reddit', 'Twitter', 'Tags', 'Affiliates', 'Guides'].map((text) => (
@@ -154,7 +152,7 @@ export default function Sidebar() {
                   key={type}
                   onClick={() => setGender(type.toLowerCase() as any)}
                   className={cn(
-                    "text-xs font-medium py-1.5 rounded-md transition-all duration-200",
+                    "text-xs font-medium py-1.5 rounded-md transition-colors",
                     gender === type.toLowerCase()
                       ? "bg-primary text-white shadow-sm"
                       : "text-muted-foreground hover:text-white hover:bg-white/5"
@@ -165,7 +163,6 @@ export default function Sidebar() {
               ))}
             </div>
           </div>
-        )}
 
         <div className={cn("flex items-center justify-center", isHovered ? "px-0" : "")}>
           <SignToggle

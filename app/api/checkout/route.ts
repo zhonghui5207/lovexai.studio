@@ -58,6 +58,13 @@ export async function POST(req: Request) {
       return respErr("invalid user");
     }
 
+    // Get the actual Convex user ID by email
+    const convexUser = await convex.query(api.users.getByEmail, { email: user_email });
+    if (!convexUser) {
+      return respErr("User not found in database. Please refresh and try again.");
+    }
+    const convex_user_id = convexUser._id;
+
     const order_no = getSnowId();
 
     const currentDate = new Date();
@@ -85,7 +92,7 @@ export async function POST(req: Request) {
     console.log("Creating order in Convex...");
     await convex.mutation(api.orders.createOrder, {
       order_no: order_no,
-      user_id: user_uuid,
+      user_id: convex_user_id,
       user_email: user_email,
       amount: amount,
       currency: currency,

@@ -351,7 +351,7 @@ export default function PricingPage() {
                           if (plan.product_id) {
                             handleCheckout(
                               plan.product_id, 
-                              plan.price[billingCycle], 
+                              billingCycle === 'yearly' ? plan.price.yearly * 12 : plan.price[billingCycle],
                               plan.credits,
                               billingCycle === 'monthly' ? 'month' : 'year',
                               `${plan.name} ${billingCycle === 'yearly' ? 'Annual' : 'Monthly'}`

@@ -13,9 +13,20 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User } from "@/types/user";
-import { Settings, CreditCard, Sparkles } from "lucide-react";
+import { Settings, CreditCard, Sparkles, Crown, Zap, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import Link from "next/link";
+import { toast } from "sonner";
+
+const TIER_CONFIG: Record<string, { name: string; icon: any; color: string; bgColor: string }> = {
+  free: { name: "Free Plan", icon: CreditCard, color: "text-white/60", bgColor: "bg-white/10" },
+  plus: { name: "Plus Plan", icon: Zap, color: "text-blue-400", bgColor: "bg-blue-500/20" },
+  pro: { name: "Pro Plan", icon: Sparkles, color: "text-purple-400", bgColor: "bg-purple-500/20" },
+  ultimate: { name: "Ultimate Plan", icon: Crown, color: "text-yellow-400", bgColor: "bg-yellow-500/20" },
+};
 
 interface ProfileSettingsDialogProps {
   user: User;
@@ -24,11 +35,37 @@ interface ProfileSettingsDialogProps {
 export function ProfileSettingsDialog({ user }: ProfileSettingsDialogProps) {
   const [nickname, setNickname] = useState(user.nickname || "");
   const [isOpen, setIsOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Get real subscription data from Convex by email
+  const convexUser = useQuery(api.users.getByEmail, user?.email ? { email: user.email } : "skip");
+  const tier = convexUser?.subscription_tier || 'free';
+  const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
+  const TierIcon = tierConfig.icon;
+  
+  // Update user mutation
+  const updateUser = useMutation(api.users.updateProfile);
 
-  const handleSave = () => {
-    // TODO: Implement save logic
-    console.log("Saving profile:", { nickname });
-    setIsOpen(false);
+  const handleSave = async () => {
+    if (!convexUser?._id) {
+      toast.error("User not found");
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      await updateUser({
+        userId: convexUser._id,
+        name: nickname,
+      });
+      toast.success("Profile updated!");
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Failed to save profile:", error);
+      toast.error("Failed to save changes");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -94,32 +131,54 @@ export function ProfileSettingsDialog({ user }: ProfileSettingsDialogProps) {
                 <Label className="text-white/80 mb-2 block">Subscription Plan</Label>
                 <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10">
                     <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-full ${user.credits?.is_pro ? 'bg-primary/20 text-primary' : 'bg-white/10 text-white/60'}`}>
-                            {user.credits?.is_pro ? <Sparkles className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
+                        <div className={`p-3 rounded-full ${tierConfig.bgColor} ${tierConfig.color}`}>
+                            <TierIcon className="w-5 h-5" />
                         </div>
                         <div>
-                            <div className="font-semibold text-white">{user.credits?.is_pro ? 'Pro Plan' : 'Free Plan'}</div>
-                            <div className="text-xs text-white/50 mt-0.5">{user.credits?.is_pro ? 'Your plan renews on Dec 28, 2025' : 'Upgrade to unlock premium features'}</div>
+                            <div className="font-semibold text-white">{tierConfig.name}</div>
+                            <div className="text-xs text-white/50 mt-0.5">
+                              {tier === 'free' ? 'Upgrade to unlock premium features' : `Your plan is active`}
+                            </div>
                         </div>
                     </div>
-                    {!user.credits?.is_pro && (
-                        <Button size="sm" className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20">
-                            Upgrade
-                        </Button>
-                    )}
-                    {user.credits?.is_pro && (
-                        <Button variant="outline" size="sm" className="border-white/10 hover:bg-white/5 text-white">
-                            Manage
-                        </Button>
-                    )}
+                    <Link href="/pricing">
+                      <Button 
+                        size="sm" 
+                        className={tier === 'free' 
+                          ? "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" 
+                          : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                        }
+                      >
+                          {tier === 'free' ? 'Upgrade' : 'Manage'}
+                      </Button>
+                    </Link>
                 </div>
             </div>
           </div>
         </div>
 
-        <DialogFooter className="p-6 pt-2">
-          <Button variant="ghost" onClick={() => setIsOpen(false)} className="hover:bg-white/5 hover:text-white">Cancel</Button>
-          <Button onClick={handleSave} className="bg-white text-black hover:bg-white/90">Save Changes</Button>
+        <DialogFooter className="p-6 pt-4 border-t border-white/5 bg-white/[0.02]">
+          <Button 
+            variant="ghost" 
+            onClick={() => setIsOpen(false)} 
+            className="hover:bg-white/5 hover:text-white"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSave} 
+            disabled={isSaving}
+            className="bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
