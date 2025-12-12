@@ -1,6 +1,8 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import DiscordProvider from "next-auth/providers/discord";
+import TwitterProvider from "next-auth/providers/twitter";
 import { NextAuthConfig } from "next-auth";
 import { Provider } from "next-auth/providers/index";
 import { ConvexHttpClient } from "convex/browser";
@@ -102,6 +104,58 @@ if (
   );
 }
 
+// Discord Auth
+if (
+  process.env.NEXT_PUBLIC_AUTH_DISCORD_ENABLED === "true" &&
+  process.env.AUTH_DISCORD_ID &&
+  process.env.AUTH_DISCORD_SECRET
+) {
+  providers.push(
+    DiscordProvider({
+      clientId: process.env.AUTH_DISCORD_ID,
+      clientSecret: process.env.AUTH_DISCORD_SECRET,
+    })
+  );
+}
+
+// Twitter/X Auth
+if (
+  process.env.NEXT_PUBLIC_AUTH_TWITTER_ENABLED === "true" &&
+  process.env.AUTH_TWITTER_ID &&
+  process.env.AUTH_TWITTER_SECRET
+) {
+  providers.push(
+    TwitterProvider({
+      clientId: process.env.AUTH_TWITTER_ID,
+      clientSecret: process.env.AUTH_TWITTER_SECRET,
+    })
+  );
+}
+
+// Email OTP Provider
+providers.push(
+  CredentialsProvider({
+    id: "email-otp",
+    name: "Email OTP",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      userId: { label: "User ID", type: "text" },
+    },
+    async authorize(credentials) {
+      if (!credentials?.email || !credentials?.userId) {
+        return null;
+      }
+
+      // Return user object - the actual verification was done in verify-otp API
+      return {
+        id: credentials.userId as string,
+        email: credentials.email as string,
+        name: (credentials.email as string).split("@")[0],
+      };
+    },
+  })
+);
+
 export const providerMap = providers
   .map((provider) => {
     if (typeof provider === "function") {
@@ -111,13 +165,11 @@ export const providerMap = providers
       return { id: provider.id, name: provider.name };
     }
   })
-  .filter((provider) => provider.id !== "google-one-tap");
+  .filter((provider) => provider.id !== "google-one-tap" && provider.id !== "email-otp");
 
 export const authOptions: NextAuthConfig = {
   providers,
-  pages: {
-    signIn: "/auth/signin",
-  },
+  // No custom sign-in page - use modal instead
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
       
