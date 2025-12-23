@@ -184,15 +184,25 @@ export const authOptions: NextAuthConfig = {
       }
       return session;
     },
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, profile }) {
       try {
         if (user && account) {
-          console.log("OAuth login success, provider:", account.provider);
+          console.log("=== OAuth Debug Info ===");
+          console.log("Provider:", account.provider);
+          console.log("user.id:", user.id);
+          console.log("user.email:", user.email);
+          console.log("user.name:", user.name);
+          console.log("account.providerAccountId:", account.providerAccountId);
+          console.log("profile:", JSON.stringify(profile, null, 2));
+          console.log("========================");
           
-          // 如果没有邮箱，根据 provider 和用户 ID 生成临时邮箱
+          // 使用 providerAccountId 作为稳定标识符（这是 X 的真实用户 ID）
+          const stableId = account.providerAccountId || user.id;
+          
+          // 如果没有邮箱，根据 provider 和稳定 ID 生成临时邮箱
           let userEmail = user.email;
-          if (!userEmail && user.id) {
-            userEmail = `${account.provider}_${user.id}@${account.provider}.lovexai.studio`;
+          if (!userEmail && stableId) {
+            userEmail = `${account.provider}_${stableId}@${account.provider}.lovexai.studio`;
             console.log("Generated temporary email for user without email:", userEmail);
           }
           
