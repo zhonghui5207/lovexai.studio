@@ -1,5 +1,4 @@
 import CredentialsProvider from "next-auth/providers/credentials";
-import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import DiscordProvider from "next-auth/providers/discord";
 import TwitterProvider from "next-auth/providers/twitter";
@@ -86,23 +85,12 @@ if (
     GoogleProvider({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }
 
-// Github Auth
-if (
-  process.env.NEXT_PUBLIC_AUTH_GITHUB_ENABLED === "true" &&
-  process.env.AUTH_GITHUB_ID &&
-  process.env.AUTH_GITHUB_SECRET
-) {
-  providers.push(
-    GitHubProvider({
-      clientId: process.env.AUTH_GITHUB_ID,
-      clientSecret: process.env.AUTH_GITHUB_SECRET,
-    })
-  );
-}
+
 
 // Discord Auth
 if (
@@ -114,6 +102,7 @@ if (
     DiscordProvider({
       clientId: process.env.AUTH_DISCORD_ID,
       clientSecret: process.env.AUTH_DISCORD_SECRET,
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }
@@ -128,6 +117,7 @@ if (
     TwitterProvider({
       clientId: process.env.AUTH_TWITTER_ID,
       clientSecret: process.env.AUTH_TWITTER_SECRET,
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }
@@ -195,35 +185,46 @@ export const authOptions: NextAuthConfig = {
       return session;
     },
     async jwt({ token, user, account }) {
-      // Persist the OAuth access_token and or the user id to the token right after signin
       try {
-        if (user && user.email && account) {
-          console.log("Creating/finding user for:", user.email);
-          try {
-            const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
-            const dbUser = await convex.mutation(api.users.syncUser, {
-              email: user.email,
-              name: user.name || "",
-              avatar_url: user.image || "",
-              externalId: user.id || "",
-              provider: account.provider,
-            });
+        if (user && account) {
+          console.log("OAuth login success, provider:", account.provider);
+          
+          // 如果没有邮箱，根据 provider 和用户 ID 生成临时邮箱
+          let userEmail = user.email;
+          if (!userEmail && user.id) {
+            userEmail = `${account.provider}_${user.id}@${account.provider}.lovexai.studio`;
+            console.log("Generated temporary email for user without email:", userEmail);
+          }
+          
+          if (userEmail) {
+            console.log("Creating/finding user for:", userEmail);
+            try {
+              const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+              const dbUser = await convex.mutation(api.users.syncUser, {
+                email: userEmail,
+                name: user.name || "",
+                avatar_url: user.image || "",
+                externalId: user.id || "",
+                provider: account.provider,
+              });
 
-            if (!dbUser) throw new Error("Failed to sync user");
-
-            console.log("User created/found successfully:", dbUser._id);
-
-            token.user = {
-              id: dbUser._id,
-              email: dbUser.email,
-              name: dbUser.name,
-              avatar_url: dbUser.avatar_url,
-              subscription_tier: dbUser.subscription_tier,
-              credits_balance: dbUser.credits_balance,
-              created_at: new Date(dbUser._creationTime).toISOString(),
-            };
-          } catch (e) {
-            console.error("save user failed:", e);
+              if (dbUser) {
+                console.log("User created/found successfully:", dbUser._id);
+                (token as any).user = {
+                  id: dbUser._id,
+                  email: dbUser.email,
+                  name: dbUser.name,
+                  avatar_url: dbUser.avatar_url,
+                  subscription_tier: dbUser.subscription_tier,
+                  credits_balance: dbUser.credits_balance,
+                  created_at: new Date(dbUser._creationTime).toISOString(),
+                };
+              }
+            } catch (e) {
+              console.error("save user failed:", e);
+            }
+          } else {
+            console.warn("User from provider did not return an email or ID.");
           }
         }
         return token;

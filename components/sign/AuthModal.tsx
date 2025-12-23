@@ -74,6 +74,7 @@ export default function AuthModal() {
 }
 
 function AuthForm({ onClose }: { onClose?: () => void }) {
+  const t = useTranslations();
   const [step, setStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -240,8 +241,8 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
 
             {/* Title */}
             <div className="text-center mb-6">
-              <h2 className="text-xl font-semibold text-white mb-1">Welcome</h2>
-              <p className="text-sm text-white/40">Sign in or create an account</p>
+              <h2 className="text-xl font-semibold text-white mb-1">{t("sign_modal.welcome_title")}</h2>
+              <p className="text-sm text-white/40">{t("sign_modal.welcome_description")}</p>
             </div>
 
             {/* Error Message */}
@@ -257,7 +258,7 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
                 <Input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={t("sign_modal.email_placeholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendOtp()}
@@ -278,7 +279,7 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                "Continue"
+                t("sign_modal.continue")
               )}
             </Button>
 
@@ -288,62 +289,80 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
                 <div className="w-full border-t border-white/[0.06]" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-[#0d0d12] text-white/30">or continue with</span>
+                <span className="px-3 bg-[#0d0d12] text-white/30">{t("sign_modal.or_continue_with")}</span>
               </div>
             </div>
 
             {/* Social Login Buttons */}
             <div className="space-y-2.5">
               {/* Google */}
-              <Button
-                variant="outline"
-                onClick={() => handleSocialLogin("google")}
-                disabled={loadingProvider !== null}
-                className="w-full h-12 bg-[#2a2a35] hover:bg-[#35354a] 
-                  border-0 text-white font-medium rounded-xl transition-all"
-              >
-                {loadingProvider === "google" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <>
-                    <GoogleColorLogo className="w-5 h-5 mr-2.5" />
-                    Google
-                  </>
-                )}
-              </Button>
-
-              {/* Discord & X Row */}
-              <div className="grid grid-cols-2 gap-2.5">
+              {process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED === "true" && (
                 <Button
                   variant="outline"
-                  onClick={() => handleSocialLogin("discord")}
+                  onClick={() => handleSocialLogin("google")}
                   disabled={loadingProvider !== null}
-                  className="h-12 bg-[#5865F2] hover:bg-[#4752c4] border-0 text-white font-medium rounded-xl transition-all"
+                  className="w-full h-12 bg-[#2a2a35] hover:bg-[#35354a] 
+                    border-0 text-white font-medium rounded-xl transition-all"
                 >
-                  {loadingProvider === "discord" ? (
+                  {loadingProvider === "google" ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
-                      <SiDiscord className="w-4 h-4 mr-2" />
-                      Discord
+                      <GoogleColorLogo className="w-5 h-5 mr-2.5" />
+                      Google
                     </>
                   )}
                 </Button>
+              )}
 
-                <Button
-                  variant="outline"
-                  onClick={() => handleSocialLogin("twitter")}
-                  disabled={loadingProvider !== null}
-                  className="h-12 bg-[#2a2a35] hover:bg-[#35354a]
-                    border-0 text-white font-medium rounded-xl transition-all"
-                >
-                  {loadingProvider === "twitter" ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RiTwitterXFill className="w-5 h-5" />
+
+
+              {/* Discord & X Row */}
+              {(process.env.NEXT_PUBLIC_AUTH_DISCORD_ENABLED === "true" || process.env.NEXT_PUBLIC_AUTH_TWITTER_ENABLED === "true") && (
+                <div className={cn(
+                  "grid gap-2.5",
+                  (process.env.NEXT_PUBLIC_AUTH_DISCORD_ENABLED === "true" && process.env.NEXT_PUBLIC_AUTH_TWITTER_ENABLED === "true") 
+                    ? "grid-cols-2" 
+                    : "grid-cols-1"
+                )}>
+                  {process.env.NEXT_PUBLIC_AUTH_DISCORD_ENABLED === "true" && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleSocialLogin("discord")}
+                      disabled={loadingProvider !== null}
+                      className="h-12 bg-[#5865F2] hover:bg-[#4752c4] border-0 text-white font-medium rounded-xl transition-all"
+                    >
+                      {loadingProvider === "discord" ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <SiDiscord className="w-4 h-4 mr-2" />
+                          Discord
+                        </>
+                      )}
+                    </Button>
                   )}
-                </Button>
-              </div>
+
+                  {process.env.NEXT_PUBLIC_AUTH_TWITTER_ENABLED === "true" && (
+                    <Button
+                      variant="outline"
+                      onClick={() => handleSocialLogin("twitter")}
+                      disabled={loadingProvider !== null}
+                      className="h-12 bg-[#2a2a35] hover:bg-[#35354a]
+                        border-0 text-white font-medium rounded-xl transition-all"
+                    >
+                      {loadingProvider === "twitter" ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          <RiTwitterXFill className="w-5 h-5" />
+                          
+                        </div>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Terms */}
@@ -375,7 +394,7 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
               className="flex items-center gap-2 text-white/50 hover:text-white/80 mb-6 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm">Back</span>
+              <span className="text-sm">{t("sign_modal.back")}</span>
             </button>
 
             {/* Email Icon */}
@@ -387,9 +406,9 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
 
             {/* Title */}
             <div className="text-center mb-6">
-              <h2 className="text-xl font-semibold text-white mb-2">Check your email</h2>
+              <h2 className="text-xl font-semibold text-white mb-2">{t("sign_modal.check_email")}</h2>
               <p className="text-sm text-white/40">
-                We sent a verification code to
+                {t("sign_modal.sent_code_to")}
               </p>
               <p className="text-sm text-white/70 font-medium">{maskEmail(email)}</p>
             </div>
@@ -434,21 +453,21 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                "Verify"
+                t("sign_modal.verify_button")
               )}
             </Button>
 
             {/* Resend */}
             <p className="mt-5 text-center text-sm text-white/40">
-              Didn't receive a code?{" "}
+              {t("sign_modal.didnt_receive_code")}{" "}
               {countdown > 0 ? (
-                <span className="text-white/30">Resend in {countdown}s</span>
+                <span className="text-white/30">{t("sign_modal.resend_in", { seconds: countdown })}</span>
               ) : (
                 <button
                   onClick={handleResendOtp}
                   className="text-[#e04080] hover:text-[#e84890] font-medium transition-colors"
                 >
-                  Resend
+                  {t("sign_modal.resend_button")}
                 </button>
               )}
             </p>
