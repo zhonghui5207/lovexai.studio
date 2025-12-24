@@ -159,7 +159,16 @@ export const providerMap = providers
 
 export const authOptions: NextAuthConfig = {
   providers,
-  // No custom sign-in page - use modal instead
+  // Session 配置 - 保持 30 天登录态
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 天（单位：秒）
+  },
+  // Custom pages - redirect to home instead of showing ugly default pages
+  pages: {
+    signIn: "/",  // 登录页重定向到首页（我们用 Modal 弹窗）
+    error: "/",   // 错误时也回到首页
+  },
   callbacks: {
     async signIn({ user, account, profile, email, credentials }) {
       
