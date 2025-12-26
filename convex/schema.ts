@@ -44,6 +44,8 @@ export default defineSchema({
     greeting_message: v.string(),
     username: v.string(),
     avatar_url: v.optional(v.string()),
+    video_url: v.optional(v.string()), // Video URL for hover preview
+    category: v.optional(v.string()), // 'female', 'male', 'anime'
     traits: v.optional(v.array(v.string())),
     // Combined text for full-text search (name + description + personality)
     search_text: v.optional(v.string()),

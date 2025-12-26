@@ -1,8 +1,8 @@
 "use client";
 
+import React, { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 import { useSearchParams } from "next/navigation";
@@ -16,6 +16,7 @@ interface Character {
   name: string;
   username?: string;
   avatar: string;
+  video_url?: string; // Video URL for hover preview
   description: string;
   traits: string[];
   greeting: string;
@@ -36,6 +37,22 @@ interface CharacterCardProps {
 
 function CharacterCard({ character, onClick }: CharacterCardProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Handle video play/pause on hover
+  useEffect(() => {
+    if (!videoRef.current || !character.video_url) return;
+    
+    if (isHovered) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {
+        // Video play failed, possibly due to autoplay restrictions
+      });
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isHovered, character.video_url]);
 
   return (
     <motion.div
@@ -46,8 +63,10 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
       transition={{ duration: 0.3 }}
       className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/5 cursor-pointer"
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image with Zoom Effect */}
+      {/* Image Layer */}
       <div className={`absolute inset-0 overflow-hidden transition-all duration-700 ${isLoading ? 'scale-110 blur-xl grayscale' : 'scale-100 blur-0 grayscale-0'}`}>
         <Image
           src={character.avatar}
@@ -59,28 +78,49 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
         />
       </div>
 
+      {/* Video Layer - Shows on Hover */}
+      {character.video_url && (
+        <div 
+          className={`absolute inset-0 z-10 transition-opacity duration-500 ${
+            isHovered ? 'opacity-100' : 'opacity-0'
+          }`}
+        >
+          <video
+            ref={videoRef}
+            src={character.video_url}
+            muted
+            loop
+            playsInline
+            preload="none"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
       {/* Gradient Overlays */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-90" />
-      <div className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 mix-blend-overlay" />
+      <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-90" />
+      <div className="absolute inset-0 z-20 bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 mix-blend-overlay" />
 
       {/* Top Badges */}
-      <div className="absolute top-3 left-3">
+      <div className="absolute top-3 left-3 z-30">
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md text-white/90 text-xs font-medium border border-white/10">
           <MessageCircle className="w-3.5 h-3.5 fill-current" />
           {character.chatCount.replace(' chats', '')}
         </div>
       </div>
-      
-      {character.isOfficial && (
-        <div className="absolute top-3 right-3">
-          <Badge variant="secondary" className="bg-primary/80 text-white backdrop-blur-md border-none px-3 py-1 rounded-full">
-            Lovexai
-          </Badge>
+
+      {/* Video Indicator */}
+      {character.video_url && (
+        <div className={`absolute top-3 right-3 z-30 transition-all duration-300 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/80 backdrop-blur-md text-white text-[10px] font-medium">
+            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+            LIVE
+          </div>
         </div>
       )}
 
       {/* Bottom Info */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 transform transition-transform duration-300 group-hover:-translate-y-2">
+      <div className="absolute bottom-0 left-0 right-0 p-5 z-30 transform transition-transform duration-300 group-hover:-translate-y-2">
         <h3 className="font-heading text-2xl font-bold text-white mb-1 drop-shadow-lg">
           {character.name}
         </h3>
@@ -106,7 +146,7 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
       </div>
 
       {/* Border Glow */}
-      <div className="absolute inset-0 border-2 border-transparent group-hover:border-primary/50 rounded-2xl transition-colors duration-300 pointer-events-none" />
+      <div className="absolute inset-0 z-40 border-2 border-transparent group-hover:border-primary/50 rounded-2xl transition-colors duration-300 pointer-events-none" />
     </motion.div>
   );
 }
@@ -135,6 +175,7 @@ export default function DiscoverSection() {
     name: char.name,
     username: char.username,
     avatar: char.avatar_url || "",
+    video_url: char.video_url, // Video URL for hover preview
     description: char.description,
     traits: char.traits || [],
     greeting: char.greeting_message || "Hello! Nice to meet you.",
