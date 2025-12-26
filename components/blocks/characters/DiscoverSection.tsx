@@ -35,6 +35,22 @@ interface CharacterCardProps {
   onClick: () => void;
 }
 
+// Render text with *action* as italic
+function renderActionText(text: string) {
+  const parts = text.split(/(\*[^*]+\*)/);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      // Remove asterisks and render as italic
+      return (
+        <em key={index} className="text-white/60 not-italic">
+          {part.slice(1, -1)}
+        </em>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+
 function CharacterCard({ character, onClick }: CharacterCardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
@@ -109,7 +125,24 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
         </div>
       </div>
 
-      {/* Video Indicator */}
+      {/* Access Level Badge - Hide when hovering (video playing) */}
+      {character.access_level && (
+        <div className={`absolute top-3 right-3 z-30 transition-all duration-300 ${isHovered ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
+          <div className={`px-2.5 py-1 rounded-full backdrop-blur-md text-[10px] font-bold uppercase tracking-wide ${
+            character.access_level === 'free' 
+              ? 'bg-emerald-500/80 text-white' 
+              : character.access_level === 'plus'
+              ? 'bg-blue-500/80 text-white'
+              : character.access_level === 'pro'
+              ? 'bg-purple-500/80 text-white'
+              : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+          }`}>
+            {character.access_level}
+          </div>
+        </div>
+      )}
+
+      {/* Video Indicator - Show when hovering */}
       {character.video_url && (
         <div className={`absolute top-3 right-3 z-30 transition-all duration-300 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
           <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/80 backdrop-blur-md text-white text-[10px] font-medium">
@@ -125,7 +158,7 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
           {character.name}
         </h3>
         <p className="text-sm text-white/80 line-clamp-2 mb-3 font-sans">
-          {character.greeting}
+          {renderActionText(character.greeting)}
         </p>
         
         {/* Tags - Visible on Hover */}
