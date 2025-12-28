@@ -29,13 +29,6 @@ interface SwipeCharacter {
   color: string;
 }
 
-// Mock Data for Categories (Keep for now or fetch dynamic if available)
-const CATEGORIES = [
-  { id: "cyber", name: "Cyber City", image: "/generated_characters/character_street_fashion.png", count: "1.2k" },
-  { id: "fantasy", name: "Fantasy Realm", image: "https://cdn.lovexai.studio/Character/ComfyUI_00020_.png", count: "850" },
-  { id: "campus", name: "Campus Life", image: "https://cdn.lovexai.studio/Character/ComfyUI_00015_.png", count: "2.1k" },
-  { id: "office", name: "Office Romance", image: "https://cdn.lovexai.studio/Character/ComfyUI_00027_.png", count: "500+" },
-];
 
 export default function DiscoverPage() {
   const { data: session } = useSession();
@@ -487,26 +480,6 @@ export default function DiscoverPage() {
             </div>
         </div>
 
-        {/* Middle Section: Categories */}
-        <section>
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Explore Worlds</h2>
-                <Button variant="link" className="text-primary">View All</Button>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {CATEGORIES.map((cat) => (
-                    <div key={cat.id} className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer">
-                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                        <div className="absolute bottom-0 left-0 p-4">
-                            <h3 className="font-bold text-white group-hover:text-primary transition-colors">{cat.name}</h3>
-                            <p className="text-xs text-white/60">{cat.count} characters</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </section>
-
         {/* Bottom Section: All Characters Grid */}
         <section>
             <h2 className="text-2xl font-bold mb-6">Trending Characters</h2>
@@ -601,7 +574,7 @@ function SwipeCard({
         center: { 
             x: 0, 
             y: 0,
-            scale: [1.05, 1], // Pop effect: Scale up then settle back
+            scale: [1.05, 1],
             rotate: 0, 
             opacity: 1, 
             filter: "blur(0px)",
@@ -631,7 +604,7 @@ function SwipeCard({
         exit: (custom: number) => ({
             x: custom > 0 ? 1000 : -1000,
             opacity: 0,
-            transition: { duration: 0.6, ease: "easeIn" } // Slower exit speed
+            transition: { duration: 0.6, ease: "easeIn" }
         })
     };
 
@@ -667,8 +640,13 @@ function SwipeCard({
                     style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
                     onClick={handleCardClick}
                 >
-                    {/* Image */}
-                    <img src={data.image} alt={data.name} className="w-full h-full object-cover pointer-events-none" />
+                    {/* Image - position at 25% from top (between top and center) */}
+                    <img 
+                      src={data.image} 
+                      alt={data.name} 
+                      className="w-full h-full object-cover pointer-events-none" 
+                      style={{ objectPosition: 'center 25%' }}
+                    />
                     
                     {/* Gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent pointer-events-none" />

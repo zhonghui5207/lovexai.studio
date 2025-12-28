@@ -26,6 +26,22 @@ interface Character {
   location?: string;
 }
 
+// Render text with *action* as styled text (remove asterisks)
+function renderActionText(text: string) {
+  const parts = text.split(/(\*[^*]+\*)/);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      // Remove asterisks and render as subtle styled text
+      return (
+        <span key={index} className="text-white/60">
+          {part.slice(1, -1)}
+        </span>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+
 export default function HeroBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
@@ -254,7 +270,7 @@ export default function HeroBanner() {
                     <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-20">
                       <h3 className="font-heading text-3xl font-bold mb-2 drop-shadow-lg">{character.name}</h3>
                       <p className="text-sm text-white/80 line-clamp-2 font-sans mb-4 leading-relaxed drop-shadow-md">
-                        "{character.greeting}"
+                        "{renderActionText(character.greeting)}"
                       </p>
                       
                       {offset === 0 && (

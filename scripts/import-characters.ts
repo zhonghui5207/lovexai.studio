@@ -24,7 +24,7 @@ for (const line of envLines) {
 }
 
 // Load the JSON data
-const jsonPath = path.join(__dirname, "../test_characters_10_with_urls.json");
+const jsonPath = path.join(__dirname, "../test_characters_20_with_urls.json");
 const charactersData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
 
 // Convex client - uses CONVEX_URL from environment
