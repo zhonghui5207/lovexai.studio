@@ -201,6 +201,7 @@ export default function CharacterPanel({ character, onSuggestionClick, userId }:
             src={character.avatar_url}
             alt={character.name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            style={{ objectPosition: 'center 25%' }}
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
             }}

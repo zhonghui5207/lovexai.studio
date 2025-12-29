@@ -151,10 +151,10 @@ function ChatInterface({
           style={{
             backgroundImage: `url(${character.avatar_url})`,
             backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundPosition: "center 25%",
             backgroundRepeat: "no-repeat",
             backgroundAttachment: "fixed",
-            filter: "brightness(0.3)",
+            filter: "brightness(0.15) blur(8px)",
             zIndex: 0,
           }}
         />

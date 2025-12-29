@@ -70,10 +70,11 @@ export default function DiscoverPage() {
         id: c._id,
         _id: c._id,
         name: c.name,
-        role: c.personality?.split(' ')[0] || "Companion", // Simple fallback
-        image: c.avatar_url || "",
+        role: c.traits?.[0] || "Companion", // Use first trait as fallback role
+        image: c.avatar_url || "https://placehold.co/400x600/1a1a1a/ffffff?text=Character",
         tags: c.traits || ["Friendly"],
         bio: c.description,
+        background: c.background || "",
         color: ["#ef4444", "#3b82f6", "#a855f7", "#e11d48", "#eab308"][i % 5]
       }));
       setCards(mapped);
@@ -485,29 +486,11 @@ export default function DiscoverPage() {
             <h2 className="text-2xl font-bold mb-6">Trending Characters</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                  {(rawCharacters || []).map((char, i) => (
-                    <div 
-                        key={char._id} 
-                        className="group relative aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-900 cursor-pointer border border-white/5 hover:border-primary/50 transition-all"
+                    <TrendingCard 
+                        key={char._id}
+                        character={char}
                         onClick={() => handleStartChat(char._id)}
-                    >
-                        <img 
-                            src={char.avatar_url || `https://cdn.lovexai.studio/Character/ComfyUI_000${15 + (i % 10)}_.png`} 
-                            alt={char.name} 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                            onError={(e) => e.currentTarget.src = "https://placehold.co/400x600/1a1a1a/ffffff?text=Character"}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-80" />
-                        
-                        <div className="absolute bottom-0 left-0 right-0 p-4 transform transition-transform duration-300 group-hover:-translate-y-1">
-                            <h3 className="font-bold text-white text-lg mb-1">{char.name}</h3>
-                            <p className="text-xs text-white/60 line-clamp-1">{char.description}</p>
-                            
-                            <div className="mt-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-xs text-primary font-medium">Chat Now</span>
-                                <MessageCircle className="w-4 h-4 text-primary" />
-                            </div>
-                        </div>
-                    </div>
+                    />
                  ))}
             </div>
             <div className="mt-12 text-center">
@@ -521,6 +504,119 @@ export default function DiscoverPage() {
 }
 
 // --- Sub-components ---
+
+// Trending Character Card with video hover, badges, and effects
+function TrendingCard({ 
+  character, 
+  onClick 
+}: { 
+  character: any; 
+  onClick: () => void;
+}) {
+  const [isHovered, setIsHovered] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Handle video play/pause on hover
+  useEffect(() => {
+    if (!videoRef.current || !character.video_url) return;
+    
+    if (isHovered) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isHovered, character.video_url]);
+
+  // Get access level badge color
+  const getAccessLevelStyle = (level: string) => {
+    switch (level) {
+      case 'free': return 'bg-emerald-500/80 text-white';
+      case 'plus': return 'bg-blue-500/80 text-white';
+      case 'pro': return 'bg-purple-500/80 text-white';
+      case 'ultimate': return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white';
+      default: return 'bg-white/20 text-white';
+    }
+  };
+
+  return (
+    <div 
+      className={cn(
+        "group relative aspect-[3/4] rounded-2xl overflow-hidden bg-neutral-900 cursor-pointer",
+        "border border-white/5 transition-all duration-300",
+        isHovered && "border-primary/50 shadow-[0_0_30px_rgba(236,72,153,0.3)]"
+      )}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Image Layer */}
+      <img 
+        src={character.avatar_url || "https://placehold.co/400x600/1a1a1a/ffffff?text=Character"} 
+        alt={character.name} 
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        onError={(e) => e.currentTarget.src = "https://placehold.co/400x600/1a1a1a/ffffff?text=Character"}
+      />
+
+      {/* Video Layer - Shows on Hover */}
+      {character.video_url && (
+        <div className={`absolute inset-0 z-10 transition-opacity duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+          <video
+            ref={videoRef}
+            src={character.video_url}
+            muted
+            loop
+            playsInline
+            preload="none"
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+
+      {/* Gradient Overlays */}
+      <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-90" />
+      <div className="absolute inset-0 z-20 bg-primary/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 mix-blend-overlay" />
+
+      {/* Top Left - Stats */}
+      <div className="absolute top-3 left-3 z-30">
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/40 backdrop-blur-md text-white/90 text-[10px] font-medium border border-white/10">
+          <Heart className="w-3 h-3 fill-current text-primary" />
+          {character.like_count || 0}
+        </div>
+      </div>
+
+      {/* Top Right - Access Level (hide on hover) / LIVE (show on hover) */}
+      {character.access_level && (
+        <div className={`absolute top-3 right-3 z-30 transition-all duration-300 ${isHovered && character.video_url ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
+          <div className={`px-2.5 py-1 rounded-full backdrop-blur-md text-[10px] font-bold uppercase tracking-wide ${getAccessLevelStyle(character.access_level)}`}>
+            {character.access_level}
+          </div>
+        </div>
+      )}
+
+      {/* LIVE Badge - Show when hovering with video */}
+      {character.video_url && (
+        <div className={`absolute top-3 right-3 z-30 transition-all duration-300 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+          <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/80 backdrop-blur-md text-white text-[10px] font-medium">
+            <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+            LIVE
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Info */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 z-30 transform transition-transform duration-300 group-hover:-translate-y-1">
+        <h3 className="font-bold text-white text-lg mb-1">{character.name}</h3>
+        <p className="text-xs text-white/60 line-clamp-1">{character.description}</p>
+        
+        <div className="mt-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+          <span className="text-xs text-primary font-medium">Chat Now</span>
+          <MessageCircle className="w-4 h-4 text-primary" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SwipeCard({ 
     data, 
@@ -642,10 +738,11 @@ function SwipeCard({
                 >
                     {/* Image - position at 25% from top (between top and center) */}
                     <img 
-                      src={data.image} 
+                      src={data.image || "https://placehold.co/400x600/1a1a1a/ffffff?text=Character"} 
                       alt={data.name} 
                       className="w-full h-full object-cover pointer-events-none" 
                       style={{ objectPosition: 'center 25%' }}
+                      onError={(e) => e.currentTarget.src = "https://placehold.co/400x600/1a1a1a/ffffff?text=Character"}
                     />
                     
                     {/* Gradient */}
@@ -705,22 +802,24 @@ function SwipeCard({
                     </div>
 
                     <div className="space-y-6 text-white/80">
+                        {data.background && (
                         <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                             <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-2 flex items-center gap-2">
                                 <Info className="w-4 h-4" /> Background Story
                             </h3>
                             <p className="leading-relaxed">
-                                Born in the neon-lit streets of Sector 7, {data.name} learned to survive by hacking into corporate mainframes. 
-                                (This is a placeholder story for {data.role}). Known for being {data.tags.join(" and ")}.
+                                {data.background}
                             </p>
                         </div>
+                        )}
 
-                        <div className="grid grid-cols-2 gap-4">
-                             <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                                <h3 className="text-xs font-bold text-white/50 uppercase mb-1">Role</h3>
-                                <p className="font-medium">{data.role}</p>
-                             </div>
-
+                        <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-2">
+                                Description
+                            </h3>
+                            <p className="leading-relaxed text-white/80">
+                                {data.bio}
+                            </p>
                         </div>
 
                         <div className="p-4 bg-white/5 rounded-xl border border-white/10">
@@ -729,12 +828,10 @@ function SwipeCard({
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {data.tags.map((tag: string) => (
-                                    <Badge key={tag} variant="secondary" className="bg-primary/20 text-primary border-0">
+                                    <Badge key={tag} variant="secondary" className="bg-purple-500/20 text-purple-300 border-0">
                                         {tag}
                                     </Badge>
                                 ))}
-                                <Badge variant="outline">Intelligent</Badge>
-                                <Badge variant="outline">Secretive</Badge>
                             </div>
                         </div>
                     </div>

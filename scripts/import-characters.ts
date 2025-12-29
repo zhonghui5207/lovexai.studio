@@ -24,8 +24,14 @@ for (const line of envLines) {
 }
 
 // Load the JSON data
-const jsonPath = path.join(__dirname, "../test_characters_20_with_urls.json");
-const charactersData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+const jsonPath = path.join(__dirname, "../test_characters_30_with_urls.json");
+const rawCharactersData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+
+// Remove 'dimension' field from each character (not in schema)
+const charactersData = rawCharactersData.map((char: any) => {
+  const { dimension, ...rest } = char;
+  return rest;
+});
 
 // Convex client - uses CONVEX_URL from environment
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL || process.env.CONVEX_URL;

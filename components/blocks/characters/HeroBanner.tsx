@@ -24,6 +24,7 @@ interface Character {
   physicalDescription?: string;
   age?: number;
   location?: string;
+  access_level?: string;
 }
 
 // Render text with *action* as styled text (remove asterisks)
@@ -66,9 +67,8 @@ export default function HeroBanner() {
       chatCount: c.chat_count || "0",
       isOfficial: c.is_premium || false,
       personality: c.personality,
-      physicalDescription: c.description, // Fallback as physicalDescription might not be in schema
-      // age: c.age, // Not in schema
-      // location: c.location, // Not in schema
+      physicalDescription: c.description,
+      access_level: c.access_level,
     }));
   }, [rawCharacters]);
 

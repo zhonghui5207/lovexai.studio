@@ -23,9 +23,36 @@ interface CharacterModalProps {
     age?: number;
     location?: string;
     traits?: string[];
+    access_level?: string;
   } | null;
   isOpen: boolean;
   onClose: () => void;
+}
+
+// Render text with *action* as styled text (remove asterisks)
+function renderActionText(text: string) {
+  const parts = text.split(/(\*[^*]+\*)/);
+  return parts.map((part, index) => {
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return (
+        <span key={index} className="text-white/50 italic">
+          {part.slice(1, -1)}
+        </span>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+
+// Get access level badge color
+function getAccessLevelStyle(level: string) {
+  switch (level) {
+    case 'free': return 'bg-emerald-500/80 text-white';
+    case 'plus': return 'bg-blue-500/80 text-white';
+    case 'pro': return 'bg-purple-500/80 text-white';
+    case 'ultimate': return 'bg-gradient-to-r from-amber-500 to-orange-500 text-white';
+    default: return 'bg-white/20 text-white';
+  }
 }
 
 import { useMutation, useQuery } from "convex/react";
@@ -111,11 +138,11 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
               className="w-full h-full object-cover"
             />
 
-            {/* Official Badge */}
-            {character.isOfficial && (
+            {/* Access Level Badge */}
+            {character.access_level && (
               <div className="absolute top-4 left-4">
-                <Badge className="bg-primary hover:bg-primary/90 text-white font-semibold px-3 py-1">
-                  Lovexai
+                <Badge className={`backdrop-blur-md font-bold uppercase text-xs px-3 py-1.5 ${getAccessLevelStyle(character.access_level)}`}>
+                  {character.access_level}
                 </Badge>
               </div>
             )}
@@ -144,7 +171,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
               {/* Character Description */}
               <div className="mb-6 flex-shrink-0">
                 <p className="text-white/80 leading-relaxed">
-                  {character.greeting}
+                  {renderActionText(character.greeting)}
                 </p>
               </div>
 
@@ -153,29 +180,10 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
                 <div className="space-y-6">
                   {character.personality && (
                     <div>
-                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">PERSONALITY & DESCRIPTION</h3>
+                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">ABOUT</h3>
                       <p className="text-white/70 text-sm leading-relaxed">
                         {character.personality}
                       </p>
-                    </div>
-                  )}
-
-                  {character.physicalDescription && (
-                    <div>
-                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">PHYSICAL DESCRIPTION</h3>
-                      <p className="text-white/70 text-sm leading-relaxed">
-                        {character.physicalDescription}
-                      </p>
-                    </div>
-                  )}
-
-                  {(character.age || character.location) && (
-                    <div>
-                      <h3 className="text-xs font-bold text-white/40 uppercase tracking-wider mb-2">DETAILS</h3>
-                      <div className="text-white/70 text-sm space-y-1">
-                        {character.age && <p>Age: {character.age}</p>}
-                        {character.location && <p>Location: {character.location}</p>}
-                      </div>
                     </div>
                   )}
 
