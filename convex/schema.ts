@@ -117,7 +117,7 @@ export default defineSchema({
     order_no: v.string(),
     user_id: v.string(),
     user_email: v.string(),
-    status: v.string(), // 'created', 'paid', 'deleted'
+    status: v.string(), // 'created', 'pending', 'paid', 'failed', 'deleted'
     amount: v.number(),
     credits: v.number(),
     currency: v.string(),
@@ -130,6 +130,8 @@ export default defineSchema({
     product_id: v.optional(v.string()),
     product_name: v.optional(v.string()),
     expired_at: v.optional(v.string()),
+    // Payment method: 'card', 'wechat', 'alipay', 'crypto'
+    payment_method: v.optional(v.string()),
   })
     .index("by_order_no", ["order_no"])
     .index("by_user", ["user_id"]),

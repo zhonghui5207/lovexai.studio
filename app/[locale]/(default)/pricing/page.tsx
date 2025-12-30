@@ -8,6 +8,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { toast } from "sonner";
 import { useAppContext } from "@/contexts/app";
 import { useSearchParams } from "next/navigation";
+import PaymentMethodsModal, { PaymentMethod } from "@/components/blocks/pricing/PaymentMethodsModal";
 
 // ========================================
 // Subscription Plans Configuration
@@ -160,8 +161,34 @@ export default function PricingPage() {
   const { user, setShowSignModal } = useAppContext();
   const [isLoading, setIsLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  
+  // Payment modal states
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingPayment, setPendingPayment] = useState<{
+    productId: string;
+    price: number;
+    credits: number;
+    interval?: 'month' | 'year' | 'one-time';
+    productName?: string;
+  } | null>(null);
 
-  const handleCheckout = async (productId: string, price: number, credits: number, interval?: 'month' | 'year' | 'one-time', productName?: string) => {
+  // Open payment modal instead of directly checking out
+  const openPaymentModal = (productId: string, price: number, credits: number, interval?: 'month' | 'year' | 'one-time', productName?: string) => {
+    if (!user) {
+      setShowSignModal(true);
+      return;
+    }
+    setPendingPayment({ productId, price, credits, interval, productName });
+    setShowPaymentModal(true);
+  };
+
+  // Handle payment method confirmation from modal
+  const handlePaymentMethodConfirm = async (method: PaymentMethod) => {
+    if (!pendingPayment) return;
+    await handleCheckout(pendingPayment.productId, pendingPayment.price, pendingPayment.credits, pendingPayment.interval, pendingPayment.productName, method);
+  };
+
+  const handleCheckout = async (productId: string, price: number, credits: number, interval?: 'month' | 'year' | 'one-time', productName?: string, paymentMethod: PaymentMethod = 'card') => {
     if (!user) {
       setShowSignModal(true);
       return;
@@ -170,18 +197,37 @@ export default function PricingPage() {
     setIsLoading(true);
     setProcessingId(productId);
 
+    // Determine currency and amount based on payment method
+    const isChinesePay = paymentMethod === 'wechat' || paymentMethod === 'alipay';
+    const isCrypto = paymentMethod === 'crypto';
+
     try {
-      const response = await fetch("/api/checkout", {
+      // Route to different API endpoints based on payment method
+      let apiEndpoint = "/api/checkout"; // Default for card
+      switch (paymentMethod) {
+        case "wechat":
+          apiEndpoint = "/api/checkout/wechat";
+          break;
+        case "alipay":
+          apiEndpoint = "/api/checkout/alipay";
+          break;
+        case "crypto":
+          apiEndpoint = "/api/checkout/crypto";
+          break;
+      }
+
+      const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           product_id: productId,
           product_name: productName || (productId.includes("credits") ? `${credits} Credits` : "Subscription"),
           amount: Math.round(price * 100),
-          currency: "usd",
+          currency: isChinesePay ? "cny" : isCrypto ? "usd" : "usd",
           interval: interval || "one-time",
           valid_months: interval === "year" ? 12 : 1,
           credits: credits,
+          payment_method: paymentMethod,
         })
       });
 
@@ -191,14 +237,37 @@ export default function PricingPage() {
         throw new Error(data.message || "Checkout failed");
       }
 
-      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
-      if (!stripe) throw new Error("Stripe failed to load");
+      // Handle redirect based on payment method
+      if (paymentMethod === 'card') {
+        const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
+        if (!stripe) throw new Error("Stripe failed to load");
 
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: data.data.session_id
-      });
+        const { error } = await stripe.redirectToCheckout({
+          sessionId: data.data.session_id
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+      } else if (paymentMethod === 'wechat' || paymentMethod === 'alipay') {
+        const { payment_url } = data.data;
+        if (payment_url) {
+          window.location.href = payment_url;
+        } else {
+          throw new Error("Payment URL not found");
+        }
+      } else if (paymentMethod === 'crypto') {
+        const { payment_url, checkout_id } = data.data;
+        if (payment_url) {
+          window.location.href = payment_url;
+        } else if (checkout_id) {
+          window.location.href = `/pay/crypto/${checkout_id}`;
+        } else {
+          throw new Error("Crypto payment URL not found");
+        }
+      }
+
+      // Close modal after successful redirect initiation
+      setShowPaymentModal(false);
+      setPendingPayment(null);
       
     } catch (error: unknown) {
       console.error("Checkout error:", error);
@@ -349,7 +418,7 @@ export default function PricingPage() {
                         onClick={(e) => {
                           e.stopPropagation();
                           if (plan.product_id) {
-                            handleCheckout(
+                            openPaymentModal(
                               plan.product_id, 
                               billingCycle === 'yearly' ? plan.price.yearly * 12 : plan.price[billingCycle],
                               plan.credits,
@@ -414,7 +483,7 @@ export default function PricingPage() {
                     className={`group relative overflow-hidden rounded-2xl bg-card border p-6 hover:border-primary/50 transition-all duration-300 cursor-pointer ${
                       pack.popular ? 'border-primary/30 shadow-[0_0_20px_rgba(255,0,110,0.1)]' : 'border-white/5'
                     }`}
-                    onClick={() => handleCheckout(pack.product_id, pack.price, pack.credits + (pack.bonus || 0), 'one-time', `${pack.credits} Credits`)}
+                    onClick={() => openPaymentModal(pack.product_id, pack.price, pack.credits + (pack.bonus || 0), 'one-time', `${pack.credits} Credits`)}
                   >
                     {pack.popular && (
                       <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
@@ -467,6 +536,21 @@ export default function PricingPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Payment Methods Modal */}
+      <PaymentMethodsModal
+        isOpen={showPaymentModal}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setPendingPayment(null);
+          setIsLoading(false);
+          setProcessingId(null);
+        }}
+        onConfirm={handlePaymentMethodConfirm}
+        isLoading={isLoading}
+        planName={pendingPayment?.productName}
+        planPrice={pendingPayment?.price ? `$${pendingPayment.price.toFixed(2)}` : undefined}
+      />
     </div>
   );
 }

@@ -148,6 +148,7 @@ export const createOrder = mutation({
     product_name: v.optional(v.string()),
     expired_at: v.optional(v.string()),
     sub_interval: v.optional(v.string()),
+    payment_method: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("orders", args);
@@ -170,5 +171,38 @@ export const updateOrderSession = mutation({
             stripe_session_id: args.stripeSessionId
         });
     }
+  },
+});
+
+export const updateOrderStatus = mutation({
+  args: {
+    orderNo: v.union(v.string(), v.int64()),
+    status: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const orderNoStr = args.orderNo.toString();
+    const order = await ctx.db
+      .query("orders")
+      .withIndex("by_order_no", (q) => q.eq("order_no", orderNoStr))
+      .unique();
+    
+    if (order) {
+      await ctx.db.patch(order._id, {
+        status: args.status
+      });
+    }
+    return order;
+  },
+});
+
+// Query by order_no supporting both string and bigint
+export const getOrderByNo = query({
+  args: { orderNo: v.union(v.string(), v.int64()) },
+  handler: async (ctx, args) => {
+    const orderNoStr = args.orderNo.toString();
+    return await ctx.db
+      .query("orders")
+      .withIndex("by_order_no", (q) => q.eq("order_no", orderNoStr))
+      .unique();
   },
 });

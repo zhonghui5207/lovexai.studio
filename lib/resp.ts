@@ -6,8 +6,15 @@ export function respOk() {
   return respJson(0, "ok");
 }
 
-export function respErr(message: string) {
-  return respJson(-1, message);
+export function respErr(message: string, status?: number) {
+  const json = {
+    code: -1,
+    message: message,
+  };
+  return new Response(JSON.stringify(json), {
+    status: status || 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 export function respJson(code: number, message: string, data?: any) {
