@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Loader } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { loadStripe } from "@stripe/stripe-js";
 import { toast } from "sonner";
 import { useAppContext } from "@/contexts/app";
 import { useSearchParams } from "next/navigation";
@@ -203,8 +202,11 @@ export default function PricingPage() {
 
     try {
       // Route to different API endpoints based on payment method
-      let apiEndpoint = "/api/checkout"; // Default for card
+      let apiEndpoint = "/api/checkout/card"; // Payblis for card
       switch (paymentMethod) {
+        case "card":
+          apiEndpoint = "/api/checkout/card";
+          break;
         case "wechat":
           apiEndpoint = "/api/checkout/wechat";
           break;
@@ -237,32 +239,12 @@ export default function PricingPage() {
         throw new Error(data.message || "Checkout failed");
       }
 
-      // Handle redirect based on payment method
-      if (paymentMethod === 'card') {
-        const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
-        if (!stripe) throw new Error("Stripe failed to load");
-
-        const { error } = await stripe.redirectToCheckout({
-          sessionId: data.data.session_id
-        });
-
-        if (error) throw error;
-      } else if (paymentMethod === 'wechat' || paymentMethod === 'alipay') {
-        const { payment_url } = data.data;
-        if (payment_url) {
-          window.location.href = payment_url;
-        } else {
-          throw new Error("Payment URL not found");
-        }
-      } else if (paymentMethod === 'crypto') {
-        const { payment_url, checkout_id } = data.data;
-        if (payment_url) {
-          window.location.href = payment_url;
-        } else if (checkout_id) {
-          window.location.href = `/pay/crypto/${checkout_id}`;
-        } else {
-          throw new Error("Crypto payment URL not found");
-        }
+      // Handle redirect - all payment methods now use payment_url
+      const { payment_url } = data.data;
+      if (payment_url) {
+        window.location.href = payment_url;
+      } else {
+        throw new Error("Payment URL not found");
       }
 
       // Close modal after successful redirect initiation
