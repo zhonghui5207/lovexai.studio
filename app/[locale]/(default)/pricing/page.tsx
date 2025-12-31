@@ -92,6 +92,24 @@ const SUBSCRIPTION_PLANS = [
     highlight: true,
     buttonText: "Subscribe",
     product_id: "price_ultimate"
+  },
+  // TEST PLAN - Remove after testing
+  {
+    id: "test",
+    name: "🧪 TEST",
+    description: "Payment Testing Only",
+    price: { monthly: 0.10, yearly: 0.10 },
+    credits: 100,
+    creditsNote: "test",
+    features: [
+      "⚠️ FOR TESTING ONLY",
+      "100 Credits",
+      "Pro-level access",
+      "1 month validity",
+    ],
+    highlight: false,
+    buttonText: "Test $0.10",
+    product_id: "price_test"
   }
 ];
 
@@ -136,6 +154,14 @@ const CREDIT_PACKS = [
     price: 99.99,
     bonus: 7500,
     product_id: "credits_30000"
+  },
+  // TEST PACK - Remove after testing
+  {
+    credits: 100,
+    price: 0.10,
+    bonus: 0,
+    popular: false,
+    product_id: "credits_test"
   }
 ];
 
@@ -218,13 +244,21 @@ export default function PricingPage() {
           break;
       }
 
+      // USD to CNY exchange rate (approximate)
+      const USD_TO_CNY_RATE = 7.3;
+      
+      // Convert amount for Chinese payment methods
+      const finalAmount = isChinesePay 
+        ? Math.round(price * USD_TO_CNY_RATE * 100) // Convert USD to CNY cents
+        : Math.round(price * 100); // Keep as USD cents
+
       const response = await fetch(apiEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           product_id: productId,
           product_name: productName || (productId.includes("credits") ? `${credits} Credits` : "Subscription"),
-          amount: Math.round(price * 100),
+          amount: finalAmount,
           currency: isChinesePay ? "cny" : isCrypto ? "usd" : "usd",
           interval: interval || "one-time",
           valid_months: interval === "year" ? 12 : 1,

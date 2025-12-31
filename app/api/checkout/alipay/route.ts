@@ -112,7 +112,7 @@ export async function POST(req: Request) {
 
     console.log("ZhuFuFm order created:", orderResult);
 
-    if (orderResult.code !== 0) {
+    if (orderResult.code !== 200 && orderResult.code !== 0) {
       throw new Error(orderResult.msg || "Failed to create payment order");
     }
 
