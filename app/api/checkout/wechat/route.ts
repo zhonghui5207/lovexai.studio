@@ -3,7 +3,7 @@ import { respData, respErr } from "@/lib/resp";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { getSnowId } from "@/lib/hash";
-import { ZhuFuFm, ZhuFuFmPayType } from "zhifufm";
+import { ZhuFuFm } from "zhifufm";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -100,16 +100,12 @@ export async function POST(req: Request) {
     });
     console.log("Order created in Convex for WeChat payment");
 
-    // Create payment order via ZhuFuFm
-    // Use WeChatNative for direct merchant connection, or WeChatQrCode for personal QR code
-    const payType = process.env.ZHIFUFM_WECHAT_USE_NATIVE === "true" 
-      ? ZhuFuFmPayType.WeChatNative 
-      : ZhuFuFmPayType.WeChatQrCode;
+    // Create payment order via ZhuFuFm with wxpaynative (微信商户号 Native 支付)
 
     const orderResult = await zhifufm.startOrder({
       orderNo: order_no,
       amount: price_amount,
-      payType: payType,
+      payType: "wxpaynative" as any, // 微信商户号 Native 支付
       subject: product_name || "购买商品",
       body: `${credits} Credits`,
       attch: JSON.stringify({ user_id: convex_user_id, product_id }),
