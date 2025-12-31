@@ -96,7 +96,7 @@ const SUBSCRIPTION_PLANS = [
   // TEST PLAN - Remove after testing
   {
     id: "test",
-    name: "🧪 TEST",
+    name: "TEST",
     description: "Payment Testing Only",
     price: { monthly: 0.10, yearly: 0.10 },
     credits: 100,
