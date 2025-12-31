@@ -111,6 +111,7 @@ export async function POST(req: Request) {
       body: `${credits} Credits`,
       attch: JSON.stringify({ user_id: convex_user_id, product_id }),
       returnUrl: `${baseUrl}/pay-success?order_no=${order_no}&method=alipay`,
+      notifyUrl: `${baseUrl}/api/zhifufm-webhook`,
     }) as any;
 
     console.log("ZhuFuFm order created:", orderResult);
