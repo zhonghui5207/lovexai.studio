@@ -98,7 +98,7 @@ const SUBSCRIPTION_PLANS = [
     id: "test",
     name: "🧪 TEST",
     description: "Payment Testing Only",
-    price: { monthly: 1.50, yearly: 1.50 },
+    price: { monthly: 0.10, yearly: 0.10 },
     credits: 100,
     creditsNote: "test",
     features: [
@@ -108,7 +108,7 @@ const SUBSCRIPTION_PLANS = [
       "1 month validity",
     ],
     highlight: false,
-    buttonText: "Test $1.50",
+    buttonText: "Test $0.10",
     product_id: "price_test"
   }
 ];
@@ -158,7 +158,7 @@ const CREDIT_PACKS = [
   // TEST PACK - Remove after testing
   {
     credits: 100,
-    price: 1.50,
+    price: 0.10,
     bonus: 0,
     popular: false,
     product_id: "credits_test"

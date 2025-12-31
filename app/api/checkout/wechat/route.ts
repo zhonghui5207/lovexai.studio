@@ -101,6 +101,7 @@ export async function POST(req: Request) {
     console.log("Order created in Convex for WeChat payment");
 
     // Create payment order via ZhuFuFm with wxpaynative (微信商户号 Native 支付)
+    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || "https://lovexai.studio";
 
     const orderResult = await zhifufm.startOrder({
       orderNo: order_no,
@@ -109,6 +110,7 @@ export async function POST(req: Request) {
       subject: product_name || "购买商品",
       body: `${credits} Credits`,
       attch: JSON.stringify({ user_id: convex_user_id, product_id }),
+      returnUrl: `${baseUrl}/pay-success?order_no=${order_no}&method=wechat`,
     }) as any;
 
     console.log("ZhuFuFm order created:", orderResult);

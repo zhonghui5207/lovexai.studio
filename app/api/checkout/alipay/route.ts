@@ -101,6 +101,8 @@ export async function POST(req: Request) {
     console.log("Order created in Convex for Alipay payment");
 
     // Create payment order via ZhuFuFm
+    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || "https://lovexai.studio";
+
     const orderResult = await zhifufm.startOrder({
       orderNo: order_no,
       amount: price_amount,
@@ -108,6 +110,7 @@ export async function POST(req: Request) {
       subject: product_name || "购买商品",
       body: `${credits} Credits`,
       attch: JSON.stringify({ user_id: convex_user_id, product_id }),
+      returnUrl: `${baseUrl}/pay-success?order_no=${order_no}&method=alipay`,
     }) as any;
 
     console.log("ZhuFuFm order created:", orderResult);
