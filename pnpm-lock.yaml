@@ -221,6 +221,9 @@ importers:
       vaul:
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      zhifufm:
+        specifier: ^0.0.6
+        version: 0.0.6
       zod:
         specifier: ^3.24.1
         version: 3.24.1
@@ -5777,6 +5780,9 @@ packages:
 
   youch@3.3.4:
     resolution: {integrity: sha512-UeVBXie8cA35DS6+nBkls68xaBBXCye0CNznrhszZjTbRVnJKQuNsyLKBTTL4ln1o1rh2PKtv35twV7irj5SEg==}
+
+  zhifufm@0.0.6:
+    resolution: {integrity: sha512-yU7QdZ65WjZ/tW3t2eoMTNamItEeDovsglddhlAK2KYXYQhIbQvsgTnya4cVR6lSULB8XAwnNRMmM6F5ZYtIJw==}
 
   zod-to-json-schema@3.24.4:
     resolution: {integrity: sha512-0uNlcvgabyrni9Ag8Vghj21drk7+7tp7VTwwR7KxxXXc/3pbXz2PHlDgj3cICahgF1kHm4dExBFj7BXrZJXzig==}
@@ -12374,6 +12380,8 @@ snapshots:
       cookie: 0.7.2
       mustache: 4.2.0
       stacktracey: 2.1.8
+
+  zhifufm@0.0.6: {}
 
   zod-to-json-schema@3.24.4(zod@3.24.1):
     dependencies:
