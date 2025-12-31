@@ -102,19 +102,23 @@ export async function POST(req: Request) {
 
     // Create payment order via ZhuFuFm with wxpaynative (微信商户号 Native 支付)
     const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || "https://lovexai.studio";
-
-    const orderResult = await zhifufm.startOrder({
+    
+    const orderParams = {
       orderNo: order_no,
       amount: price_amount,
-      payType: "wxpaynative" as any, // 微信商户号 Native 支付
+      payType: "wxpaynative" as any,
       subject: product_name || "购买商品",
       body: `${credits} Credits`,
       attch: JSON.stringify({ user_id: convex_user_id, product_id }),
       returnUrl: `${baseUrl}/pay-success?order_no=${order_no}&method=wechat`,
       notifyUrl: `${baseUrl}/api/zhifufm-webhook`,
-    }) as any;
+    };
+    
+    console.log("Sending to ZhuFuFm:", JSON.stringify(orderParams));
 
-    console.log("ZhuFuFm order created:", orderResult);
+    const orderResult = await zhifufm.startOrder(orderParams) as any;
+
+    console.log("ZhuFuFm order created:", JSON.stringify(orderResult));
 
     if (orderResult.code !== 200 && orderResult.code !== 0) {
       throw new Error(orderResult.msg || "Failed to create payment order");
