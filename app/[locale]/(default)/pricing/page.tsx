@@ -92,24 +92,6 @@ const SUBSCRIPTION_PLANS = [
     highlight: true,
     buttonText: "Subscribe",
     product_id: "price_ultimate"
-  },
-  // TEST PLAN - Remove after testing
-  {
-    id: "test",
-    name: "TEST",
-    description: "Payment Testing Only",
-    price: { monthly: 0.10, yearly: 0.10 },
-    credits: 100,
-    creditsNote: "test",
-    features: [
-      "⚠️ FOR TESTING ONLY",
-      "100 Credits",
-      "Pro-level access",
-      "1 month validity",
-    ],
-    highlight: false,
-    buttonText: "Test $0.10",
-    product_id: "price_test"
   }
 ];
 
@@ -154,14 +136,6 @@ const CREDIT_PACKS = [
     price: 99.99,
     bonus: 7500,
     product_id: "credits_30000"
-  },
-  // TEST PACK - Remove after testing
-  {
-    credits: 100,
-    price: 0.10,
-    bonus: 0,
-    popular: false,
-    product_id: "credits_test"
   }
 ];
 
