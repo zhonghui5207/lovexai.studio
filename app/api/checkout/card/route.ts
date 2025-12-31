@@ -130,7 +130,8 @@ export async function POST(req: Request) {
     const clientIP = forwarded ? forwarded.split(",")[0].trim() : "127.0.0.1";
 
     // Build Payblis payment parameters
-    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || "https://lovexai.studio";
+    // Use www.lovexai.studio to avoid 307 redirect
+    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL?.replace("://lovexai.studio", "://www.lovexai.studio") || "https://www.lovexai.studio";
     
     const paymentParams: Record<string, string> = {
       MerchantKey: PAYBLIS_API_KEY,

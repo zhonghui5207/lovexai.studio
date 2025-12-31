@@ -97,14 +97,17 @@ export async function POST(req: Request) {
     console.log("Order created in Convex for crypto payment");
 
     // Create NOWPayments invoice
+    // Use www.lovexai.studio to avoid 307 redirect
+    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL?.replace("://lovexai.studio", "://www.lovexai.studio") || "https://www.lovexai.studio";
+
     const invoiceData = {
       price_amount: price_amount,
       price_currency: "usd",
       order_id: order_no.toString(),
       order_description: product_name,
-      ipn_callback_url: `${process.env.NEXT_PUBLIC_WEB_URL}/api/nowpayments-webhook`,
-      success_url: `${process.env.NEXT_PUBLIC_WEB_URL}/pay-success?order_no=${order_no}&method=crypto`,
-      cancel_url: `${process.env.NEXT_PUBLIC_WEB_URL}/pricing`,
+      ipn_callback_url: `${baseUrl}/api/nowpayments-webhook`,
+      success_url: `${baseUrl}/pay-success?order_no=${order_no}&method=crypto`,
+      cancel_url: `${baseUrl}/pricing`,
     };
 
     console.log("Creating NOWPayments invoice...", invoiceData);
