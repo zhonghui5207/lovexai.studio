@@ -101,7 +101,8 @@ export async function POST(req: Request) {
     console.log("Order created in Convex for Alipay payment");
 
     // Create payment order via ZhuFuFm
-    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || "https://lovexai.studio";
+    // Use www.lovexai.studio to avoid 307 redirect
+    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL?.replace("://lovexai.studio", "://www.lovexai.studio") || "https://www.lovexai.studio";
 
     const orderResult = await zhifufm.startOrder({
       orderNo: order_no,

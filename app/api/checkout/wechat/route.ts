@@ -101,7 +101,8 @@ export async function POST(req: Request) {
     console.log("Order created in Convex for WeChat payment");
 
     // Create payment order via ZhuFuFm with wxpaynative (微信商户号 Native 支付)
-    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL || "https://lovexai.studio";
+    // Use www.lovexai.studio to avoid 307 redirect
+    const baseUrl = process.env.NEXT_PUBLIC_WEB_URL?.replace("://lovexai.studio", "://www.lovexai.studio") || "https://www.lovexai.studio";
     
     const orderParams = {
       orderNo: order_no,
