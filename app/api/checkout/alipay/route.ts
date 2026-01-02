@@ -107,7 +107,7 @@ export async function POST(req: Request) {
     const orderResult = await zhifufm.startOrder({
       orderNo: order_no,
       amount: price_amount,
-      payType: ZhuFuFmPayType.AlipayQrCode, // 支付宝免签收款码
+      payType: ZhuFuFmPayType.AlipayPcDirect, // 支付宝PC网站支付 - 官方签约
       subject: product_name || "购买商品",
       body: `${credits} Credits`,
       attch: JSON.stringify({ user_id: convex_user_id, product_id }),
