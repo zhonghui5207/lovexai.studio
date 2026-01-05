@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "title": "几小时内构建任何 AI SaaS 创业项目 | ShipAny",
-    "description": "ShipAny 是一个用于构建 AI SaaS 创业项目的 NextJS 模板，提供各种模板和组件，帮助您快速启动。",
-    "keywords": "ShipAny, AI SaaS 模板, NextJS 模板"
+    "title": "LoveXAI - AI伴侣与角色对话",
+    "description": "创造属于你的完美AI伴侣。与AI角色聊天，生成图片，探索无限可能。",
+    "keywords": "AI伴侣, AI角色对话, AI女友, AI男友, 角色AI, NSFW AI聊天, AI角色扮演"
   },
   "user": {
     "sign_in": "登录",

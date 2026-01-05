@@ -1,9 +1,9 @@
 "use client";
 
 import { Footer as FooterType } from "@/types/blocks/footer";
-import Icon from "@/components/icon";
 import LovexaiLogo from "@/components/ui/logo";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 export default function Footer({ footer }: { footer: FooterType }) {
   const pathname = usePathname();
@@ -16,101 +16,134 @@ export default function Footer({ footer }: { footer: FooterType }) {
     <section id={footer.name} className="relative bg-black py-12 lg:py-20 overflow-hidden">
       <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto">
         <footer>
-          {/* Grid Layout: Left Brand (2 cols) | Right Links (3 cols) */}
+          {/* Grid Layout: Left Brand | Right Links (4 columns) */}
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-8">
             
             {/* Brand Column */}
-            <div className="flex flex-col gap-6 lg:col-span-4 xl:col-span-5">
-              {footer.brand && (
-                <div className="flex flex-col gap-6">
-                  <div className="flex items-center gap-3 group w-fit">
-                    <LovexaiLogo className="h-10 w-10 transition-transform duration-300 group-hover:scale-110" />
-                    {footer.brand.title && (
-                      <span className="text-2xl font-bold tracking-tight text-white">
-                        {footer.brand.title}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-base font-light leading-relaxed text-white/60">
-                    Experience the next generation of AI companionship. Dive into immersive roleplay, create your dream characters, and explore a universe of limitless possibilities. Your fantasy, your rules.
-                  </p>
+            <div className="flex flex-col gap-6 lg:col-span-4">
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-3 group w-fit">
+                  <LovexaiLogo className="h-10 w-10 transition-transform duration-300 group-hover:scale-110" />
+                  <span className="text-2xl font-bold tracking-tight text-white">
+                    LOVEXAI
+                  </span>
                 </div>
-              )}
-              
-              {footer.social && (
-                <ul className="flex items-center gap-4">
-                  {footer.social.items?.map((item, i) => (
-                    <li key={i}>
-                      <a 
-                        href={item.url} 
-                        target={item.target}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/60 transition-colors duration-300 hover:border-primary/50 hover:bg-primary/10 hover:text-primary"
-                      >
-                        {item.icon && <Icon name={item.icon} className="h-4 w-4" />}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
+                <p className="text-base font-light leading-relaxed text-white/60">
+                  Experience the next generation of AI companionship. Dive into immersive roleplay, create your dream characters, and explore a universe of limitless possibilities. Your fantasy, your rules.
+                </p>
+                <p className="text-sm text-white/40">
+                  © {new Date().getFullYear()} LOVEXAI.Studio - All rights reserved
+                </p>
+              </div>
             </div>
 
             {/* Links Columns */}
-            <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:col-span-8 lg:col-start-6 xl:col-span-6 xl:col-start-7">
-              {/* Column 1 */}
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-4 lg:col-span-8">
+              
+              {/* Column 1: Features */}
               <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-white">Explore</h4>
+                <h4 className="text-lg font-bold text-white">Features</h4>
                 <ul className="flex flex-col gap-2">
-                  <li><a href="/characters" className="text-sm text-white/60 transition-colors hover:text-primary">Characters</a></li>
-                  <li><a href="/generate" className="text-sm text-white/60 transition-colors hover:text-primary">Image Gen</a></li>
+                  <li><a href="/discover" className="text-sm text-white/60 transition-colors hover:text-primary">AI Characters</a></li>
+                  <li><a href="/chat" className="text-sm text-white/60 transition-colors hover:text-primary">AI Chat</a></li>
+                  <li><a href="/generate" className="text-sm text-white/60 transition-colors hover:text-primary">Image Generator</a></li>
+                  <li><a href="/create" className="text-sm text-white/60 transition-colors hover:text-primary">Create Character</a></li>
+                </ul>
+              </div>
+
+              {/* Column 2: Trending */}
+              <div className="flex flex-col gap-4">
+                <h4 className="text-lg font-bold text-white">Trending</h4>
+                <ul className="flex flex-col gap-2">
+                  <li><a href="/discover?filter=female" className="text-sm text-white/60 transition-colors hover:text-primary">AI Girlfriend</a></li>
+                  <li><a href="/discover?filter=male" className="text-sm text-white/60 transition-colors hover:text-primary">AI Boyfriend</a></li>
+                  <li><a href="/discover?filter=anime" className="text-sm text-white/60 transition-colors hover:text-primary">Anime Characters</a></li>
                   <li><a href="/pricing" className="text-sm text-white/60 transition-colors hover:text-primary">Pricing</a></li>
                 </ul>
               </div>
 
-              {/* Column 2 */}
-              <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-white">Support</h4>
-                <ul className="flex flex-col gap-2">
-                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Help Center</a></li>
-                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Community</a></li>
-                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Contact</a></li>
-                </ul>
-              </div>
-
-              {/* Column 3 */}
+              {/* Column 3: Legal */}
               <div className="flex flex-col gap-4">
                 <h4 className="text-lg font-bold text-white">Legal</h4>
                 <ul className="flex flex-col gap-2">
-                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Terms</a></li>
-                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Privacy</a></li>
-                  <li><a href="#" className="text-sm text-white/60 transition-colors hover:text-primary">Guidelines</a></li>
+                  <li><a href="/terms-of-service" className="text-sm text-white/60 transition-colors hover:text-primary">Terms of Use</a></li>
+                  <li><a href="/privacy-policy" className="text-sm text-white/60 transition-colors hover:text-primary">Privacy Policy</a></li>
                 </ul>
               </div>
-            </div>
-          </div>
 
-          {/* Bottom Bar */}
-          <div className="mt-16 flex flex-col items-center justify-between gap-6 border-t border-white/10 pt-8 text-sm font-medium lg:flex-row">
-            {footer.copyright && (
-              <p className="text-white/40 text-center lg:text-left">
-                {footer.copyright}
-              </p>
-            )}
-
-            {footer.agreement && (
-              <ul className="flex flex-wrap justify-center gap-6">
-                {footer.agreement.items?.map((item, i) => (
-                  <li key={i}>
+              {/* Column 4: Contact Us */}
+              <div className="flex flex-col gap-4">
+                <h4 className="text-lg font-bold text-white">Contact Us</h4>
+                <ul className="flex flex-col gap-3">
+                  <li>
                     <a 
-                      href={item.url} 
-                      target={item.target}
-                      className="text-white/40 transition-colors hover:text-white"
+                      href="https://discord.gg/lovexai" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-white/60 transition-colors hover:text-primary"
                     >
-                      {item.title}
+                      Discord
                     </a>
                   </li>
-                ))}
-              </ul>
-            )}
+                  <li>
+                    <a 
+                      href="https://twitter.com/lovexai" 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-white/60 transition-colors hover:text-primary"
+                    >
+                      Twitter
+                    </a>
+                  </li>
+                </ul>
+
+                {/* Payment Methods - Direct icon display */}
+                <div className="mt-2">
+                  <div className="flex flex-col gap-2">
+                    {/* Row 1: Visa, Mastercard */}
+                    <div className="flex items-center gap-2">
+                      <Image 
+                        src="/visa_logo.svg" 
+                        alt="Visa" 
+                        width={80} 
+                        height={50} 
+                        className="object-contain"
+                      />
+                      <Image 
+                        src="/mastercard_logo.svg" 
+                        alt="Mastercard" 
+                        width={80} 
+                        height={50} 
+                        className="object-contain"
+                      />
+                    </div>
+
+                    {/* Row 2: Bitcoin, WeChat, Alipay - All circular */}
+                    <div className="flex items-center gap-2">
+                      <Image 
+                        src="/bitcoin_logo.svg" 
+                        alt="Bitcoin" 
+                        width={50} 
+                        height={50} 
+                        className="object-contain"
+                      />
+                      <div className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#07C160]">
+                        <svg viewBox="0 0 24 24" className="h-8 w-8" fill="white">
+                          <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.269-.03-.406-.032zm-2.344 3.02c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.981.97-.981zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.981.969-.981z" />
+                        </svg>
+                      </div>
+                      <Image 
+                        src="/alipay.png" 
+                        alt="Alipay" 
+                        width={50} 
+                        height={50} 
+                        className="object-contain rounded-full"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </footer>
       </div>

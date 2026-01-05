@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CreditCard, X, Loader } from "lucide-react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -40,14 +41,30 @@ const WeChatIcon = () => (
   </svg>
 );
 
-// Alipay Icon - using image
+// Alipay Icon - optimized with Next Image
 const AlipayIcon = () => (
-  <img src="/alipay.png" alt="Alipay" className="w-6 h-6 object-contain" />
+  <Image 
+    src="/alipay.png" 
+    alt="Alipay" 
+    width={24}
+    height={24}
+    className="w-6 h-6 object-contain" 
+    priority
+    quality={90}
+  />
 );
 
-// Crypto Icon - using image (Bybit)
+// Crypto Icon - optimized with Next Image
 const CryptoIcon = () => (
-  <img src="/bybit.png" alt="Crypto" className="w-6 h-6 object-contain" />
+  <Image 
+    src="/bybit.png" 
+    alt="Crypto" 
+    width={24}
+    height={24}
+    className="w-6 h-6 object-contain" 
+    priority
+    quality={90}
+  />
 );
 
 const paymentOptions: PaymentMethodOption[] = [
