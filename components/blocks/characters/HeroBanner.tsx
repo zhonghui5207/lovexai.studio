@@ -1,15 +1,19 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
+import Image from "next/image";
+import { Heart, User, Star } from "lucide-react";
 
-// Import the same character data structure from DiscoverSection
+// Import static character data
+import heroGirls from "@/data/hero-girls.json";
+import heroGuys from "@/data/hero-guys.json";
+import heroAnime from "@/data/hero-anime.json";
+
+// Character interface matching our static data
 interface Character {
   id: string;
   name: string;
@@ -27,6 +31,31 @@ interface Character {
   access_level?: string;
 }
 
+// Category type
+type Category = "girls" | "guys" | "anime";
+
+// Category configurations
+const CATEGORIES = [
+  {
+    id: "girls" as Category,
+    label: "Girls",
+    icon: Heart,
+    data: heroGirls,
+  },
+  {
+    id: "guys" as Category,
+    label: "Guys",
+    icon: User,
+    data: heroGuys,
+  },
+  {
+    id: "anime" as Category,
+    label: "Anime",
+    icon: Star,
+    data: heroAnime,
+  },
+];
+
 // Render text with *action* as styled text (remove asterisks)
 function renderActionText(text: string) {
   const parts = text.split(/(\*[^*]+\*)/);
@@ -43,34 +72,41 @@ function renderActionText(text: string) {
   });
 }
 
+// Map URL gender param to category
+function genderToCategory(gender: string | null): Category {
+  switch (gender) {
+    case "male": return "guys";
+    case "anime": return "anime";
+    default: return "girls"; // female or null -> girls
+  }
+}
+
 export default function HeroBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Ensure client-side only to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  
+  // Read gender from URL and map to category
+  // Default to "girls" for SSR, then update on client
+  const gender = mounted ? searchParams.get("gender") : null;
+  const activeCategory = genderToCategory(gender);
 
-  // Fetch characters from Convex
-  const rawCharacters = useQuery(api.characters.list, { activeOnly: true });
+  // Get characters for active category - always have data (static JSON)
+  const currentCategoryData = CATEGORIES.find(c => c.id === activeCategory);
+  const heroCharacters = (currentCategoryData?.data || heroGirls) as Character[];
 
-  // Transform data
-  const heroCharacters: Character[] = useMemo(() => {
-    if (!rawCharacters) return [];
-    
-    return rawCharacters.slice(0, 3).map((c) => ({
-      id: c._id,
-      name: c.name,
-      username: c.username,
-      avatar: c.avatar_url || "https://cdn.lovexai.studio/Character/default_avatar.png",
-      description: c.description,
-      traits: c.traits || [],
-      greeting: c.greeting_message,
-      chatCount: c.chat_count || "0",
-      isOfficial: c.is_premium || false,
-      personality: c.personality,
-      physicalDescription: c.description,
-      access_level: c.access_level,
-    }));
-  }, [rawCharacters]);
+  // Reset carousel index when category changes
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [activeCategory]);
 
   // Auto-play carousel
   useEffect(() => {
@@ -97,23 +133,6 @@ export default function HeroBanner() {
     setSelectedCharacter(null);
   };
 
-  // Loading State
-  if (rawCharacters === undefined) {
-    return (
-      <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-transparent pt-10 lg:pt-0">
-         <div className="animate-pulse flex flex-col items-center gap-4">
-            <div className="h-12 w-64 bg-white/10 rounded-lg"></div>
-            <div className="h-4 w-48 bg-white/5 rounded-lg"></div>
-         </div>
-      </section>
-    );
-  }
-
-  // Empty State
-  if (heroCharacters.length === 0) {
-    return null; // Or show a placeholder
-  }
-
   return (
     <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-transparent pt-10 lg:pt-0">
       {/* Seamless Gradient Bottom */}
@@ -124,38 +143,22 @@ export default function HeroBanner() {
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full pointer-events-none" />
       
       <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-8 items-center relative z-10">
-        {/* Left Content: Text */}
+        {/* Left Content: Text - Static, no animation to avoid flash */}
         <div className="lg:col-span-6 text-center lg:text-left space-y-8 pt-12 lg:pt-0 relative z-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-
-
+          <div>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
-            Craft Your <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-gradient-x">
-              Perfect Soulmate
-            </span>
-          </h1>
-          </motion.div>
+              Craft Your <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-gradient-x">
+                Perfect Soulmate
+              </span>
+            </h1>
+          </div>
           
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 font-sans leading-relaxed"
-          >
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 font-sans leading-relaxed">
             Dive into a world where AI characters feel alive. Create, chat, and connect with companions that understand your deepest desires.
-          </motion.p>
+          </p>
           
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
-          >
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Button
               size="lg"
               className="relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-bold px-10 py-6 text-lg rounded-2xl shadow-[0_0_20px_rgba(255,0,110,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,0,110,0.6)]"
@@ -172,13 +175,9 @@ export default function HeroBanner() {
             >
               Explore Characters
             </Button>
-          </motion.div>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="flex items-center gap-6 justify-center lg:justify-start pt-4"
+          <div className="flex items-center gap-6 justify-center lg:justify-start pt-4"
           >
             <div className="flex -space-x-4">
               {[1, 2, 3, 4].map((i) => (
@@ -190,7 +189,7 @@ export default function HeroBanner() {
             <div className="text-sm text-muted-foreground">
               <span className="text-foreground font-bold">10,000+</span> conversations daily
             </div>
-          </motion.div>
+          </div>
         </div>
         
         {/* Right Content: 3D Card Stack */}
@@ -250,10 +249,13 @@ export default function HeroBanner() {
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   <div className={`relative h-full w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-300 ${offset === 0 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/20' : ''}`}>
-                    <img
+                    <Image
                       src={character.avatar}
                       alt={character.name}
-                      className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+                      fill
+                      className="object-cover transition-transform duration-700 hover:scale-110"
+                      priority={offset === 0} // Prioritize active card
+                      sizes="(max-width: 768px) 280px, 320px"
                     />
                     
                     {/* Top Badges */}

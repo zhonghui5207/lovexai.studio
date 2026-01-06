@@ -7,8 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 import { useSearchParams } from "next/navigation";
 import { MessageCircle } from "lucide-react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import Image from "next/image";
 
 interface Character {
@@ -33,6 +31,12 @@ interface Character {
 interface CharacterCardProps {
   character: Character;
   onClick: () => void;
+}
+
+interface DiscoverSectionProps {
+  characters?: any[]; // Simplified: Accept raw Convex query result
+  activeCategory?: "girls" | "guys" | "anime";
+  onCategoryChange?: (category: "girls" | "guys" | "anime") => void;
 }
 
 // Render text with *action* as italic
@@ -73,10 +77,7 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ duration: 0.3 }}
+      // Removed initial animation to show cards instantly
       className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/5 cursor-pointer"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
@@ -191,7 +192,7 @@ const generateMockChatCount = (index: number): string => {
 
 const FILTERS = ["All", "Trending", "New", "Roleplay", "Anime", "Realistic"];
 
-export default function DiscoverSection() {
+export default function DiscoverSection({ characters: rawCharacters }: DiscoverSectionProps) {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
@@ -200,7 +201,6 @@ export default function DiscoverSection() {
   const activeGender = searchParams.get("gender") || "female";
   const nsfwEnabled = searchParams.get("nsfw") === "true";
 
-  const rawCharacters = useQuery(api.characters.list, { activeOnly: true });
   const loading = rawCharacters === undefined;
 
   const allCharacters = (rawCharacters || []).map((char, index) => ({
@@ -219,13 +219,18 @@ export default function DiscoverSection() {
     age: undefined,
     location: undefined,
     access_level: char.access_level,
-    tags: ["Trending", "Roleplay"]
+    tags: ["Trending", "Roleplay"],
+    category: char.category || "female" // Add category for filtering
   }));
 
-  const displayCharacters = allCharacters.filter(c => {
-    if (activeFilter === "All") return true;
-    return c.traits.some(t => t.toLowerCase().includes(activeFilter.toLowerCase()));
-  }).slice(0, 12);
+  // Filter by gender from URL, then by active filter
+  const displayCharacters = allCharacters
+    .filter(c => c.category === activeGender) // Filter by gender first
+    .filter(c => {
+      if (activeFilter === "All") return true;
+      return c.traits.some((t: string) => t.toLowerCase().includes(activeFilter.toLowerCase()));
+    })
+    .slice(0, 12);
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);

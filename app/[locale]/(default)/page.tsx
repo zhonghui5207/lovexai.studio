@@ -1,44 +1,23 @@
+"use client";
 
 import HeroBanner from "@/components/blocks/characters/HeroBanner";
 import DiscoverSection from "@/components/blocks/characters/DiscoverSection";
 import ImageGenSection from "@/components/blocks/home/ImageGenSection";
 import Testimonials from "@/components/blocks/home/Testimonials";
-import { getLandingPage } from "@/services/page";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  let canonicalUrl = `${process.env.NEXT_PUBLIC_WEB_URL}`;
-
-  if (locale !== "en") {
-    canonicalUrl = `${process.env.NEXT_PUBLIC_WEB_URL}/${locale}`;
-  }
-
-  return {
-    alternates: {
-      canonical: canonicalUrl,
-    },
-  };
-}
-
-export default async function LandingPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  const page = await getLandingPage(locale);
+export default function LandingPage() {
+  // DiscoverSection 使用动态数据
+  const characters = useQuery(api.characters.list, { activeOnly: true });
 
   return (
     <>
-      {/* Hero Banner - New AI Companion Focus */}
+      {/* Hero Banner - 静态数据，从 URL 读取分类 */}
       <HeroBanner />
       
-      {/* Character Discovery Section */}
-      <DiscoverSection />
+      {/* Character Discovery Section - 动态数据，从 URL 读取分类 */}
+      <DiscoverSection characters={characters} />
 
       {/* AI Image Generation Showcase */}
       <ImageGenSection />
@@ -48,4 +27,3 @@ export default async function LandingPage({
     </>
   );
 }
-
