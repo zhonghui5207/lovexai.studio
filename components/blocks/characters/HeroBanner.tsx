@@ -75,8 +75,10 @@ function renderActionText(text: string) {
 // Map URL gender param to category
 function genderToCategory(gender: string | null): Category {
   switch (gender) {
-    case "male": return "guys";
+    case "guys": return "guys";
+    case "male": return "guys"; // Legacy support
     case "anime": return "anime";
+    case "girls": return "girls";
     default: return "girls"; // female or null -> girls
   }
 }

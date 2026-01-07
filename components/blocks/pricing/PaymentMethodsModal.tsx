@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, X, Loader } from "lucide-react";
-import Image from "next/image";
+import { CreditCard, Loader } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,42 +29,32 @@ interface PaymentMethodsModalProps {
   planPrice?: string;
 }
 
-// WeChat Pay Icon
+// WeChat Pay Icon - Official SVG
 const WeChatIcon = () => (
-  <svg
-    viewBox="0 0 24 24"
+  <img 
+    src="/wechat.svg" 
+    alt="WeChat Pay" 
     className="w-6 h-6"
-    fill="currentColor"
-  >
-    <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.269-.03-.406-.032zm-2.344 3.02c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.981.97-.981zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.981.969-.981z" />
+  />
+);
+
+// Alipay Icon - Official SVG
+const AlipayIcon = () => (
+  <img 
+    src="/alipay-icon.svg" 
+    alt="Alipay" 
+    className="w-6 h-6"
+  />
+);
+
+// Crypto/Bitcoin Icon - SVG for faster loading
+const CryptoIcon = () => (
+  <svg viewBox="0 0 48 48" className="w-6 h-6" fill="none">
+    <circle cx="24" cy="24" r="24" fill="#F7931A"/>
+    <path d="M33.6 21.3c.5-3.3-2-5.1-5.5-6.3l1.1-4.5-2.7-.7-1.1 4.4c-.7-.2-1.5-.4-2.2-.5l1.1-4.4-2.7-.7-1.1 4.5c-.6-.1-1.2-.3-1.7-.4l-3.8-.9-.7 2.9s2 .5 2 .5c1.1.3 1.3 1 1.3 1.6l-1.3 5.2c.1 0 .2 0 .3.1-.1 0-.2-.1-.3-.1l-1.8 7.3c-.1.4-.5.9-1.2.7 0 0-2-.5-2-.5l-1.4 3.1 3.6.9c.7.2 1.3.4 2 .5l-1.1 4.6 2.7.7 1.1-4.5c.7.2 1.5.4 2.2.5l-1.1 4.5 2.7.7 1.1-4.6c4.7.9 8.2.5 9.7-3.7 1.2-3.4-.1-5.3-2.5-6.6 1.8-.4 3.1-1.6 3.5-4zm-6.2 8.7c-.9 3.4-6.7 1.6-8.6 1.1l1.5-6.2c1.9.5 7.9 1.4 7.1 5.1zm.9-8.8c-.8 3.1-5.7 1.5-7.3 1.1l1.4-5.6c1.6.4 6.7 1.2 5.9 4.5z" fill="white"/>
   </svg>
 );
 
-// Alipay Icon - optimized with Next Image
-const AlipayIcon = () => (
-  <Image 
-    src="/alipay.png" 
-    alt="Alipay" 
-    width={24}
-    height={24}
-    className="w-6 h-6 object-contain" 
-    priority
-    quality={90}
-  />
-);
-
-// Crypto Icon - optimized with Next Image
-const CryptoIcon = () => (
-  <Image 
-    src="/bybit.png" 
-    alt="Crypto" 
-    width={24}
-    height={24}
-    className="w-6 h-6 object-contain" 
-    priority
-    quality={90}
-  />
-);
 
 const paymentOptions: PaymentMethodOption[] = [
   {

@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import LovexaiLogo from "@/components/ui/logo";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { 
   Home, 
   MessageSquare, 
@@ -39,10 +39,28 @@ const TIER_DISPLAY: Record<string, { name: string; color: string }> = {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const { user } = useAppContext();
-  const [gender, setGender] = useState<'girls' | 'guys' | 'anime'>('girls');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  
+  // Sync gender with URL params
+  const urlGender = searchParams.get('gender') as 'girls' | 'guys' | 'anime' | null;
+  const gender = urlGender || 'girls';
+  
+  // Handle gender change - update URL
+  const handleGenderChange = (newGender: 'girls' | 'guys' | 'anime') => {
+    // Only navigate if on homepage or discover page
+    if (pathname === '/' || pathname === '/en' || pathname === '/zh' || pathname.includes('/discover')) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('gender', newGender);
+      router.push(`${pathname}?${params.toString()}`);
+    } else {
+      // Navigate to homepage with gender
+      router.push(`/?gender=${newGender}`);
+    }
+  };
   
   // Get real-time user data from Convex by email
   const convexUser = useQuery(api.users.getByEmail, user?.email ? { email: user.email } : "skip");
@@ -150,7 +168,7 @@ export default function Sidebar() {
               {(['Girls', 'Guys', 'Anime'] as const).map((type) => (
                 <button
                   key={type}
-                  onClick={() => setGender(type.toLowerCase() as any)}
+                  onClick={() => handleGenderChange(type.toLowerCase() as 'girls' | 'guys' | 'anime')}
                   className={cn(
                     "text-xs font-medium py-1.5 rounded-md transition-colors",
                     gender === type.toLowerCase()

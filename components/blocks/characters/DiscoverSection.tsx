@@ -198,8 +198,16 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
   const [activeFilter, setActiveFilter] = useState("All");
 
   const searchParams = useSearchParams();
-  const activeGender = searchParams.get("gender") || "female";
+  const activeGender = searchParams.get("gender") || "girls";
   const nsfwEnabled = searchParams.get("nsfw") === "true";
+
+  // Map URL gender to database category
+  const genderToCategoryMap: Record<string, string> = {
+    'girls': 'female',
+    'guys': 'male',
+    'anime': 'anime',
+  };
+  const activeCategory = genderToCategoryMap[activeGender] || 'female';
 
   const loading = rawCharacters === undefined;
 
@@ -225,7 +233,7 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
 
   // Filter by gender from URL, then by active filter
   const displayCharacters = allCharacters
-    .filter(c => c.category === activeGender) // Filter by gender first
+    .filter(c => c.category === activeCategory) // Filter by mapped category
     .filter(c => {
       if (activeFilter === "All") return true;
       return c.traits.some((t: string) => t.toLowerCase().includes(activeFilter.toLowerCase()));

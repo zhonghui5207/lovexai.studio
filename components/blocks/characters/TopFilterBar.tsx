@@ -11,7 +11,7 @@ export default function TopFilterBar() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   
-  const currentGender = searchParams.get("gender") || "female";
+  const currentGender = searchParams.get("gender") || "girls";
   const currentNsfw = searchParams.get("nsfw") === "true";
 
   const [gender, setGender] = useState(currentGender);
@@ -36,8 +36,8 @@ export default function TopFilterBar() {
   };
 
   const genderOptions = [
-    { key: 'female', label: 'Girls', icon: Heart },
-    { key: 'male', label: 'Guys', icon: User },
+    { key: 'girls', label: 'Girls', icon: Heart },
+    { key: 'guys', label: 'Guys', icon: User },
     { key: 'anime', label: 'Anime', icon: Star }
   ];
 
