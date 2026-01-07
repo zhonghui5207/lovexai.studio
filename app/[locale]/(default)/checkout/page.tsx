@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { loadStripe } from "@stripe/stripe-js";
+import { useSearchParams, useRouter, useParams } from "next/navigation";
+import { loadStripe, StripeElementLocale } from "@stripe/stripe-js";
 import {
   Elements,
   PaymentElement,
@@ -16,6 +16,22 @@ import { motion } from "framer-motion";
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
+
+// Map website locale to Stripe locale
+function getStripeLocale(locale: string): StripeElementLocale {
+  const localeMap: Record<string, StripeElementLocale> = {
+    "en": "en",
+    "zh": "zh",
+    "zh-CN": "zh",
+    "zh-TW": "zh-TW",
+    "ja": "ja",
+    "ko": "ko",
+    "es": "es",
+    "fr": "fr",
+    "de": "de",
+  };
+  return localeMap[locale] || "en";
+}
 
 // Custom appearance to match website theme
 const stripeAppearance = {
@@ -156,6 +172,10 @@ function CheckoutForm({
 export default function CheckoutPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const params = useParams();
+  
+  // Get locale from URL params for Stripe localization
+  const locale = (params.locale as string) || "en";
   
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [orderInfo, setOrderInfo] = useState<{
@@ -316,6 +336,7 @@ export default function CheckoutPage() {
             options={{
               clientSecret,
               appearance: stripeAppearance,
+              locale: getStripeLocale(locale), // Follow website language
             }}
           >
             <CheckoutForm 
