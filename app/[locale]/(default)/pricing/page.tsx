@@ -201,12 +201,20 @@ export default function PricingPage() {
     const isCrypto = paymentMethod === 'crypto';
 
     try {
-      // Route to different API endpoints based on payment method
-      let apiEndpoint = "/api/checkout/card"; // Payblis for card
+      // For card payments, redirect to embedded checkout page
+      if (paymentMethod === 'card') {
+        const finalAmount = Math.round(price * 100); // USD cents
+        const checkoutUrl = `/checkout?product_id=${encodeURIComponent(productId)}&amount=${finalAmount}&credits=${credits}&product_name=${encodeURIComponent(productName || `${credits} Credits`)}&interval=${interval || 'one-time'}`;
+        
+        setShowPaymentModal(false);
+        setPendingPayment(null);
+        window.location.href = checkoutUrl;
+        return;
+      }
+
+      // Other payment methods - use external redirect
+      let apiEndpoint = "/api/checkout/wechat";
       switch (paymentMethod) {
-        case "card":
-          apiEndpoint = "/api/checkout/card";
-          break;
         case "wechat":
           apiEndpoint = "/api/checkout/wechat";
           break;
