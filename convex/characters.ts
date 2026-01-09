@@ -2,7 +2,8 @@ import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
 // Helper to check access level
-const TIER_LEVELS = { free: 0, basic: 1, pro: 2, ultra: 3 };
+// 修复: 使用正确的等级命名，与数据库和用户等级保持一致
+const TIER_LEVELS = { free: 0, plus: 1, pro: 2, ultimate: 3 };
 
 function canAccess(userTier: string, characterLevel: string) {
   const u = TIER_LEVELS[userTier as keyof typeof TIER_LEVELS] || 0;

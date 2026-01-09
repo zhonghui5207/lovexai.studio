@@ -36,7 +36,7 @@ export default defineSchema({
     description: v.string(),
     personality: v.string(),
     is_active: v.boolean(),
-    access_level: v.string(), // 'free', 'basic', 'pro', 'ultra'
+    access_level: v.string(), // 'free', 'plus', 'pro', 'ultimate'
     sort_order: v.number(),
     credits_per_message: v.number(),
     chat_count: v.string(), // e.g. "1.2k chats"
