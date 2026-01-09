@@ -1,28 +1,34 @@
-"use client";
-
+import { Suspense } from "react";
 import HeroBanner from "@/components/blocks/characters/HeroBanner";
-import DiscoverSection from "@/components/blocks/characters/DiscoverSection";
+import DiscoverSectionWrapper from "@/components/blocks/characters/DiscoverSectionWrapper";
 import ImageGenSection from "@/components/blocks/home/ImageGenSection";
 import Testimonials from "@/components/blocks/home/Testimonials";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { CharactersSkeleton } from "@/components/skeletons/CharactersSkeleton";
 
+/**
+ * Landing Page - Server Component
+ *
+ * 优化说明:
+ * - 移除了 "use client"，页面现在是 Server Component
+ * - 静态结构在服务端渲染，对 SEO 更友好
+ * - 动态数据获取通过 DiscoverSectionWrapper (Client Component) 处理
+ * - 使用 Suspense 提供加载状态，避免阻塞整个页面
+ */
 export default function LandingPage() {
-  // DiscoverSection 使用动态数据
-  const characters = useQuery(api.characters.list, { activeOnly: true });
-
   return (
     <>
-      {/* Hero Banner - 静态数据，从 URL 读取分类 */}
+      {/* Hero Banner - Client Component (需要动画和交互) */}
       <HeroBanner />
-      
-      {/* Character Discovery Section - 动态数据，从 URL 读取分类 */}
-      <DiscoverSection characters={characters} />
 
-      {/* AI Image Generation Showcase */}
+      {/* Character Discovery Section - 使用 Suspense 包裹 */}
+      <Suspense fallback={<CharactersSkeleton />}>
+        <DiscoverSectionWrapper />
+      </Suspense>
+
+      {/* AI Image Generation Showcase - Client Component */}
       <ImageGenSection />
 
-      {/* User Testimonials */}
+      {/* User Testimonials - Client Component (需要动画) */}
       <Testimonials />
     </>
   );
