@@ -5,7 +5,7 @@ import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { X, Heart, MessageCircle, RefreshCw, Zap, Flame, Sparkles, MapPin, RotateCcw, Info, Trash2, Loader2, Lock, Crown } from "lucide-react";
+import { X, Heart, MessageCircle, RefreshCw, Flame, RotateCcw, Info, Trash2, Loader2, Lock, Crown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
@@ -367,14 +367,6 @@ export default function DiscoverPage() {
                 </SheetContent>
             </Sheet>
 
-            <div className="hidden lg:flex items-center gap-3 bg-white/5 p-2 rounded-full border border-white/10">
-                <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30 px-4 py-2 rounded-full text-sm cursor-pointer transition-colors">
-                    <Flame className="w-4 h-4 mr-1.5" /> Trending
-                </Badge>
-                <Badge variant="outline" className="text-muted-foreground hover:text-white px-4 py-2 rounded-full text-sm cursor-pointer transition-colors border-transparent hover:border-white/10">
-                    <Sparkles className="w-4 h-4 mr-1.5" /> New Arrivals
-                </Badge>
-            </div>
         </div>
       </div>
 
@@ -485,8 +477,11 @@ export default function DiscoverPage() {
         <section>
             <h2 className="text-2xl font-bold mb-6">Trending Characters</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                 {(rawCharacters || []).map((char, i) => (
-                    <TrendingCard 
+                 {(rawCharacters || [])
+                    .slice()
+                    .sort((a, b) => (b.like_count || 0) - (a.like_count || 0))
+                    .map((char) => (
+                    <TrendingCard
                         key={char._id}
                         character={char}
                         onClick={() => handleStartChat(char._id)}

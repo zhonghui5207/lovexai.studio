@@ -409,8 +409,42 @@ export const seedChatCounts = mutation({
         countStr = `${randomCount}`;
       }
 
-      await ctx.db.patch(char._id, { chat_count: countStr });
-      results.push({ name: char.name, access_level: char.access_level, chat_count: countStr });
+      // Like count: 1-5% of chat count, more realistic
+      // Free: 500-5000, Plus: 200-2000, Pro: 100-800, Ultimate: 50-300
+      let likeMin: number, likeMax: number;
+      switch (char.access_level) {
+        case "free":
+          likeMin = 500;
+          likeMax = 5000;
+          break;
+        case "plus":
+          likeMin = 200;
+          likeMax = 2000;
+          break;
+        case "pro":
+          likeMin = 100;
+          likeMax = 800;
+          break;
+        case "ultimate":
+          likeMin = 50;
+          likeMax = 300;
+          break;
+        default:
+          likeMin = 100;
+          likeMax = 1000;
+      }
+      const likeCount = Math.floor(Math.random() * (likeMax - likeMin)) + likeMin;
+
+      await ctx.db.patch(char._id, {
+        chat_count: countStr,
+        like_count: likeCount,
+      });
+      results.push({
+        name: char.name,
+        access_level: char.access_level,
+        chat_count: countStr,
+        like_count: likeCount,
+      });
     }
 
     return { success: true, updated: results.length, results };
