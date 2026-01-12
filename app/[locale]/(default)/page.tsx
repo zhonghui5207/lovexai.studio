@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import HeroBanner from "@/components/blocks/characters/HeroBanner";
 import DiscoverSectionWrapper from "@/components/blocks/characters/DiscoverSectionWrapper";
-import ImageGenSection from "@/components/blocks/home/ImageGenSection";
-import Testimonials from "@/components/blocks/home/Testimonials";
 import { CharactersSkeleton } from "@/components/skeletons/CharactersSkeleton";
 
 /**
@@ -13,6 +11,7 @@ import { CharactersSkeleton } from "@/components/skeletons/CharactersSkeleton";
  * - 静态结构在服务端渲染，对 SEO 更友好
  * - 动态数据获取通过 DiscoverSectionWrapper (Client Component) 处理
  * - 使用 Suspense 提供加载状态，避免阻塞整个页面
+ * - 移除 Testimonials 和 ImageGenSection 以优化首屏性能
  */
 export default function LandingPage() {
   return (
@@ -24,12 +23,6 @@ export default function LandingPage() {
       <Suspense fallback={<CharactersSkeleton />}>
         <DiscoverSectionWrapper />
       </Suspense>
-
-      {/* AI Image Generation Showcase - Client Component */}
-      <ImageGenSection />
-
-      {/* User Testimonials - Client Component (需要动画) */}
-      <Testimonials />
     </>
   );
 }

@@ -181,10 +181,21 @@ export default function HeroBanner() {
 
           <div className="flex items-center gap-6 justify-center lg:justify-start pt-4"
           >
-            <div className="flex -space-x-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted overflow-hidden">
-                  <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-full h-full object-cover" />
+            <div className="flex -space-x-3">
+              {["A", "M", "S", "K"].map((letter, i) => (
+                <div
+                  key={i}
+                  className="w-9 h-9 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold text-white"
+                  style={{
+                    background: [
+                      "linear-gradient(135deg, #FF006E 0%, #8338EC 100%)",
+                      "linear-gradient(135deg, #3A86FF 0%, #8338EC 100%)",
+                      "linear-gradient(135deg, #FF006E 0%, #FB5607 100%)",
+                      "linear-gradient(135deg, #8338EC 0%, #3A86FF 100%)",
+                    ][i]
+                  }}
+                >
+                  {letter}
                 </div>
               ))}
             </div>
