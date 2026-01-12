@@ -195,7 +195,7 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
-  const [visibleCount, setVisibleCount] = useState(8); // Initial: 8 characters
+  const [visibleCount, setVisibleCount] = useState(12); // Initial: 12 characters
 
   const searchParams = useSearchParams();
   const activeGender = searchParams.get("gender") || "girls";
@@ -248,7 +248,7 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
-    setVisibleCount(8); // Reset to initial count when filter changes
+    setVisibleCount(12); // Reset to initial count when filter changes
   };
 
   const handleCharacterClick = (character: Character) => {
