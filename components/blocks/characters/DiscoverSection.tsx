@@ -195,6 +195,7 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All");
+  const [visibleCount, setVisibleCount] = useState(8); // Initial: 8 characters
 
   const searchParams = useSearchParams();
   const activeGender = searchParams.get("gender") || "girls";
@@ -231,16 +232,23 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
   }));
 
   // Filter by gender from URL, then by active filter
-  const displayCharacters = allCharacters
+  const filteredCharacters = allCharacters
     .filter(c => c.category === activeCategory) // Filter by mapped category
     .filter(c => {
       if (activeFilter === "All") return true;
       return c.traits.some((t: string) => t.toLowerCase().includes(activeFilter.toLowerCase()));
-    })
-    .slice(0, 12);
+    });
+
+  const displayCharacters = filteredCharacters.slice(0, visibleCount);
+  const hasMore = filteredCharacters.length > visibleCount;
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 8); // Load 8 more each time
+  };
 
   const handleFilterChange = (filter: string) => {
     setActiveFilter(filter);
+    setVisibleCount(8); // Reset to initial count when filter changes
   };
 
   const handleCharacterClick = (character: Character) => {
@@ -320,15 +328,18 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
           </AnimatePresence>
         </motion.div>
 
-        <div className="mt-16 text-center">
-          <Button 
-            variant="outline" 
-            size="lg"
-            className="border-white/10 bg-white/5 hover:bg-white/10 text-lg px-8 py-6 rounded-2xl backdrop-blur-sm"
-          >
-            Load More Characters
-          </Button>
-        </div>
+        {hasMore && (
+          <div className="mt-16 text-center">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleLoadMore}
+              className="border-white/10 bg-white/5 hover:bg-white/10 text-lg px-8 py-6 rounded-2xl backdrop-blur-sm"
+            >
+              Load More Characters
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Character Modal */}
