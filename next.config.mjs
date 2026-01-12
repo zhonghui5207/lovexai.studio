@@ -22,6 +22,7 @@ const nextConfig = {
   pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
   images: {
     formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 31536000, // 缓存 1 年
     remotePatterns: [
       {
         protocol: "https",
@@ -29,6 +30,8 @@ const nextConfig = {
       },
     ],
   },
+  // 增加静态资源生成超时时间
+  staticPageGenerationTimeout: 120,
   // Ignore ESLint and TypeScript errors during build for Vercel deployment
   eslint: {
     ignoreDuringBuilds: true,

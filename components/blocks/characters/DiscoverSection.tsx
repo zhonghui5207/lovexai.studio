@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 import { useSearchParams } from "next/navigation";
 import { MessageCircle } from "lucide-react";
-import Image from "next/image";
+import { CdnImage } from "@/components/ui/cdn-image";
 
 interface Character {
   id: string;
@@ -85,12 +85,11 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
     >
       {/* Image Layer */}
       <div className={`absolute inset-0 overflow-hidden transition-all duration-700 ${isLoading ? 'scale-110 blur-xl grayscale' : 'scale-100 blur-0 grayscale-0'}`}>
-        <Image
+        <CdnImage
           src={character.avatar}
           alt={character.name}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-110"
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           onLoad={() => setIsLoading(false)}
         />
       </div>

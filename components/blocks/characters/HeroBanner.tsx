@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
-import Image from "next/image";
+import { CdnImage } from "@/components/ui/cdn-image";
 import { Heart, User, Star } from "lucide-react";
 
 // Import static character data
@@ -251,13 +251,11 @@ export default function HeroBanner() {
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   <div className={`relative h-full w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-300 ${offset === 0 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/20' : ''}`}>
-                    <Image
+                    <CdnImage
                       src={character.avatar}
                       alt={character.name}
                       fill
                       className="object-cover transition-transform duration-700 hover:scale-110"
-                      priority={offset === 0} // Prioritize active card
-                      sizes="(max-width: 768px) 280px, 320px"
                     />
                     
                     {/* Top Badges */}
