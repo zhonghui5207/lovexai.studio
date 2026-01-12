@@ -318,7 +318,7 @@ export const forceDelete = mutation({
   handler: async (ctx, args) => {
     const character = await ctx.db.get(args.id);
     if (!character) throw new Error("Character not found");
-    
+
     // Delete associated data
     // 1. Delete likes
     const likes = await ctx.db
@@ -328,7 +328,7 @@ export const forceDelete = mutation({
     for (const like of likes) {
       await ctx.db.delete(like._id);
     }
-    
+
     // 2. Delete favorites
     const favorites = await ctx.db
       .query("character_favorites")
@@ -337,7 +337,7 @@ export const forceDelete = mutation({
     for (const fav of favorites) {
       await ctx.db.delete(fav._id);
     }
-    
+
     // 3. Delete conversations associated with this character
     const conversations = await ctx.db
       .query("conversations")
@@ -354,10 +354,65 @@ export const forceDelete = mutation({
       }
       await ctx.db.delete(conv._id);
     }
-    
+
     // 4. Delete the character
     await ctx.db.delete(args.id);
-    
+
     return { success: true, deletedId: args.id, name: character.name };
+  },
+});
+
+// Seed random chat counts for cold start
+export const seedChatCounts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const characters = await ctx.db.query("characters").collect();
+    const results = [];
+
+    for (const char of characters) {
+      // Different ranges based on access level
+      // Free: 100K - 800K (most popular)
+      // Plus: 50K - 200K
+      // Pro: 20K - 100K
+      // Ultimate: 10K - 50K (exclusive, fewer users)
+      let min: number, max: number;
+      switch (char.access_level) {
+        case "free":
+          min = 100000;
+          max = 800000;
+          break;
+        case "plus":
+          min = 50000;
+          max = 200000;
+          break;
+        case "pro":
+          min = 20000;
+          max = 100000;
+          break;
+        case "ultimate":
+          min = 10000;
+          max = 50000;
+          break;
+        default:
+          min = 50000;
+          max = 300000;
+      }
+
+      const randomCount = Math.floor(Math.random() * (max - min)) + min;
+
+      let countStr: string;
+      if (randomCount >= 1000000) {
+        countStr = `${(randomCount / 1000000).toFixed(1)}M`;
+      } else if (randomCount >= 1000) {
+        countStr = `${(randomCount / 1000).toFixed(1)}K`;
+      } else {
+        countStr = `${randomCount}`;
+      }
+
+      await ctx.db.patch(char._id, { chat_count: countStr });
+      results.push({ name: char.name, access_level: char.access_level, chat_count: countStr });
+    }
+
+    return { success: true, updated: results.length, results };
   },
 });

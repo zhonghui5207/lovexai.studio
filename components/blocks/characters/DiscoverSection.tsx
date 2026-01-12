@@ -189,12 +189,13 @@ const generateMockChatCount = (index: number): string => {
   return counts[index % counts.length];
 };
 
-const FILTERS = ["All", "Trending", "New", "Roleplay", "Anime", "Realistic"];
+const FILTERS = ["All", "Trending", "New", "Free"] as const;
+type FilterType = typeof FILTERS[number];
 
 export default function DiscoverSection({ characters: rawCharacters }: DiscoverSectionProps) {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("All");
   const [visibleCount, setVisibleCount] = useState(12); // Initial: 12 characters
 
   const searchParams = useSearchParams();
@@ -221,22 +222,36 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
     traits: char.traits || [],
     greeting: char.greeting_message || "Hello! Nice to meet you.",
     chatCount: char.chat_count || generateMockChatCount(index),
+    chatCountNum: parseChatCount(char.chat_count || generateMockChatCount(index)), // For sorting
     isOfficial: char.is_premium,
     personality: char.personality,
     physicalDescription: char.personality,
     age: undefined,
     location: undefined,
     access_level: char.access_level,
-    tags: ["Trending", "Roleplay"],
-    category: char.category || "female" // Add category for filtering
+    category: char.category || "female",
+    createdAt: char._creationTime || 0, // For "New" sorting
   }));
 
-  // Filter by gender from URL, then by active filter
+  // Helper function to parse chat count string to number for sorting
+  function parseChatCount(count: string): number {
+    const num = parseFloat(count.replace(/[^0-9.]/g, ''));
+    if (count.includes('K')) return num * 1000;
+    if (count.includes('M')) return num * 1000000;
+    return num;
+  }
+
+  // Filter by gender from URL, then apply filter/sort logic
   const filteredCharacters = allCharacters
     .filter(c => c.category === activeCategory) // Filter by mapped category
     .filter(c => {
-      if (activeFilter === "All") return true;
-      return c.traits.some((t: string) => t.toLowerCase().includes(activeFilter.toLowerCase()));
+      if (activeFilter === "Free") return c.access_level === "free";
+      return true; // All, Trending, New show all characters
+    })
+    .sort((a, b) => {
+      if (activeFilter === "Trending") return b.chatCountNum - a.chatCountNum; // Most chats first
+      if (activeFilter === "New") return b.createdAt - a.createdAt; // Newest first
+      return 0; // Default order
     });
 
   const displayCharacters = filteredCharacters.slice(0, visibleCount);
@@ -246,7 +261,7 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
     setVisibleCount(prev => prev + 8); // Load 8 more each time
   };
 
-  const handleFilterChange = (filter: string) => {
+  const handleFilterChange = (filter: FilterType) => {
     setActiveFilter(filter);
     setVisibleCount(12); // Reset to initial count when filter changes
   };
