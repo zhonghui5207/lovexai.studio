@@ -49,22 +49,32 @@ const MODELS = [
   { id: "gemini-2.5-flash-image-vip", name: "Gemini 2.5", desc: "Flash VIP" },
 ];
 
-// Inspiration Gallery Data
+// Inspiration Gallery Data - Using real character images (different from HeroBanner)
 const INSPIRATION_GALLERY = [
   {
-    url: "/inspiration/window_girl.png",
-    prompt: "A photorealistic portrait of a beautiful young asian woman with long black hair, wearing a white shirt and plaid skirt, sitting by a sunny window.",
+    url: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/characters/female/sophie_neighbor.webp",
+    prompt: "A beautiful girl next door in an oversized white t-shirt slipping off her shoulder, messy hair, barefoot, soft bedroom lighting, intimate casual look, photorealistic",
     style: "Realistic"
   },
   {
-    url: "/inspiration/cafe_girl.png",
-    prompt: "A photorealistic portrait of a stunning woman in a cozy coffee shop, rainy window background, bokeh effect, cinematic lighting.",
+    url: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/characters/female/olivia_yoga.webp",
+    prompt: "A flexible yoga instructor in tight workout clothes, athletic body, stretching pose, gym studio setting, soft natural lighting, fitness aesthetic, photorealistic",
     style: "Realistic"
   },
   {
-    url: "/inspiration/street_girl.png",
-    prompt: "A photorealistic portrait of a fashion model walking on a Tokyo street at night, neon lights, leather jacket, street photography style.",
-    style: "Cyberpunk"
+    url: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/characters/anime/aiko_neko.webp",
+    prompt: "A cute anime catgirl maid with fluffy ears and tail, maid uniform, big expressive eyes, kawaii aesthetic, soft pastel colors, anime style",
+    style: "Anime"
+  },
+  {
+    url: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/characters/female/hannah_secretary.webp",
+    prompt: "A gorgeous secretary in a fitted blouse and pencil skirt, glasses, confident seductive smile, office setting, professional but alluring, photorealistic",
+    style: "Realistic"
+  },
+  {
+    url: "https://pub-bdda96620f4e47f8b8f36fa876942ccb.r2.dev/characters/anime/yumi_yandere.webp",
+    prompt: "A beautiful yandere anime girl with intense loving eyes, school uniform, cherry blossoms, dramatic anime style, captivating and mysterious",
+    style: "Anime"
   }
 ];
 
@@ -819,40 +829,135 @@ export default function GeneratePage() {
                         </div>
                     </div>
                 ) : (
-                    // INSPIRATION GALLERY (STANDBY MODE)
-                    <div className="absolute inset-0 z-10">
-                        {INSPIRATION_GALLERY.map((item, index) => (
-                            <div 
-                                key={index}
-                                className={cn(
-                                    "absolute inset-0 transition-opacity duration-1000 ease-in-out bg-neutral-900",
-                                    index === galleryIndex ? "opacity-100" : "opacity-0"
-                                )}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent z-10" />
-                                <img src={item.url} alt="Inspiration" className="w-full h-full object-cover opacity-80" />
-                                
-                                <div className="absolute bottom-32 left-12 right-12 z-20 space-y-4">
-                                    <Badge className="bg-white/10 hover:bg-white/20 text-white border-0 backdrop-blur-md">
-                                        <Sparkles className="w-3 h-3 mr-1 text-primary" />
-                                        Inspiration: {item.style}
-                                    </Badge>
-                                    <p className="text-2xl md:text-3xl font-bold text-white leading-tight max-w-3xl drop-shadow-lg">
-                                        "{item.prompt}"
-                                    </p>
-                                    <Button 
-                                        variant="outline" 
-                                        className="border-white/30 text-white hover:bg-white/10 hover:border-white/50 backdrop-blur-md"
+                    // INSPIRATION GALLERY (STANDBY MODE) - 3D Card Stack
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
+                        {/* 3D Card Stack Container */}
+                        <div className="relative h-[420px] w-full flex items-center justify-center" style={{ perspective: '1000px' }}>
+                            {INSPIRATION_GALLERY.map((item, index) => {
+                                // Calculate relative position for stack effect
+                                const offset = (index - galleryIndex + INSPIRATION_GALLERY.length) % INSPIRATION_GALLERY.length;
+
+                                let zIndex = 0;
+                                let scale = 0.8;
+                                let opacity = 0;
+                                let x = 0;
+                                let rotateY = 0;
+
+                                if (offset === 0) { // Active card (center)
+                                    zIndex = 30;
+                                    scale = 1;
+                                    opacity = 1;
+                                    x = 0;
+                                    rotateY = 0;
+                                } else if (offset === 1) { // Next card (Right)
+                                    zIndex = 20;
+                                    scale = 0.85;
+                                    opacity = 0.6;
+                                    x = 200;
+                                    rotateY = -15;
+                                } else if (offset === INSPIRATION_GALLERY.length - 1) { // Previous card (Left)
+                                    zIndex = 20;
+                                    scale = 0.85;
+                                    opacity = 0.6;
+                                    x = -200;
+                                    rotateY = 15;
+                                } else {
+                                    // Hidden cards
+                                    opacity = 0;
+                                }
+
+                                return (
+                                    <div
+                                        key={index}
+                                        className="absolute w-[240px] md:w-[280px] aspect-[3/4] cursor-pointer transition-all duration-500 ease-out"
+                                        style={{
+                                            transform: `translateX(${x}px) scale(${scale}) rotateY(${rotateY}deg)`,
+                                            opacity,
+                                            zIndex,
+                                            transformStyle: 'preserve-3d',
+                                        }}
                                         onClick={() => {
-                                            setPrompt(item.prompt);
-                                            setSelectedStyle(item.style.toLowerCase());
+                                            if (offset === 0) {
+                                                // Center card - use this prompt
+                                                setPrompt(item.prompt);
+                                                setSelectedStyle(item.style.toLowerCase());
+                                            } else {
+                                                // Side card - switch to this card
+                                                setGalleryIndex(index);
+                                            }
                                         }}
                                     >
-                                        Try this Prompt
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
+                                        <div className={cn(
+                                            "relative h-full w-full rounded-3xl overflow-hidden border shadow-2xl transition-all duration-300",
+                                            offset === 0
+                                                ? "border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10"
+                                                : "border-white/10"
+                                        )}>
+                                            {/* Image */}
+                                            <img
+                                                src={item.url}
+                                                alt={`Inspiration ${index + 1}`}
+                                                className="w-full h-full object-cover"
+                                            />
+
+                                            {/* Gradient Overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+                                            {/* Style Badge */}
+                                            <div className="absolute top-4 left-4 z-10">
+                                                <Badge className="bg-black/40 hover:bg-black/50 text-white border-0 backdrop-blur-md text-[10px]">
+                                                    <Sparkles className="w-3 h-3 mr-1 text-primary" />
+                                                    {item.style}
+                                                </Badge>
+                                            </div>
+
+                                            {/* Bottom Content - Only show on active card */}
+                                            {offset === 0 && (
+                                                <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
+                                                    <p className="text-sm text-white/80 line-clamp-2 mb-3 leading-relaxed">
+                                                        "{item.prompt}"
+                                                    </p>
+                                                    <Button
+                                                        size="sm"
+                                                        className="w-full bg-primary hover:bg-primary/90 text-white font-medium shadow-lg shadow-primary/20"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setPrompt(item.prompt);
+                                                            setSelectedStyle(item.style.toLowerCase());
+                                                        }}
+                                                    >
+                                                        <Wand2 className="w-4 h-4 mr-2" />
+                                                        Try this Prompt
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Dots Indicator */}
+                        <div className="flex gap-2 mt-6">
+                            {INSPIRATION_GALLERY.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setGalleryIndex(index)}
+                                    className={cn(
+                                        "w-2 h-2 rounded-full transition-all duration-300",
+                                        index === galleryIndex
+                                            ? "bg-primary w-6"
+                                            : "bg-white/30 hover:bg-white/50"
+                                    )}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Title */}
+                        <div className="text-center mt-6">
+                            <h3 className="text-xl font-bold text-white/90 mb-1">Get Inspired</h3>
+                            <p className="text-sm text-white/50">Click a card to use its prompt</p>
+                        </div>
                     </div>
                 )}
             </div>
