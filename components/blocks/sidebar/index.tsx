@@ -4,13 +4,13 @@ import { cn } from "@/lib/utils";
 import LovexaiLogo from "@/components/ui/logo";
 import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { 
-  Home, 
-  MessageSquare, 
-  Compass, 
-  PlusCircle, 
-  Image as ImageIcon, 
-  CreditCard, 
+import {
+  Home,
+  MessageSquare,
+  Compass,
+  PlusCircle,
+  Image as ImageIcon,
+  CreditCard,
   ChevronDown,
   Coins
 } from "lucide-react";
@@ -20,35 +20,47 @@ import { useAppContext } from "@/contexts/app";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-
-const NAVIGATION_ITEMS = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Messages', href: '/chat', icon: MessageSquare },
-  { name: 'Discover', href: '/discover', icon: Compass },
-  { name: 'Create', href: '/create', icon: PlusCircle },
-  { name: 'Generate', href: '/generate', icon: ImageIcon },
-  { name: 'Pricing', href: '/pricing', icon: CreditCard },
-];
-
-const TIER_DISPLAY: Record<string, { name: string; color: string }> = {
-  free: { name: "Free", color: "text-white/60" },
-  plus: { name: "Plus", color: "text-blue-400" },
-  pro: { name: "Pro", color: "text-purple-400" },
-  ultimate: { name: "Ultimate", color: "text-yellow-400" },
-};
+import { useTranslations } from "next-intl";
 
 export default function Sidebar() {
+  const t = useTranslations();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const { user } = useAppContext();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  
+
+  // Navigation items with translations
+  const NAVIGATION_ITEMS = [
+    { name: t('nav.home'), href: '/', icon: Home },
+    { name: t('nav.messages'), href: '/chat', icon: MessageSquare },
+    { name: t('nav.discover'), href: '/discover', icon: Compass },
+    { name: t('nav.create'), href: '/create', icon: PlusCircle },
+    { name: t('nav.generate'), href: '/generate', icon: ImageIcon },
+    { name: t('nav.pricing'), href: '/pricing', icon: CreditCard },
+  ];
+
+  // Tier display with translations
+  const getTierDisplay = (tier: string) => {
+    const tierKey = `tiers.${tier}` as any;
+    const tierName = t(tierKey);
+    const tierColors: Record<string, string> = {
+      free: "text-white/60",
+      plus: "text-blue-400",
+      pro: "text-purple-400",
+      ultimate: "text-yellow-400",
+    };
+    return {
+      name: tierName,
+      color: tierColors[tier] || "text-white/60"
+    };
+  };
+
   // Sync gender with URL params
   const urlGender = searchParams.get('gender') as 'girls' | 'guys' | 'anime' | null;
   const gender = urlGender || 'girls';
-  
+
   // Handle gender change - update URL
   const handleGenderChange = (newGender: 'girls' | 'guys' | 'anime') => {
     // Only navigate if on homepage or discover page
@@ -61,12 +73,12 @@ export default function Sidebar() {
       router.push(`/?gender=${newGender}`);
     }
   };
-  
+
   // Get real-time user data from Convex by email
   const convexUser = useQuery(api.users.getByEmail, user?.email ? { email: user.email } : "skip");
   const credits = convexUser?.credits_balance ?? 0;
   const tier = convexUser?.subscription_tier || 'free';
-  const tierInfo = TIER_DISPLAY[tier] || TIER_DISPLAY.free;
+  const tierInfo = getTierDisplay(tier);
 
   // 当侧边栏收起时，强制关闭下拉菜单
   useEffect(() => {
@@ -76,7 +88,7 @@ export default function Sidebar() {
   }, [isHovered]);
 
   return (
-    <aside 
+    <aside
       className={cn(
         "hidden md:flex flex-col h-screen fixed left-0 top-0 bg-background/20 border-r border-white/5 z-50 backdrop-blur-xl",
         isHovered ? "w-64 shadow-[10px_0_30px_rgba(0,0,0,0.5)]" : "w-20"
@@ -156,27 +168,27 @@ export default function Sidebar() {
 
             {/* Links */}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground font-medium px-1">
-              {['Discord', 'Reddit', 'Twitter', 'Tags', 'Affiliates', 'Guides'].map((text) => (
-                <a key={text} href="#" className="hover:text-white transition-colors">
-                  {text}
+              {['social_discord', 'social_reddit', 'social_twitter', 'social_tags', 'social_affiliates', 'social_guides'].map((key) => (
+                <a key={key} href="#" className="hover:text-white transition-colors">
+                  {t(`sidebar.${key}`)}
                 </a>
               ))}
             </div>
 
             {/* Gender Toggle */}
             <div className="bg-white/5 p-1 rounded-lg grid grid-cols-3 gap-1">
-              {(['Girls', 'Guys', 'Anime'] as const).map((type) => (
+              {(['girls', 'guys', 'anime'] as const).map((type) => (
                 <button
                   key={type}
-                  onClick={() => handleGenderChange(type.toLowerCase() as 'girls' | 'guys' | 'anime')}
+                  onClick={() => handleGenderChange(type)}
                   className={cn(
                     "text-xs font-medium py-1.5 rounded-md transition-colors",
-                    gender === type.toLowerCase()
+                    gender === type
                       ? "bg-primary text-white shadow-sm"
                       : "text-muted-foreground hover:text-white hover:bg-white/5"
                   )}
                 >
-                  {type}
+                  {t(`categories.${type}`)}
                 </button>
               ))}
             </div>
@@ -197,7 +209,7 @@ export default function Sidebar() {
                 </Avatar>
                 <div className="flex-1 min-w-0 text-left">
                   <p className="text-sm font-medium text-white truncate leading-none mb-1">{user.name}</p>
-                  <p className={cn("text-[10px] font-medium", tierInfo.color)}>{tierInfo.name} Plan</p>
+                  <p className={cn("text-[10px] font-medium", tierInfo.color)}>{tierInfo.name} {t('sidebar.plan')}</p>
                 </div>
                 <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-white transition-colors" />
               </div>

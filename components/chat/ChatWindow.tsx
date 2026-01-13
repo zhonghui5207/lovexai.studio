@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
 import GenerationSettingsModal from "./GenerationSettingsModal";
 import FormattedMessage from "./FormattedMessage";
 import CreditDisplay from "./CreditDisplay";
@@ -64,6 +65,7 @@ interface ChatWindowProps {
 export default function ChatWindow({ character, messages, onSendMessage, isTyping = false, isLoading = false, creditsPerMessage = 1, convexUserId, conversationId, onConversationDeleted }: ChatWindowProps) {
   const { data: session } = useSession();
   const { credits } = useCredits();
+  const t = useTranslations();
   const [newMessage, setNewMessage] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCreditsDialogOpen, setIsCreditsDialogOpen] = useState(false);
@@ -161,7 +163,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       // Optional: Add a subtle toast here instead of alert if needed
     } catch (error) {
       console.error("Failed to reset conversation:", error);
-      setError("Failed to reset conversation. Please try again.");
+      setError(t('chat.reset_failed'));
       setErrorType('general');
     }
   };
@@ -187,14 +189,14 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       }
     } catch (error) {
       console.error("[Delete] Error:", error);
-      setError("Failed to delete conversation. Please try again.");
+      setError(t('chat.delete_failed'));
       setErrorType('general');
     }
   };
 
   const handleSend = async () => {
     if (!newMessage.trim()) {
-      setError("Message cannot be empty. Please type something before sending.");
+      setError(t('chat.empty_message'));
       setErrorType('empty_message');
       return;
     }
@@ -253,7 +255,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
           <div>
             <h3 className="font-semibold">{character.name}</h3>
             <p className="text-sm text-muted-foreground">
-              {character.traits?.slice(0, 2).join(' • ') || 'AI Companion'}
+              {character.traits?.slice(0, 2).join(' • ') || t('chat.ai_companion')}
             </p>
           </div>
         </div>
@@ -272,7 +274,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
             onClick={() => setIsSettingsOpen(true)}
           >
             <Settings className="h-3.5 w-3.5" />
-            Settings
+            {t('chat.settings')}
           </Badge>
 
           <DropdownMenu>
@@ -282,7 +284,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52 bg-[#0B0E14]/95 backdrop-blur-xl border-white/10 text-gray-200 rounded-xl shadow-2xl p-1">
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={handleResetConversation}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 cursor-pointer focus:bg-white/5 focus:text-white transition-colors"
               >
@@ -290,14 +292,14 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                   <RotateCcw className="w-4 h-4 text-blue-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">Reset Chat</span>
-                  <span className="text-xs text-gray-500">Start fresh</span>
+                  <span className="text-sm font-medium">{t('chat.reset_chat')}</span>
+                  <span className="text-xs text-gray-500">{t('chat.reset_chat_desc')}</span>
                 </div>
               </DropdownMenuItem>
               
               <DropdownMenuSeparator className="bg-white/5 my-1" />
               
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={handleReportCharacter}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 cursor-pointer focus:bg-white/5 focus:text-white transition-colors"
               >
@@ -305,14 +307,14 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                   <Flag className="w-4 h-4 text-orange-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">Report</span>
-                  <span className="text-xs text-gray-500">Flag this character</span>
+                  <span className="text-sm font-medium">{t('chat.report_character')}</span>
+                  <span className="text-xs text-gray-500">{t('chat.report_character_desc')}</span>
                 </div>
               </DropdownMenuItem>
               
               <DropdownMenuSeparator className="bg-white/5 my-1" />
               
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={handleDeleteConversation}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/10 cursor-pointer focus:bg-red-500/10 transition-colors group"
               >
@@ -320,8 +322,8 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                   <Trash2 className="w-4 h-4 text-red-400" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-red-400 group-hover:text-red-300">Delete Chat</span>
-                  <span className="text-xs text-gray-500">Remove permanently</span>
+                  <span className="text-sm font-medium text-red-400 group-hover:text-red-300">{t('chat.delete_chat')}</span>
+                  <span className="text-xs text-gray-500">{t('chat.delete_chat_desc')}</span>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -402,7 +404,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Write a message..."
+              placeholder={t('chat.write_message')}
               className="resize-none border-0 bg-white/5 focus-visible:ring-1 focus-visible:ring-white/20 rounded-xl shadow-inner text-white placeholder:text-white/40 h-12"
             />
           </div>
@@ -418,7 +420,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
         </div>
 
         <div className="mt-2 text-xs text-muted-foreground text-center">
-          Press Enter to send, Shift + Enter for new line
+          {t('chat.press_enter_hint')}
         </div>
       </div>
 

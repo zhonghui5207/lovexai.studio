@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,12 +32,12 @@ import { api } from "@/convex/_generated/api";
 import { useSession } from "next-auth/react";
 
 // Step indicator component
-const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => {
+const StepIndicator = ({ currentStep, totalSteps, t }: { currentStep: number; totalSteps: number; t: any }) => {
   const steps = [
-    { num: 1, label: "Basic Info" },
-    { num: 2, label: "Personality" },
-    { num: 3, label: "Scenario" },
-    { num: 4, label: "Confirm" },
+    { num: 1, label: t('create.steps.basic') },
+    { num: 2, label: t('create.steps.personality') },
+    { num: 3, label: t('create.steps.scenario') },
+    { num: 4, label: t('create.steps.confirm') },
   ];
   
   return (
@@ -106,6 +107,7 @@ const SCENARIO_TEMPLATES = [
 const NAME_SUGGESTIONS = ["Sakura", "Luna", "Yuki", "Hana", "Aria", "Mia"];
 
 export default function CreateCharacterPage() {
+  const t = useTranslations();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
   
@@ -492,13 +494,13 @@ export default function CreateCharacterPage() {
           <ChevronLeft className="w-6 h-6" />
         </Link>
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Create Companion</h1>
-          <p className="text-muted-foreground text-sm">Bring your imagination to life</p>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('create.title')}</h1>
+          <p className="text-muted-foreground text-sm">{t('create.subtitle')}</p>
         </div>
       </div>
 
       {/* Step Indicator */}
-      <StepIndicator currentStep={currentStep} totalSteps={4} />
+      <StepIndicator currentStep={currentStep} totalSteps={4} t={t} />
 
       {/* Step Content */}
       <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 min-h-[500px] flex flex-col">
@@ -507,21 +509,21 @@ export default function CreateCharacterPage() {
         {currentStep === 1 && (
           <div className="flex-1 space-y-8 animate-in fade-in slide-in-from-right duration-300">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">Let's give her a name</h2>
-              <p className="text-white/60">What would you like to call her?</p>
+              <h2 className="text-2xl font-bold">{t('create.name_title')}</h2>
+              <p className="text-white/60">{t('create.name_subtitle')}</p>
             </div>
 
             {/* Name Input */}
             <div className="max-w-sm mx-auto space-y-4">
               <div className="relative">
-                <Input 
-                  placeholder="Enter a name..."
+                <Input
+                  placeholder={t('create.name_placeholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="bg-black/40 border-white/20 h-14 text-xl text-center focus:border-primary/50 pr-12"
                 />
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="icon"
                   onClick={randomName}
                   className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-white/10 text-white/50 hover:text-white"
@@ -529,9 +531,9 @@ export default function CreateCharacterPage() {
                   <Shuffle className="w-4 h-4" />
                 </Button>
               </div>
-              
+
               <div className="flex items-center justify-center gap-2 flex-wrap">
-                <span className="text-xs text-white/40 mr-1">Try:</span>
+                <span className="text-xs text-white/40 mr-1">{t('create.try_names')}</span>
                 {NAME_SUGGESTIONS.map(n => (
                   <button
                     key={n}
@@ -553,8 +555,7 @@ export default function CreateCharacterPage() {
             <div className="max-w-md mx-auto space-y-4">
               <div className="flex items-center justify-center gap-2 text-sm text-white/60">
                 <ImagePlus className="w-4 h-4" />
-                <span>Give her an image</span>
-                <span className="text-white/30">(optional)</span>
+                <span>{t('create.image_title')}</span>
               </div>
               <div className="grid grid-cols-5 gap-4">
                 {/* Upload */}
@@ -581,8 +582,8 @@ export default function CreateCharacterPage() {
                     ) : (
                       <div className="text-center p-4">
                         <ImagePlus className="w-10 h-10 mx-auto mb-2 text-white/30 group-hover:text-primary/70 transition-colors" />
-                        <p className="text-sm text-white/50 group-hover:text-white/70">Click to upload</p>
-                        <p className="text-xs text-white/30 mt-1">or drag & drop</p>
+                        <p className="text-sm text-white/50 group-hover:text-white/70">{t('create.click_upload')}</p>
+                        <p className="text-xs text-white/30 mt-1">{t('create.drag_drop')}</p>
                       </div>
                     )}
                   </div>
@@ -603,28 +604,28 @@ export default function CreateCharacterPage() {
 
                 {/* AI Generate */}
                 <div className="col-span-3 space-y-3 flex flex-col">
-                  <Textarea 
-                    placeholder="Describe her appearance... (e.g., silver hair, red eyes, maid outfit)"
+                  <Textarea
+                    placeholder={t('create.appearance_placeholder')}
                     value={avatarPrompt}
                     onChange={(e) => setAvatarPrompt(e.target.value)}
                     className="bg-black/40 border-white/10 flex-1 min-h-[100px] text-sm resize-none placeholder:text-white/30"
                   />
                   <div className="flex gap-2">
-                    <Button 
+                    <Button
                       className="flex-1 gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
                       disabled={!avatarPrompt || isGeneratingAvatar}
                       onClick={handleQuickGenerate}
                     >
                       <Sparkles className="w-4 h-4" />
-                      {isGeneratingAvatar ? "Generating..." : "Quick Generate"}
+                      {isGeneratingAvatar ? t('create.generating') : t('create.quick_generate')}
                     </Button>
                     <Link href="/generate">
-                      <Button 
+                      <Button
                         variant="outline"
                         className="gap-1.5 border-white/20 text-white/70 hover:text-white hover:bg-white/10"
                       >
                         <Wand2 className="w-4 h-4" />
-                        Studio
+                        {t('create.studio_link')}
                       </Button>
                     </Link>
                   </div>
@@ -638,8 +639,8 @@ export default function CreateCharacterPage() {
         {currentStep === 2 && (
           <div className="flex-1 space-y-8 animate-in fade-in slide-in-from-right duration-300">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">What's her personality like?</h2>
-              <p className="text-white/60">Pick her core traits (choose 1-3)</p>
+              <h2 className="text-2xl font-bold">{t('create.personality_title')}</h2>
+              <p className="text-white/60">{t('create.personality_subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-2xl mx-auto">
@@ -669,7 +670,7 @@ export default function CreateCharacterPage() {
 
             {selectedTraits.length > 0 && (
               <div className="text-center space-y-2">
-                <p className="text-sm text-white/60">Selected traits:</p>
+                <p className="text-sm text-white/60">{t('create.selected_traits')}</p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {selectedTraits.map(t => {
                     const trait = TRAIT_OPTIONS.find(o => o.id === t);
@@ -690,8 +691,8 @@ export default function CreateCharacterPage() {
         {currentStep === 3 && (
           <div className="flex-1 space-y-6 animate-in fade-in slide-in-from-right duration-300">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">What's the story?</h2>
-              <p className="text-white/60">Choose a scenario for your first encounter</p>
+              <h2 className="text-2xl font-bold">{t('create.scenario_title')}</h2>
+              <p className="text-white/60">{t('create.scenario_subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
@@ -721,8 +722,8 @@ export default function CreateCharacterPage() {
             {/* Custom Scenario Input */}
             {selectedScenario === "custom" && (
               <div className="max-w-lg mx-auto space-y-3">
-                <Textarea 
-                  placeholder="Describe your custom scenario... (e.g., We meet at a rooftop bar during sunset)"
+                <Textarea
+                  placeholder={t('create.custom_scenario_placeholder')}
                   value={customScenario}
                   onChange={(e) => setCustomScenario(e.target.value)}
                   className="bg-black/40 border-white/10 min-h-[100px] resize-none"
@@ -730,19 +731,19 @@ export default function CreateCharacterPage() {
                 
                 {/* Generate from custom description */}
                 <div className="flex justify-end">
-                  <Button 
-                    onClick={() => {
-                      if (customScenario) {
-                        // Use custom scenario as the template
-                        generateScenarioFromCustom();
-                      }
-                    }}
-                    disabled={!customScenario || isGeneratingScenario || !name || selectedTraits.length === 0}
-                    className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    {isGeneratingScenario ? "Generating..." : "Enhance with AI"}
-                  </Button>
+                    <Button
+                      onClick={() => {
+                        if (customScenario) {
+                          // Use custom scenario as the template
+                          generateScenarioFromCustom();
+                        }
+                      }}
+                      disabled={!customScenario || isGeneratingScenario || !name || selectedTraits.length === 0}
+                      className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      {isGeneratingScenario ? t('create.generating') : t('create.enhance_with_ai')}
+                    </Button>
                 </div>
 
                 {/* Show generated content if available */}
@@ -751,26 +752,26 @@ export default function CreateCharacterPage() {
                     <div className="flex items-center justify-between">
                       <Label className="text-sm text-white/60 flex items-center gap-2">
                         <Sparkles className="w-3.5 h-3.5 text-primary" />
-                        AI Enhanced
+                        {t('create.ai_enhanced')}
                       </Label>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={generateScenarioFromCustom}
                         disabled={isGeneratingScenario}
                         className="h-7 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
                       >
                         <RefreshCw className={cn("w-3 h-3", isGeneratingScenario && "animate-spin")} />
-                        Regenerate
+                        {t('create.regenerate')}
                       </Button>
                     </div>
                     <p className="text-sm text-white/80 leading-relaxed">{generatedScenario}</p>
                     <div className="pt-2 border-t border-white/10 space-y-1">
                       <p className="text-xs text-white/50">
-                        <span className="text-primary">State:</span> {generatedCurrentState}
+                        <span className="text-primary">{t('create.state_label')}</span> {generatedCurrentState}
                       </p>
                       <p className="text-xs text-white/50">
-                        <span className="text-primary">Drive:</span> {generatedMotivation}
+                        <span className="text-primary">{t('create.drive_label')}</span> {generatedMotivation}
                       </p>
                     </div>
                   </div>
@@ -784,22 +785,22 @@ export default function CreateCharacterPage() {
                 <div className="flex items-center justify-between">
                   <Label className="text-sm text-white/60 flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5 text-primary" />
-                    AI Generated Scenario
+                    {t('create.ai_generated_scenario')}
                   </Label>
                   {generatedScenario && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={generateScenario}
                       disabled={isGeneratingScenario}
                       className="h-7 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
                     >
                       <RefreshCw className={cn("w-3 h-3", isGeneratingScenario && "animate-spin")} />
-                      Regenerate
+                      {t('create.regenerate')}
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="bg-black/40 border border-white/10 rounded-xl p-4 space-y-3">
                   {isGeneratingScenario ? (
                     <div className="flex items-center justify-center py-8">
@@ -810,23 +811,23 @@ export default function CreateCharacterPage() {
                       <p className="text-sm text-white/80 leading-relaxed">{generatedScenario}</p>
                       <div className="pt-2 border-t border-white/10 space-y-1">
                         <p className="text-xs text-white/50">
-                          <span className="text-primary">State:</span> {generatedCurrentState}
+                          <span className="text-primary">{t('create.state_label')}</span> {generatedCurrentState}
                         </p>
                         <p className="text-xs text-white/50">
-                          <span className="text-primary">Drive:</span> {generatedMotivation}
+                          <span className="text-primary">{t('create.drive_label')}</span> {generatedMotivation}
                         </p>
                       </div>
                     </>
                   ) : (
                     <div className="text-center py-6 space-y-3">
-                      <p className="text-sm text-white/50">Click below to generate scenario with AI</p>
-                      <Button 
+                      <p className="text-sm text-white/50">{t('create.generate_prompt')}</p>
+                      <Button
                         onClick={generateScenario}
                         disabled={isGeneratingScenario || !name || selectedTraits.length === 0}
                         className="gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
                       >
                         <Sparkles className="w-4 h-4" />
-                        Generate Scenario
+                        {t('create.generate_scenario')}
                       </Button>
                     </div>
                   )}
@@ -840,8 +841,8 @@ export default function CreateCharacterPage() {
         {currentStep === 4 && (
           <div className="flex-1 space-y-6 animate-in fade-in slide-in-from-right duration-300">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold">Preview Your Character</h2>
-              <p className="text-white/60">Review and create your companion</p>
+              <h2 className="text-2xl font-bold">{t('create.preview_title')}</h2>
+              <p className="text-white/60">{t('create.preview_subtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
@@ -871,13 +872,13 @@ export default function CreateCharacterPage() {
               {/* Info & Greeting */}
               <div className="space-y-4">
                 <div className="bg-black/40 border border-white/10 rounded-xl p-4 space-y-2">
-                  <Label className="text-xs text-white/50">Scenario</Label>
+                  <Label className="text-xs text-white/50">{t('create.scenario_label')}</Label>
                   <p className="text-sm text-white/80">{generatedScenario || customScenario}</p>
                 </div>
 
                 <div className="bg-black/40 border border-white/10 rounded-xl p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs text-white/50">Greeting Message</Label>
+                    <Label className="text-xs text-white/50">{t('create.greeting_label')}</Label>
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -909,7 +910,7 @@ export default function CreateCharacterPage() {
                 <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-xl p-4">
                   <div className="flex items-center gap-2">
                     {isPublic ? <Globe className="w-4 h-4 text-green-400" /> : <Lock className="w-4 h-4 text-yellow-400" />}
-                    <span className="text-sm">{isPublic ? "Public" : "Private"}</span>
+                    <span className="text-sm">{isPublic ? t('create.visibility_public') : t('create.visibility_private')}</span>
                   </div>
                   <Switch checked={isPublic} onCheckedChange={setIsPublic} />
                 </div>
@@ -920,27 +921,27 @@ export default function CreateCharacterPage() {
 
         {/* Navigation Buttons */}
         <div className="flex items-center justify-between pt-4 mt-6 border-t border-white/10">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={prevStep}
             disabled={currentStep === 1}
             className="gap-2 text-white/70 hover:text-white hover:bg-white/10"
           >
             <ChevronLeft className="w-4 h-4" />
-            Back
+            {t('common.back')}
           </Button>
 
           {currentStep < 4 ? (
-            <Button 
+            <Button
               onClick={nextStep}
               disabled={!canProceed()}
               className="gap-2 bg-primary hover:bg-primary/90"
             >
-              Next
+              {t('common.next')}
               <ChevronRight className="w-4 h-4" />
             </Button>
           ) : (
-            <Button 
+            <Button
               onClick={handleCreateCharacter}
               disabled={isCreating}
               className="gap-2 bg-gradient-to-r from-primary to-purple-600 px-8"
@@ -948,12 +949,12 @@ export default function CreateCharacterPage() {
               {isCreating ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  Creating...
+                  {t('create.creating')}
                 </>
               ) : (
                 <>
                   <Heart className="w-4 h-4" />
-                  Create Character
+                  {t('create.create_button')}
                 </>
               )}
             </Button>

@@ -5,8 +5,11 @@ import { motion } from "framer-motion";
 import { Search, Heart, User, Star } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import LocaleToggle from "@/components/locale/toggle";
+import { useTranslations } from "next-intl";
 
 export default function TopFilterBar() {
+  const t = useTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -22,8 +25,9 @@ export default function TopFilterBar() {
     setNsfw(currentNsfw);
   }, [currentGender, currentNsfw]);
 
-  // Only show on home page
-  if (pathname !== '/') return null;
+  // Only show on home page (strip locale prefix for check)
+  const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '') || '/';
+  if (pathnameWithoutLocale !== '/') return null;
 
   const updateFilter = (key: string, value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -36,9 +40,9 @@ export default function TopFilterBar() {
   };
 
   const genderOptions = [
-    { key: 'girls', label: 'Girls', icon: Heart },
-    { key: 'guys', label: 'Guys', icon: User },
-    { key: 'anime', label: 'Anime', icon: Star }
+    { key: 'girls', label: t('categories.girls'), icon: Heart },
+    { key: 'guys', label: t('categories.guys'), icon: User },
+    { key: 'anime', label: t('categories.anime'), icon: Star }
   ];
 
   return (
@@ -80,8 +84,8 @@ export default function TopFilterBar() {
       {/* Right: NSFW & Search */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-          <span className="text-xs font-bold text-white/80 uppercase tracking-wider">NSFW</span>
-          <button 
+          <span className="text-xs font-bold text-white/80 uppercase tracking-wider">{t('top_filter.nsfw')}</span>
+          <button
             onClick={() => updateFilter('nsfw', (!nsfw).toString())}
             className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
               nsfw ? 'bg-primary' : 'bg-white/20'
@@ -97,12 +101,14 @@ export default function TopFilterBar() {
 
         <div className="relative hidden sm:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-          <input 
-            type="text" 
-            placeholder="Search..." 
+          <input
+            type="text"
+            placeholder={t('top_filter.search')}
             className="bg-white/5 border border-white/10 rounded-full pl-9 pr-4 py-1.5 text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-1 focus:ring-primary w-48 transition-all focus:w-64"
           />
         </div>
+
+        <LocaleToggle />
       </div>
     </div>
   );

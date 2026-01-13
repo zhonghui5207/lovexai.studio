@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 import { CdnImage } from "@/components/ui/cdn-image";
 import { Heart, User, Star } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 // Import static character data
 import heroGirls from "@/data/hero-girls.json";
@@ -34,23 +35,20 @@ interface Character {
 // Category type
 type Category = "girls" | "guys" | "anime";
 
-// Category configurations
+// Category configurations (without labels - will be translated)
 const CATEGORIES = [
   {
     id: "girls" as Category,
-    label: "Girls",
     icon: Heart,
     data: heroGirls,
   },
   {
     id: "guys" as Category,
-    label: "Guys",
     icon: User,
     data: heroGuys,
   },
   {
     id: "anime" as Category,
-    label: "Anime",
     icon: Star,
     data: heroAnime,
   },
@@ -84,6 +82,7 @@ function genderToCategory(gender: string | null): Category {
 }
 
 export default function HeroBanner() {
+  const t = useTranslations('hero');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -149,33 +148,33 @@ export default function HeroBanner() {
         <div className="lg:col-span-6 text-center lg:text-left space-y-8 pt-12 lg:pt-0 relative z-20">
           <div>
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
-              Craft Your <br />
+              {t('title_line1')} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-gradient-x">
-                Perfect Soulmate
+                {t('title_line2')}
               </span>
             </h1>
           </div>
-          
+
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 font-sans leading-relaxed">
-            Dive into a world where AI characters feel alive. Create, chat, and connect with companions that understand your deepest desires.
+            {t('description')}
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Button
               size="lg"
               className="relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-bold px-10 py-6 text-lg rounded-2xl shadow-[0_0_20px_rgba(255,0,110,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,0,110,0.6)]"
               onClick={() => handleStartChat(heroCharacters[currentIndex])}
             >
-              <span className="relative z-10">Start Chatting Now</span>
+              <span className="relative z-10">{t('button_primary')}</span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]"></div>
             </Button>
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               variant="outline"
               className="border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 font-semibold px-8 py-6 text-lg rounded-2xl backdrop-blur-sm transition-all"
               onClick={() => router.push('/discover')}
             >
-              Explore Characters
+              {t('button_secondary')}
             </Button>
           </div>
 
@@ -200,7 +199,7 @@ export default function HeroBanner() {
               ))}
             </div>
             <div className="text-sm text-muted-foreground">
-              <span className="text-foreground font-bold">10,000+</span> conversations daily
+              <span className="text-foreground font-bold">{t('stats_count')}</span> {t('stats_label')}
             </div>
           </div>
         </div>
@@ -293,11 +292,11 @@ export default function HeroBanner() {
                           className="flex items-center justify-between pt-4 border-t border-white/10"
                         >
                           <div className="flex items-center gap-1.5 text-xs font-medium text-white/70">
-                            <span className="text-primary">🔥</span> {character.chatCount} chats
+                            <span className="text-primary">🔥</span> {character.chatCount} {t('chats_suffix')}
                           </div>
-                          
+
                           <div className="flex items-center gap-2 text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm">
-                            <span>Chat</span>
+                            <span>{t('chat_button')}</span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                           </div>
                         </motion.div>

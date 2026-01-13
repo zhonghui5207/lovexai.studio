@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { 
-  Wand2, 
-  Sparkles, 
-  Image as ImageIcon, 
-  Download, 
-  UserPlus, 
-  RefreshCw, 
+import { useTranslations } from "next-intl";
+import {
+  Wand2,
+  Sparkles,
+  Image as ImageIcon,
+  Download,
+  UserPlus,
+  RefreshCw,
   Dice5,
   Maximize2,
   AlertCircle,
@@ -102,6 +103,7 @@ const PLACEHOLDERS = [
 ];
 
 export default function GeneratePage() {
+  const t = useTranslations();
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("anime");
   const [selectedModel, setSelectedModel] = useState<ImageModel>("spark");
@@ -263,7 +265,7 @@ export default function GeneratePage() {
     // Check if user is logged in
     if (!convexUserId) {
       setShowSignModal(true);
-      toast.error("Please sign in to generate images");
+      toast.error(t('common.please_login'));
       return;
     }
     
@@ -281,7 +283,7 @@ export default function GeneratePage() {
       if (url) {
         setGeneratedImage(url);
         setCurrentPrompt(prompt); // Save the prompt used for this image
-        toast.success("Image generated successfully!");
+        toast.success(t('common.success'));
       }
     } catch (error: any) {
       console.error(error);
@@ -300,7 +302,7 @@ export default function GeneratePage() {
         const deletedImageUrl = history?.find(h => h._id === id)?.image_url;
         
         await deleteAction({ id });
-        toast.success("Image deleted");
+        toast.success(t('common.success'));
         
         // If the deleted image was the currently displayed one, show the next available image
         if (generatedImage === deletedImageUrl && history) {
@@ -350,10 +352,10 @@ export default function GeneratePage() {
           {/* Header */}
           <div className="space-y-2 relative">
             <h1 className="text-4xl font-bold tracking-tighter bg-gradient-to-r from-white via-white to-white/50 bg-clip-text text-transparent animate-in fade-in slide-in-from-left duration-700">
-              Dream Studio
+              {t('generate.title')}
             </h1>
             <p className="text-muted-foreground text-sm">
-              Manifest your ideal companion from the digital void.
+              {t('generate.subtitle')}
             </p>
           </div>
 
@@ -396,7 +398,7 @@ export default function GeneratePage() {
                     key={model.id}
                     onClick={() => {
                       if (isLocked) {
-                        toast.error(`Upgrade to ${model.tier} to use ${model.name}`);
+                        toast.error(t('generate.upgrade_model', { tier: model.tier, model: model.name }));
                         return;
                       }
                       setSelectedModel(model.id);
@@ -490,9 +492,9 @@ export default function GeneratePage() {
                 Your Vision
               </Label>
               <div className="flex gap-2">
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={handleEnhance}
                     disabled={isEnhancing || !prompt}
                     className="h-7 text-xs text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 gap-1"
@@ -507,16 +509,16 @@ export default function GeneratePage() {
                       </defs>
                       <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke="url(#enhance-grad)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    {isEnhancing ? "Enhancing..." : "Enhance"}
+                    {isEnhancing ? t('generate.enhancing') : t('generate.enhance')}
                 </Button>
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
+                <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={handleRandomPrompt}
                     className="h-7 text-xs text-primary hover:text-primary/80 hover:bg-primary/10 gap-1"
                 >
                     <Dice5 className="w-3 h-3" />
-                    Randomize
+                    {t('generate.randomize')}
                 </Button>
               </div>
             </div>
@@ -531,7 +533,7 @@ export default function GeneratePage() {
             
             {/* Quick Tags - Categorized & Lightweight */}
             <div className="space-y-3 pt-2">
-              <p className="text-[10px] text-white/40 uppercase tracking-wider">Quick Add</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-wider">{t('generate.quick_add')}</p>
               <div className="flex flex-wrap gap-1.5">
                 {[
                   { tag: "Big Breasts", color: "from-pink-400/20 to-rose-500/20" },
@@ -567,8 +569,8 @@ export default function GeneratePage() {
               <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none">
                 <path d="M12 2l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5l2-5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              Art Style
-              <span className="text-[10px] text-white/30 font-normal normal-case ml-1">(choose one)</span>
+              {t('generate.art_style')}
+              <span className="text-[10px] text-white/30 font-normal normal-case ml-1">{t('generate.choose_one')}</span>
             </Label>
             <div className="grid grid-cols-4 gap-2">
               {[
@@ -626,7 +628,7 @@ export default function GeneratePage() {
                 {isGenerating ? (
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Manifesting...</span>
+                    <span>{t('generate.manifesting')}</span>
                 </div>
                 ) : (
                 <div className="flex items-center gap-2">
@@ -643,8 +645,7 @@ export default function GeneratePage() {
                       <ellipse cx="12" cy="12" rx="9" ry="4" stroke="url(#manifest-grad)" strokeWidth="1.5" transform="rotate(-30 12 12)"/>
                       <ellipse cx="12" cy="12" rx="9" ry="4" stroke="url(#manifest-grad)" strokeWidth="1" opacity="0.5" transform="rotate(30 12 12)"/>
                     </svg>
-                    <span>Manifest Reality</span>
-                    <span className="text-xs font-normal opacity-70 ml-1">({imageCreditsCost} credits)</span>
+                    <span>{t('generate.manifest', { cost: imageCreditsCost })}</span>
                 </div>
                 )}
             </Button>
@@ -696,7 +697,7 @@ export default function GeneratePage() {
                                                 toast.success("Copied!");
                                             }}
                                             className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors flex items-center justify-center"
-                                            title="Copy prompt"
+                                            title={t('generate.copy_prompt')}
                                         >
                                             <Copy className="w-3.5 h-3.5" />
                                         </button>
@@ -706,7 +707,7 @@ export default function GeneratePage() {
                                     <button
                                         onClick={handleDownload}
                                         className="h-8 w-8 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors flex items-center justify-center"
-                                        title="Download"
+                                        title={t('common.download')}
                                     >
                                         <Download className="w-3.5 h-3.5" />
                                     </button>
@@ -716,7 +717,7 @@ export default function GeneratePage() {
                                 <Link href={`/create?image=${encodeURIComponent(generatedImage)}`}>
                                     <Button size="sm" className="h-8 bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-lg shadow-primary/20 rounded-lg px-3 text-xs font-medium">
                                         <UserPlus className="w-3.5 h-3.5" />
-                                        Create Character
+                                        {t('generate.create_character')}
                                     </Button>
                                 </Link>
                             </div>
@@ -845,7 +846,7 @@ export default function GeneratePage() {
                         {/* Text Section */}
                         <div className="text-center space-y-4 mt-4">
                             <h3 className="text-3xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent animate-gradient-x">
-                                Dreaming your image...
+                                {t('generate.dreaming')}
                             </h3>
                             <div className="flex items-center justify-center gap-3">
                                 {/* Animated dots */}
@@ -966,7 +967,7 @@ export default function GeneratePage() {
                                                         }}
                                                     >
                                                         <Wand2 className="w-4 h-4 mr-2" />
-                                                        Try this Prompt
+                                                        {t('generate.try_prompt')}
                                                     </Button>
                                                 </div>
                                             )}
@@ -994,8 +995,8 @@ export default function GeneratePage() {
 
                         {/* Title */}
                         <div className="text-center mt-6">
-                            <h3 className="text-xl font-bold text-white/90 mb-1">Get Inspired</h3>
-                            <p className="text-sm text-white/50">Click a card to use its prompt</p>
+                            <h3 className="text-xl font-bold text-white/90 mb-1">{t('discover.get_inspired')}</h3>
+                            <p className="text-sm text-white/50">{t('discover.click_to_use')}</p>
                         </div>
                     </div>
                 )}
@@ -1003,7 +1004,7 @@ export default function GeneratePage() {
 
             {/* HISTORY BAR (Bottom of Right Panel) */}
             <div className="h-auto min-h-[160px] border-t border-white/5 bg-black/20 backdrop-blur-md z-20 flex flex-col justify-center p-6">
-                <Label className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wider px-1">Recent Creations</Label>
+                <Label className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wider px-1">{t('generate.recent_creations')}</Label>
                 <div className="flex gap-4 overflow-x-auto p-4 custom-scrollbar snap-x items-center">
                     {history === undefined ? (
                         [1,2,3,4].map(i => (
@@ -1012,7 +1013,7 @@ export default function GeneratePage() {
                     ) : history.length === 0 ? (
                         <div className="text-white/30 text-xs flex items-center pl-1">
                             <History className="w-3 h-3 mr-2" />
-                            No history yet
+                            {t('generate.no_history')}
                         </div>
                     ) : (
                         history.map((item) => (

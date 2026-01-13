@@ -4,11 +4,16 @@ import { Footer as FooterType } from "@/types/blocks/footer";
 import LovexaiLogo from "@/components/ui/logo";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export default function Footer({ footer }: { footer: FooterType }) {
+  const t = useTranslations();
   const pathname = usePathname();
 
-  if (footer.disabled || pathname !== '/') {
+  // Strip locale prefix for homepage check
+  const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '') || '/';
+
+  if (footer.disabled || pathnameWithoutLocale !== '/') {
     return null;
   }
 
@@ -29,10 +34,10 @@ export default function Footer({ footer }: { footer: FooterType }) {
                   </span>
                 </div>
                 <p className="text-base font-light leading-relaxed text-white/60">
-                  Experience the next generation of AI companionship. Dive into immersive roleplay, create your dream characters, and explore a universe of limitless possibilities. Your fantasy, your rules.
+                  {t('footer.description')}
                 </p>
                 <p className="text-sm text-white/40">
-                  © {new Date().getFullYear()} LOVEXAI.Studio - All rights reserved
+                  © {new Date().getFullYear()} LOVEXAI.Studio - {t('footer.rights_reserved')}
                 </p>
               </div>
             </div>
@@ -42,57 +47,57 @@ export default function Footer({ footer }: { footer: FooterType }) {
               
               {/* Column 1: Features */}
               <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-white">Features</h4>
+                <h4 className="text-lg font-bold text-white">{t('footer.column_features')}</h4>
                 <ul className="flex flex-col gap-2">
-                  <li><a href="/discover" className="text-sm text-white/60 transition-colors hover:text-primary">AI Characters</a></li>
-                  <li><a href="/chat" className="text-sm text-white/60 transition-colors hover:text-primary">AI Chat</a></li>
-                  <li><a href="/generate" className="text-sm text-white/60 transition-colors hover:text-primary">Image Generator</a></li>
-                  <li><a href="/create" className="text-sm text-white/60 transition-colors hover:text-primary">Create Character</a></li>
+                  <li><a href="/discover" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_characters')}</a></li>
+                  <li><a href="/chat" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_chat')}</a></li>
+                  <li><a href="/generate" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.image_generator')}</a></li>
+                  <li><a href="/create" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.create_character')}</a></li>
                 </ul>
               </div>
 
               {/* Column 2: Trending */}
               <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-white">Trending</h4>
+                <h4 className="text-lg font-bold text-white">{t('footer.column_trending')}</h4>
                 <ul className="flex flex-col gap-2">
-                  <li><a href="/discover?filter=female" className="text-sm text-white/60 transition-colors hover:text-primary">AI Girlfriend</a></li>
-                  <li><a href="/discover?filter=male" className="text-sm text-white/60 transition-colors hover:text-primary">AI Boyfriend</a></li>
-                  <li><a href="/discover?filter=anime" className="text-sm text-white/60 transition-colors hover:text-primary">Anime Characters</a></li>
-                  <li><a href="/pricing" className="text-sm text-white/60 transition-colors hover:text-primary">Pricing</a></li>
+                  <li><a href="/discover?filter=female" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_girlfriend')}</a></li>
+                  <li><a href="/discover?filter=male" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_boyfriend')}</a></li>
+                  <li><a href="/discover?filter=anime" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.anime_characters')}</a></li>
+                  <li><a href="/pricing" className="text-sm text-white/60 transition-colors hover:text-primary">{t('nav.pricing')}</a></li>
                 </ul>
               </div>
 
               {/* Column 3: Legal */}
               <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-white">Legal</h4>
+                <h4 className="text-lg font-bold text-white">{t('footer.column_legal')}</h4>
                 <ul className="flex flex-col gap-2">
-                  <li><a href="/terms-of-service" className="text-sm text-white/60 transition-colors hover:text-primary">Terms of Use</a></li>
-                  <li><a href="/privacy-policy" className="text-sm text-white/60 transition-colors hover:text-primary">Privacy Policy</a></li>
+                  <li><a href="/terms-of-service" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.terms_of_use')}</a></li>
+                  <li><a href="/privacy-policy" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.privacy_policy')}</a></li>
                 </ul>
               </div>
 
               {/* Column 4: Contact Us */}
               <div className="flex flex-col gap-4">
-                <h4 className="text-lg font-bold text-white">Contact Us</h4>
+                <h4 className="text-lg font-bold text-white">{t('footer.column_contact')}</h4>
                 <ul className="flex flex-col gap-3">
                   <li>
-                    <a 
-                      href="https://discord.gg/lovexai" 
+                    <a
+                      href="https://discord.gg/lovexai"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-white/60 transition-colors hover:text-primary"
                     >
-                      Discord
+                      {t('footer.discord')}
                     </a>
                   </li>
                   <li>
-                    <a 
-                      href="https://twitter.com/lovexai" 
+                    <a
+                      href="https://twitter.com/lovexai"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-white/60 transition-colors hover:text-primary"
                     >
-                      Twitter
+                      {t('footer.twitter')}
                     </a>
                   </li>
                 </ul>

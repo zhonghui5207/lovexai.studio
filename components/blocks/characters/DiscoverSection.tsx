@@ -8,6 +8,7 @@ import CharacterModal from "./CharacterModal";
 import { useSearchParams } from "next/navigation";
 import { MessageCircle } from "lucide-react";
 import { CdnImage } from "@/components/ui/cdn-image";
+import { useTranslations } from "next-intl";
 
 interface Character {
   id: string;
@@ -31,6 +32,10 @@ interface Character {
 interface CharacterCardProps {
   character: Character;
   onClick: () => void;
+  chatsSuffix: string;
+  liveLabel: string;
+  chatNowLabel: string;
+  getTraitLabel: (trait: string) => string;
 }
 
 interface DiscoverSectionProps {
@@ -55,7 +60,7 @@ function renderActionText(text: string) {
   });
 }
 
-function CharacterCard({ character, onClick }: CharacterCardProps) {
+function CharacterCard({ character, onClick, chatsSuffix, liveLabel, chatNowLabel, getTraitLabel }: CharacterCardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -121,7 +126,7 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
       <div className="absolute top-3 left-3 z-30">
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md text-white/90 text-xs font-medium border border-white/10">
           <MessageCircle className="w-3.5 h-3.5 fill-current" />
-          {character.chatCount.replace(' chats', '')}
+          {character.chatCount}
         </div>
       </div>
 
@@ -129,8 +134,8 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
       {character.access_level && (
         <div className={`absolute top-3 right-3 z-30 transition-all duration-300 ${isHovered ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
           <div className={`px-2.5 py-1 rounded-full backdrop-blur-md text-[10px] font-bold uppercase tracking-wide ${
-            character.access_level === 'free' 
-              ? 'bg-emerald-500/80 text-white' 
+            character.access_level === 'free'
+              ? 'bg-emerald-500/80 text-white'
               : character.access_level === 'plus'
               ? 'bg-blue-500/80 text-white'
               : character.access_level === 'pro'
@@ -147,7 +152,7 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
         <div className={`absolute top-3 right-3 z-30 transition-all duration-300 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
           <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/80 backdrop-blur-md text-white text-[10px] font-medium">
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-            LIVE
+            {liveLabel}
           </div>
         </div>
       )}
@@ -165,7 +170,7 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
         <div className="flex flex-wrap gap-1 opacity-0 h-0 group-hover:opacity-100 group-hover:h-auto transition-all duration-300 delay-100">
           {character.traits?.slice(0, 2).map((trait, i) => (
             <span key={i} className="text-[10px] px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
-              {trait}
+              {getTraitLabel(trait)}
             </span>
           ))}
         </div>
@@ -173,7 +178,7 @@ function CharacterCard({ character, onClick }: CharacterCardProps) {
         {/* Chat Button - Visible on Hover */}
         <div className="mt-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75">
           <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold shadow-lg shadow-primary/20">
-            Chat Now
+            {chatNowLabel}
           </Button>
         </div>
       </div>
@@ -189,10 +194,40 @@ const generateMockChatCount = (index: number): string => {
   return counts[index % counts.length];
 };
 
-const FILTERS = ["All", "Trending", "New", "Free"] as const;
-type FilterType = typeof FILTERS[number];
+type FilterType = "All" | "Trending" | "New" | "Free";
 
 export default function DiscoverSection({ characters: rawCharacters }: DiscoverSectionProps) {
+  const t = useTranslations('discover');
+  const tTraits = useTranslations('traits');
+
+  // Function to translate trait names
+  const getTraitLabel = (trait: string): string => {
+    const traitKey = trait.toLowerCase();
+
+    // List of all available trait keys
+    const availableTraits = [
+      'sweet', 'flirty', 'bold', 'mysterious', 'innocent', 'dominant', 'submissive',
+      'intellectual', 'bubbly', 'clumsy', 'eager', 'nervous', 'playful', 'shy',
+      'bookish', 'hardworking', 'bratty', 'obsessive', 'adoring', 'excitable',
+      'devoted', 'professional', 'seductive', 'trusting', 'grateful', 'manipulative',
+      'intelligent', 'authoritative', 'precise'
+    ];
+
+    // Check if trait is available
+    if (!availableTraits.includes(traitKey)) {
+      return trait; // Fallback to original
+    }
+
+    try {
+      // Access nested label property using dot notation
+      return tTraits(`${traitKey}.label`);
+    } catch {
+      // Fallback to original trait name if something goes wrong
+      return trait;
+    }
+  };
+
+  const FILTERS: FilterType[] = ["All", "Trending", "New", "Free"];
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterType>("All");
@@ -289,29 +324,32 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
           <div className="w-full xl:w-auto max-w-3xl">
             <h2 className="font-heading text-4xl md:text-5xl font-bold mb-4">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                Discover
-              </span> Your Match
+                {t('section_title_highlight')}
+              </span> {t('section_title_rest')}
             </h2>
             <p className="text-xl text-muted-foreground font-sans mb-0">
-              Explore a universe of unique personalities waiting to meet you.
+              {t('section_subtitle')}
             </p>
           </div>
-          
+
           {/* Filter Tabs */}
           <div className="flex flex-wrap gap-2 justify-start xl:justify-end w-full xl:w-auto">
-            {FILTERS.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => handleFilterChange(filter)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border ${
-                  activeFilter === filter
-                    ? "bg-primary text-white border-primary shadow-[0_0_15px_rgba(255,0,110,0.4)]"
-                    : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
+            {FILTERS.map((filter) => {
+              const filterKey = `filter_${filter.toLowerCase()}` as const;
+              return (
+                <button
+                  key={filter}
+                  onClick={() => handleFilterChange(filter)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border ${
+                    activeFilter === filter
+                      ? "bg-primary text-white border-primary shadow-[0_0_15px_rgba(255,0,110,0.4)]"
+                      : "bg-white/5 text-muted-foreground border-white/10 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {t(filterKey)}
+                </button>
+              );
+            })}
           </div>
         </div>
         
@@ -337,6 +375,10 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
                   key={character.id}
                   character={character}
                   onClick={() => handleCharacterClick(character)}
+                  chatsSuffix={t('chats_suffix')}
+                  liveLabel={t('live')}
+                  chatNowLabel={t('chat_now')}
+                  getTraitLabel={getTraitLabel}
                 />
               ))
             )}
@@ -351,7 +393,7 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
               onClick={handleLoadMore}
               className="border-white/10 bg-white/5 hover:bg-white/10 text-lg px-8 py-6 rounded-2xl backdrop-blur-sm"
             >
-              Load More Characters
+              {t('load_more')}
             </Button>
           </div>
         )}

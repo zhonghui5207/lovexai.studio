@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  X, 
-  User, 
-  Users, 
-  Sparkles, 
-  Zap, 
-  Brain, 
-  AlignLeft, 
-  AlignJustify, 
+import {
+  X,
+  User,
+  Users,
+  Sparkles,
+  Zap,
+  Brain,
+  AlignLeft,
+  AlignJustify,
   FileText,
   MessageSquare,
   MessageSquarePlus,
@@ -24,6 +24,7 @@ import { api } from "@/convex/_generated/api";
 import { useAppContext } from "@/contexts/app";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 // Subscription tier for model access
 type SubscriptionTier = 'free' | 'plus' | 'pro' | 'ultimate';
@@ -49,13 +50,6 @@ const TIER_HIERARCHY: Record<SubscriptionTier, number> = {
   plus: 1,
   pro: 2,
   ultimate: 3,
-};
-
-const TIER_LABELS: Record<SubscriptionTier, string> = {
-  free: 'Free',
-  plus: 'Plus',
-  pro: 'Pro',
-  ultimate: 'Ultimate',
 };
 
 interface GenerationSettings {
@@ -134,6 +128,7 @@ function ModelCard({ model, isSelected, onSelect, userTier, onLockedClick }: {
   userTier: SubscriptionTier;
   onLockedClick: (model: AIModel) => void;
 }) {
+  const t = useTranslations();
   const userTierLevel = TIER_HIERARCHY[userTier];
   const requiredLevel = TIER_HIERARCHY[model.requiredTier];
   const isLocked = userTierLevel < requiredLevel;
@@ -165,7 +160,7 @@ function ModelCard({ model, isSelected, onSelect, userTier, onLockedClick }: {
               <Lock className="w-5 h-5 text-white/60" />
             </div>
             <span className="text-xs font-medium text-white/60">
-              {TIER_LABELS[model.requiredTier]}+ Required
+              {t('generation_settings.tier_required', { tier: t(`tiers.${model.requiredTier}`) })}
             </span>
           </div>
         </div>
@@ -183,8 +178,8 @@ function ModelCard({ model, isSelected, onSelect, userTier, onLockedClick }: {
               <h3 className={`font-bold text-lg ${isSelected ? "text-white" : "text-gray-200"}`}>
                 {model.name}
               </h3>
-              <Badge 
-                variant={isSelected ? "default" : "secondary"} 
+              <Badge
+                variant={isSelected ? "default" : "secondary"}
                 className={`text-[10px] px-1.5 py-0 h-5 ${
                   model.requiredTier === 'ultimate' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30' :
                   model.requiredTier === 'pro' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
@@ -192,7 +187,7 @@ function ModelCard({ model, isSelected, onSelect, userTier, onLockedClick }: {
                   ''
                 }`}
               >
-                {TIER_LABELS[model.requiredTier]}
+                {t(`tiers.${model.requiredTier}`)}
               </Badge>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed pr-6">
@@ -204,7 +199,7 @@ function ModelCard({ model, isSelected, onSelect, userTier, onLockedClick }: {
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center gap-2">
              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-               {model.credits} Credits/msg
+               {t('generation_settings.credits_per_msg', { credits: model.credits })}
              </Badge>
           </div>
         </div>
@@ -216,28 +211,28 @@ function ModelCard({ model, isSelected, onSelect, userTier, onLockedClick }: {
           <div className="grid grid-cols-2 gap-x-8 gap-y-3">
             <div className="space-y-1">
               <div className="flex justify-between text-xs text-gray-400">
-                <span>Consistency</span>
+                <span>{t('model_stats.consistency')}</span>
                 <span className="text-gray-500">{model.performance.consistency}/5</span>
               </div>
               <PerformanceBar level={model.performance.consistency} />
             </div>
             <div className="space-y-1">
               <div className="flex justify-between text-xs text-gray-400">
-                <span>Creativity</span>
+                <span>{t('model_stats.creativity')}</span>
                 <span className="text-gray-500">{model.performance.creativity}/5</span>
               </div>
               <PerformanceBar level={model.performance.creativity} />
             </div>
             <div className="space-y-1">
               <div className="flex justify-between text-xs text-gray-400">
-                <span>Descriptiveness</span>
+                <span>{t('model_stats.descriptiveness')}</span>
                 <span className="text-gray-500">{model.performance.descriptiveness}/5</span>
               </div>
               <PerformanceBar level={model.performance.descriptiveness} />
             </div>
             <div className="space-y-1">
               <div className="flex justify-between text-xs text-gray-400">
-                <span>Memory</span>
+                <span>{t('model_stats.memory')}</span>
                 <span className="text-gray-500">{model.performance.memory}/5</span>
               </div>
               <PerformanceBar level={model.performance.memory} />
@@ -255,6 +250,7 @@ export default function GenerationSettingsModal({
   settings,
   onSettingsChange
 }: GenerationSettingsModalProps) {
+  const t = useTranslations();
   const [localSettings, setLocalSettings] = useState<GenerationSettings>(settings);
   const [lockedModel, setLockedModel] = useState<AIModel | null>(null);
   const { user } = useAppContext();
@@ -275,7 +271,7 @@ export default function GenerationSettingsModal({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl p-0 bg-[#0B0E14] text-white border-white/10 shadow-2xl overflow-hidden">
-        <DialogTitle className="sr-only">Generation Settings</DialogTitle>
+        <DialogTitle className="sr-only">{t('generation_settings.title')}</DialogTitle>
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-white/5">
@@ -284,8 +280,8 @@ export default function GenerationSettingsModal({
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold tracking-tight">Generation Settings</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Customize your AI companion's behavior</p>
+              <h2 className="text-xl font-bold tracking-tight">{t('generation_settings.title')}</h2>
+              <p className="text-xs text-gray-400 mt-0.5">{t('generation_settings.subtitle')}</p>
             </div>
           </div>
         </div>
@@ -297,67 +293,67 @@ export default function GenerationSettingsModal({
             {/* Creativity Setting */}
             <section>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Zap className="w-4 h-4" /> Creativity
+                <Zap className="w-4 h-4" /> {t('generation_settings.creativity')}
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-500">Controls how creative and unpredictable the AI responses are</span>
-                  <span className="text-xs text-primary font-medium capitalize">{localSettings.creativity}</span>
+                  <span className="text-xs text-gray-500">{t('generation_settings.creativity_desc')}</span>
+                  <span className="text-xs text-primary font-medium capitalize">{t(`generation_settings.creativity_${localSettings.creativity}`)}</span>
                 </div>
-                
+
                 <div className="relative flex justify-between items-center px-8 py-4 bg-black/40 rounded-lg border border-white/5 overflow-hidden">
                   {/* Precise */}
-                  <div 
+                  <div
                     className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${
                       localSettings.creativity === 'precise' ? 'opacity-100' : 'opacity-40 hover:opacity-70'
                     }`}
                     onClick={() => updateSetting("creativity", "precise")}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                      localSettings.creativity === 'precise' 
-                        ? 'bg-blue-500/20 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]' 
+                      localSettings.creativity === 'precise'
+                        ? 'bg-blue-500/20 border-blue-500 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.4)]'
                         : 'bg-gray-800 border-gray-700 text-gray-500'
                     }`}>
                       <Zap className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-medium">Precise</span>
+                    <span className="text-xs font-medium">{t('generation_settings.creativity_precise')}</span>
                   </div>
-                  
+
                   {/* Balanced */}
-                  <div 
+                  <div
                     className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${
                       localSettings.creativity === 'balanced' ? 'opacity-100' : 'opacity-40 hover:opacity-70'
                     }`}
                     onClick={() => updateSetting("creativity", "balanced")}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                      localSettings.creativity === 'balanced' 
-                        ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_hsl(var(--primary)/0.4)]' 
+                      localSettings.creativity === 'balanced'
+                        ? 'bg-primary/20 border-primary text-primary shadow-[0_0_15px_hsl(var(--primary)/0.4)]'
                         : 'bg-gray-800 border-gray-700 text-gray-500'
                     }`}>
                       <Brain className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-medium">Balanced</span>
+                    <span className="text-xs font-medium">{t('generation_settings.creativity_balanced')}</span>
                   </div>
 
                   {/* Creative */}
-                  <div 
+                  <div
                     className={`cursor-pointer flex flex-col items-center gap-2 transition-all ${
                       localSettings.creativity === 'creative' ? 'opacity-100' : 'opacity-40 hover:opacity-70'
                     }`}
                     onClick={() => updateSetting("creativity", "creative")}
                   >
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-                      localSettings.creativity === 'creative' 
-                        ? 'bg-purple-500/20 border-purple-500 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]' 
+                      localSettings.creativity === 'creative'
+                        ? 'bg-purple-500/20 border-purple-500 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                         : 'bg-gray-800 border-gray-700 text-gray-500'
                     }`}>
                       <Sparkles className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-medium">Creative</span>
+                    <span className="text-xs font-medium">{t('generation_settings.creativity_creative')}</span>
                   </div>
-                  
+
                   {/* Connecting Line */}
                   <div className="absolute top-[38px] left-[72px] right-[72px] h-0.5 bg-gray-700 -z-10" />
                 </div>
@@ -369,28 +365,28 @@ export default function GenerationSettingsModal({
             {/* Response Length */}
             <section>
               <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <AlignLeft className="w-4 h-4" /> Response Length
+                <AlignLeft className="w-4 h-4" /> {t('generation_settings.response_length')}
               </h3>
-              
+
               <div className="grid grid-cols-3 gap-3">
                 {([
-                  { id: "short" as const, label: "Short", icon: MessageSquare, requiredTier: 'free' as SubscriptionTier },
-                  { id: "default" as const, label: "Default", icon: MessageSquarePlus, requiredTier: 'free' as SubscriptionTier },
-                  { id: "long" as const, label: "Long", icon: FileText, requiredTier: 'pro' as SubscriptionTier },
+                  { id: "short" as const, labelKey: "response_short", icon: MessageSquare, requiredTier: 'free' as SubscriptionTier },
+                  { id: "default" as const, labelKey: "response_default", icon: MessageSquarePlus, requiredTier: 'free' as SubscriptionTier },
+                  { id: "long" as const, labelKey: "response_long", icon: FileText, requiredTier: 'pro' as SubscriptionTier },
                 ]).map((option) => {
                   const isLongLocked = option.id === 'long' && TIER_HIERARCHY[userTier] < TIER_HIERARCHY['pro'];
                   const IconComponent = option.icon;
-                  
+
                   return (
                     <button
                       key={option.id}
                       onClick={() => {
                         if (isLongLocked) {
-                          setLockedModel({ 
-                            id: 'long-response', 
-                            name: 'Long Response', 
+                          setLockedModel({
+                            id: 'long-response',
+                            name: t('generation_settings.long_response'),
                             type: 'Premium',
-                            description: 'Extended AI responses',
+                            description: t('generation_settings.long_response_desc'),
                             credits: 0,
                             requiredTier: 'pro',
                             performance: { consistency: 0, creativity: 0, descriptiveness: 0, memory: 0 }
@@ -408,18 +404,18 @@ export default function GenerationSettingsModal({
                       }`}
                     >
                       <IconComponent className="w-6 h-6" />
-                      <span className="text-xs font-medium capitalize">{option.label}</span>
-                      
+                      <span className="text-xs font-medium capitalize">{t(`generation_settings.${option.labelKey}`)}</span>
+
                       {isLongLocked && (
                         <div className="absolute top-2 right-2 flex items-center gap-1 px-1.5 py-0.5 bg-purple-500/20 rounded">
                           <Lock className="w-2.5 h-2.5 text-purple-400" />
-                          <span className="text-[9px] text-purple-400 font-medium">PRO</span>
+                          <span className="text-[9px] text-purple-400 font-medium">{t('tiers.pro').toUpperCase()}</span>
                         </div>
                       )}
-                      
+
                       {option.id === 'long' && !isLongLocked && (
                         <div className="absolute top-2 right-2">
-                          <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded font-medium">PRO</span>
+                          <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded font-medium">{t('tiers.pro').toUpperCase()}</span>
                         </div>
                       )}
                     </button>
@@ -434,9 +430,9 @@ export default function GenerationSettingsModal({
             <section>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                  <Brain className="w-4 h-4" /> AI Model
+                  <Brain className="w-4 h-4" /> {t('generation_settings.ai_model')}
                 </h3>
-                <a href="#" className="text-xs text-primary hover:underline">Compare models</a>
+                <a href="#" className="text-xs text-primary hover:underline">{t('generation_settings.compare_models')}</a>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -464,25 +460,28 @@ export default function GenerationSettingsModal({
               <Lock className="w-8 h-8 text-white" />
             </div>
             <DialogTitle className="text-xl font-bold text-white mb-2">
-              {lockedModel?.name} Requires {TIER_LABELS[lockedModel?.requiredTier || 'plus']}
+              {t('generation_settings.upgrade_title', {
+                feature: lockedModel?.name,
+                tier: t(`tiers.${lockedModel?.requiredTier || 'plus'}`)
+              })}
             </DialogTitle>
             <p className="text-sm text-white/60 mb-6">
-              Upgrade your plan to unlock {lockedModel?.name} and enjoy more powerful AI capabilities.
+              {t('generation_settings.upgrade_desc', { feature: lockedModel?.name })}
             </p>
-            
+
             <div className="flex flex-col gap-3">
               <Link href="/pricing" className="w-full" onClick={() => setLockedModel(null)}>
                 <Button className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 h-11">
                   <Crown className="w-4 h-4 mr-2" />
-                  Upgrade to {TIER_LABELS[lockedModel?.requiredTier || 'plus']}
+                  {t('generation_settings.upgrade_button', { tier: t(`tiers.${lockedModel?.requiredTier || 'plus'}`) })}
                 </Button>
               </Link>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 className="w-full text-white/60 hover:text-white hover:bg-white/5"
                 onClick={() => setLockedModel(null)}
               >
-                Maybe Later
+                {t('common.maybe_later')}
               </Button>
             </div>
           </div>

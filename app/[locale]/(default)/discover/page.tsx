@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ interface SwipeCharacter {
 
 
 export default function DiscoverPage() {
+  const t = useTranslations();
   const { data: session } = useSession();
   const router = useRouter();
   
@@ -182,26 +184,26 @@ export default function DiscoverPage() {
                     <Lock className="w-8 h-8 text-white" />
                 </div>
                 <DialogTitle className="text-2xl font-bold text-white mb-2">
-                    Daily Limit Reached
+                    {t('discover.limit_title')}
                 </DialogTitle>
                 <DialogDescription className="text-neutral-400 text-base">
-                    You've used all your daily swipes. Upgrade your plan to get more swipes and discover more amazing companions!
+                    {t('discover.limit_desc')}
                 </DialogDescription>
             </DialogHeader>
             
             <div className="py-6 space-y-4">
                 <div className="grid grid-cols-3 gap-3 text-center">
                     <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                        <p className="text-2xl font-bold text-white">Plus</p>
-                        <p className="text-xs text-white/60">30 swipes/day</p>
+                        <p className="text-2xl font-bold text-white">{t('tiers.plus')}</p>
+                        <p className="text-xs text-white/60">{t('discover.swipes_per_day', { count: 30 })}</p>
                     </div>
                     <div className="p-3 rounded-xl bg-purple-500/20 border border-purple-500/30">
-                        <p className="text-2xl font-bold text-purple-400">Pro</p>
-                        <p className="text-xs text-white/60">50 swipes/day</p>
+                        <p className="text-2xl font-bold text-purple-400">{t('tiers.pro')}</p>
+                        <p className="text-xs text-white/60">{t('discover.swipes_per_day', { count: 50 })}</p>
                     </div>
                     <div className="p-3 rounded-xl bg-yellow-500/20 border border-yellow-500/30">
-                        <p className="text-2xl font-bold text-yellow-400">Ultimate</p>
-                        <p className="text-xs text-white/60">Unlimited</p>
+                        <p className="text-2xl font-bold text-yellow-400">{t('tiers.ultimate')}</p>
+                        <p className="text-xs text-white/60">{t('discover.unlimited')}</p>
                     </div>
                 </div>
             </div>
@@ -210,15 +212,15 @@ export default function DiscoverPage() {
                 <Link href="/pricing" className="w-full">
                     <Button className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 h-12 text-lg rounded-xl">
                         <Crown className="w-5 h-5 mr-2" />
-                        Upgrade Now
+                        {t('common.upgrade_now')}
                     </Button>
                 </Link>
-                <Button 
-                    variant="outline" 
+                <Button
+                    variant="outline"
                     className="w-full border-white/10 hover:bg-white/5 h-12 text-lg rounded-xl"
                     onClick={() => setShowLimitModal(false)}
                 >
-                    Maybe Later
+                    {t('common.maybe_later')}
                 </Button>
             </div>
         </DialogContent>
@@ -229,10 +231,10 @@ export default function DiscoverPage() {
         <DialogContent className="sm:max-w-md bg-neutral-900 border-white/10 text-white">
             <DialogHeader className="text-center">
                 <DialogTitle className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500 mb-2">
-                    It's a Match!
+                    {t('discover.match_title')}
                 </DialogTitle>
                 <DialogDescription className="text-neutral-400 text-lg">
-                    You and {match?.name} like each other.
+                    {t('discover.match_desc', { name: match?.name })}
                 </DialogDescription>
             </DialogHeader>
             
@@ -240,7 +242,7 @@ export default function DiscoverPage() {
                 <div className="relative">
                     <Avatar className="w-24 h-24 border-4 border-primary shadow-[0_0_30px_rgba(236,72,153,0.3)]">
                         <AvatarImage src={session?.user?.image || "https://github.com/shadcn.png"} />
-                        <AvatarFallback>ME</AvatarFallback>
+                        <AvatarFallback>{t('discover.me')}</AvatarFallback>
                     </Avatar>
                     <div className="absolute -bottom-2 -right-2 bg-neutral-900 rounded-full p-1">
                         <Heart className="w-6 h-6 text-primary fill-current" />
@@ -261,14 +263,14 @@ export default function DiscoverPage() {
                     disabled={isCreatingChat}
                 >
                     {isCreatingChat ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <MessageCircle className="w-5 h-5 mr-2" />}
-                    Chat with {match?.name}
+                    {t('discover.chat_with', { name: match?.name })}
                 </Button>
-                <Button 
-                    variant="outline" 
+                <Button
+                    variant="outline"
                     className="w-full border-white/10 hover:bg-white/5 h-12 text-lg rounded-xl"
                     onClick={() => setMatch(null)}
                 >
-                    Keep Swiping
+                    {t('discover.keep_swiping')}
                 </Button>
             </div>
         </DialogContent>
@@ -278,9 +280,9 @@ export default function DiscoverPage() {
       <div className="flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
             <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Discover</span> Your Destiny
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">{t('discover.title').split(' ')[0]}</span> {t('discover.title').split(' ').slice(1).join(' ')}
             </h1>
-            <p className="text-muted-foreground text-lg">Swipe to match, chat to connect.</p>
+            <p className="text-muted-foreground text-lg">{t('discover.subtitle')}</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -305,10 +307,10 @@ export default function DiscoverPage() {
                     <SheetHeader className="mb-6">
                         <SheetTitle className="text-2xl font-bold text-white flex items-center gap-2">
                             <Heart className="w-6 h-6 fill-primary text-primary" />
-                            My Collection
+                            {t('discover.my_collection')}
                         </SheetTitle>
                         <SheetDescription className="text-neutral-400">
-                            Characters you've matched with.
+                            {t('discover.collection_desc')}
                         </SheetDescription>
                     </SheetHeader>
                     
@@ -316,8 +318,8 @@ export default function DiscoverPage() {
                         {likedCharacters.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-neutral-500 border-2 border-dashed border-white/10 rounded-xl bg-white/5">
                                 <Heart className="w-12 h-12 mb-3 opacity-20" />
-                                <p className="font-medium">No matches yet</p>
-                                <p className="text-sm">Swipe right to find your destiny!</p>
+                                <p className="font-medium">{t('discover.no_matches')}</p>
+                                <p className="text-sm">{t('discover.swipe_hint')}</p>
                             </div>
                         ) : (
                             <AnimatePresence mode="popLayout">
@@ -343,7 +345,7 @@ export default function DiscoverPage() {
                                                 size="icon" 
                                                 variant="ghost" 
                                                 className="h-10 w-10 hover:bg-primary/20 hover:text-primary rounded-full"
-                                                title="Chat"
+                                                title={t('discover.chat_button')}
                                                 onClick={() => handleStartChat(char._id)}
                                                 disabled={isCreatingChat}
                                             >
@@ -354,7 +356,7 @@ export default function DiscoverPage() {
                                                 variant="ghost" 
                                                 className="h-10 w-10 hover:bg-red-500/20 hover:text-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                                 onClick={() => setLikedCharacters(prev => prev.filter(c => c.id !== char.id))}
-                                                title="Remove"
+                                                title={t('discover.remove_button')}
                                             >
                                                 <Trash2 className="w-5 h-5" />
                                             </Button>
@@ -390,9 +392,9 @@ export default function DiscoverPage() {
             <div className="text-center mb-8 relative z-10">
                 <h2 className="text-3xl font-bold mb-2 flex items-center justify-center gap-2">
                     <Flame className="w-6 h-6 text-primary" />
-                    Daily Picks
+                    {t('discover.daily_picks')}
                 </h2>
-                <p className="text-muted-foreground">Swipe to find your perfect match for today.</p>
+                <p className="text-muted-foreground">{t('discover.daily_picks_desc')}</p>
             </div>
 
             <div className="relative w-full h-[550px] flex items-center justify-center perspective-1000 z-10">
@@ -436,10 +438,10 @@ export default function DiscoverPage() {
                         <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 animate-pulse">
                             <RefreshCw className="w-10 h-10 text-muted-foreground" />
                         </div>
-                        <h3 className="text-xl font-bold mb-2">No more profiles</h3>
-                        <p className="text-muted-foreground mb-6">Check back later for new companions!</p>
+                        <h3 className="text-xl font-bold mb-2">{t('discover.no_more_profiles')}</h3>
+                        <p className="text-muted-foreground mb-6">{t('discover.check_back')}</p>
                         <Button onClick={() => window.location.reload()} variant="outline" className="border-primary/50 text-primary hover:bg-primary/10">
-                            Refresh
+                            {t('common.refresh')}
                         </Button>
                     </div>
                 )}
@@ -475,7 +477,7 @@ export default function DiscoverPage() {
 
         {/* Bottom Section: All Characters Grid */}
         <section>
-            <h2 className="text-2xl font-bold mb-6">Trending Characters</h2>
+            <h2 className="text-2xl font-bold mb-6">{t('discover.trending')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                  {(rawCharacters || [])
                     .slice()
@@ -489,7 +491,7 @@ export default function DiscoverPage() {
                  ))}
             </div>
             <div className="mt-12 text-center">
-                <Button variant="outline" className="border-white/10 hover:bg-white/5 px-8">Load More</Button>
+                <Button variant="outline" className="border-white/10 hover:bg-white/5 px-8">{t('common.load_more')}</Button>
             </div>
         </section>
 
@@ -501,13 +503,14 @@ export default function DiscoverPage() {
 // --- Sub-components ---
 
 // Trending Character Card with video hover, badges, and effects
-function TrendingCard({ 
-  character, 
-  onClick 
-}: { 
-  character: any; 
+function TrendingCard({
+  character,
+  onClick
+}: {
+  character: any;
   onClick: () => void;
 }) {
+  const t = useTranslations();
   const [isHovered, setIsHovered] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -594,7 +597,7 @@ function TrendingCard({
         <div className={`absolute top-3 right-3 z-30 transition-all duration-300 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
           <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/80 backdrop-blur-md text-white text-[10px] font-medium">
             <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-            LIVE
+            {t('discover.live')}
           </div>
         </div>
       )}
@@ -605,7 +608,7 @@ function TrendingCard({
         <p className="text-xs text-white/60 line-clamp-1">{character.description}</p>
         
         <div className="mt-3 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="text-xs text-primary font-medium">Chat Now</span>
+          <span className="text-xs text-primary font-medium">{t('discover.chat_now')}</span>
           <MessageCircle className="w-4 h-4 text-primary" />
         </div>
       </div>
@@ -613,21 +616,22 @@ function TrendingCard({
   );
 }
 
-function SwipeCard({ 
-    data, 
-    position, 
+function SwipeCard({
+    data,
+    position,
     onSwipe,
     isFlipped = false,
     setIsFlipped,
     onStartChat
-}: { 
-    data: any, 
-    position: 'left' | 'center' | 'right', 
+}: {
+    data: any,
+    position: 'left' | 'center' | 'right',
     onSwipe: (dir: "left" | "right") => void,
     isFlipped?: boolean,
     setIsFlipped?: React.Dispatch<React.SetStateAction<boolean>>,
     onStartChat?: () => void
 }) {
+    const t = useTranslations();
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
     
@@ -747,10 +751,10 @@ function SwipeCard({
                     {position === 'center' && (
                         <>
                             <motion.div style={{ opacity: likeOpacity }} className="absolute top-8 left-8 border-4 border-rose-500 rounded-lg px-4 py-2 -rotate-12 pointer-events-none z-20">
-                                <span className="text-rose-500 font-bold text-4xl uppercase tracking-widest">LIKE</span>
+                                <span className="text-rose-500 font-bold text-4xl uppercase tracking-widest">{t('discover.like')}</span>
                             </motion.div>
                             <motion.div style={{ opacity: nopeOpacity }} className="absolute top-8 right-8 border-4 border-slate-500 rounded-lg px-4 py-2 rotate-12 pointer-events-none z-20">
-                                <span className="text-slate-500 font-bold text-4xl uppercase tracking-widest">NOPE</span>
+                                <span className="text-slate-500 font-bold text-4xl uppercase tracking-widest">{t('discover.nope')}</span>
                             </motion.div>
                         </>
                     )}
@@ -800,7 +804,7 @@ function SwipeCard({
                         {data.background && (
                         <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                             <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-2 flex items-center gap-2">
-                                <Info className="w-4 h-4" /> Background Story
+                                <Info className="w-4 h-4" /> {t('discover.background_story')}
                             </h3>
                             <p className="leading-relaxed">
                                 {data.background}
@@ -810,7 +814,7 @@ function SwipeCard({
 
                         <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                             <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider mb-2">
-                                Description
+                                {t('discover.description')}
                             </h3>
                             <p className="leading-relaxed text-white/80">
                                 {data.bio}
@@ -819,7 +823,7 @@ function SwipeCard({
 
                         <div className="p-4 bg-white/5 rounded-xl border border-white/10">
                             <h3 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
-                                Personality Traits
+                                {t('discover.personality_traits')}
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {data.tags.map((tag: string) => (
@@ -832,14 +836,14 @@ function SwipeCard({
                     </div>
                     
                     <div className="mt-auto pt-6">
-                        <Button 
+                        <Button
                             className="w-full bg-primary hover:bg-primary/90 text-white py-6 text-lg rounded-xl shadow-lg shadow-primary/20"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onStartChat?.();
                             }}
                         >
-                            Start Chatting with {data.name}
+                            {t('discover.start_chatting', { name: data.name })}
                         </Button>
                     </div>
                 </div>

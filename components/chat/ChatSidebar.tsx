@@ -3,6 +3,7 @@
 // React相关导入
 import { useState, useEffect } from "react"; // useState: 管理组件状态, useEffect: 处理副作用
 import { useSession } from "next-auth/react"; // 获取用户认证状态
+import { useTranslations } from "next-intl"; // 国际化
 
 // 图标库导入 - lucide-react 是现代化的图标库
 import { MessageCircle, Search, Plus } from "lucide-react";
@@ -88,6 +89,9 @@ export default function ChatSidebar({
   // session 包含用户信息，如果用户未登录则为 null
   const { data: session } = useSession();
 
+  // 🌐 国际化翻译函数
+  const t = useTranslations();
+
   // 📝 状态管理：搜索框的输入值
   // useState 返回 [当前值, 设置函数]
   const [searchQuery, setSearchQuery] = useState("");
@@ -112,10 +116,10 @@ export default function ChatSidebar({
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
 
     // 根据时间差返回不同的格式
-    if (diffInMinutes < 1) return "Just now";        // 1分钟内
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;  // 1小时内
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;  // 1天内
-    return `${Math.floor(diffInMinutes / 1440)}d ago`;      // 超过1天
+    if (diffInMinutes < 1) return t('chat.just_now');        // 1分钟内
+    if (diffInMinutes < 60) return t('chat.minutes_ago', { count: diffInMinutes });  // 1小时内
+    if (diffInMinutes < 1440) return t('chat.hours_ago', { count: Math.floor(diffInMinutes / 60) });  // 1天内
+    return t('chat.days_ago', { count: Math.floor(diffInMinutes / 1440) });      // 超过1天
   };
 
   // 💬 处理对话点击事件
@@ -140,7 +144,7 @@ export default function ChatSidebar({
           {/* 聊天图标，降低透明度表示不可用状态 */}
           <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
           {/* 提示用户登录的文字 */}
-          <p>Please log in to see your conversations</p>
+          <p>{t('chat.login_prompt')}</p>
         </div>
       </div>
     );
@@ -155,7 +159,7 @@ export default function ChatSidebar({
       <div className="p-5 pt-6 border-b border-white/5 bg-transparent">
         {/* 标题和新建按钮的横向布局 */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Chats</h2>
+          <h2 className="text-2xl font-bold text-white tracking-tight">{t('chat.title')}</h2>
 
           <div className="flex items-center gap-1">
             {/* 🆕 新建聊天下拉菜单 */}
@@ -219,14 +223,14 @@ export default function ChatSidebar({
               // 有搜索关键词但无结果
               <>
                 <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No conversations match your search</p>
+                <p>{t('chat.no_search_results')}</p>
               </>
             ) : (
               // 没有任何对话
               <>
                 <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="mb-2">No conversations yet</p>
-                <p className="text-sm">Start a new chat with a character</p>
+                <p className="mb-2">{t('chat.no_conversations')}</p>
+                <p className="text-sm">{t('chat.start_new_chat')}</p>
               </>
             )}
           </div>
@@ -293,7 +297,7 @@ export default function ChatSidebar({
                     <p className={`text-sm truncate italic ${
                       conversation.id === currentConversationId ? 'text-white/70' : 'text-white/50'
                     }`}>
-                      {(conversation.lastMessage || "No messages yet").replace(/\*/g, '')}
+                      {(conversation.lastMessage || t('chat.no_messages')).replace(/\*/g, '')}
                     </p>
                   </div>
                 </div>
