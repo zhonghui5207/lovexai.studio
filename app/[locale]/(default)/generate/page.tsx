@@ -26,7 +26,14 @@ import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useAppContext } from "@/contexts/app";
-import { IMAGE_CREDITS, SubscriptionTier } from "@/lib/permissions";
+import {
+  IMAGE_MODEL_CREDITS,
+  IMAGE_MODEL_INFO,
+  IMAGE_MODEL_TIERS,
+  SubscriptionTier,
+  ImageModel,
+  canUseImageModel
+} from "@/lib/permissions";
 
 // Mock Data for Styles
 const STYLES = [
@@ -40,13 +47,12 @@ const STYLES = [
   { id: "3d-render", name: "3D Render" },
 ];
 
-const MODELS = [
-  { id: "flux-kontext-pro", name: "Flux Dreamer", desc: "Anime & Art" },
-  { id: "gpt-image-1", name: "GPT Image", desc: "Realism" },
-  { id: "gemini-3-pro-image-preview", name: "Gemini 3", desc: "Creative" },
-  { id: "doubao-seedream-4-5-251128", name: "Doubao", desc: "Seedream" },
-  { id: "gpt-4o-image-vip", name: "GPT-4o", desc: "VIP" },
-  { id: "gemini-2.5-flash-image-vip", name: "Gemini 2.5", desc: "Flash VIP" },
+// Image Models - mapped to permissions system
+const MODELS: { id: ImageModel; name: string; desc: string; tier: string }[] = [
+  { id: "spark", name: "Spark", desc: "Fast & Efficient", tier: "FREE" },
+  { id: "prism", name: "Prism", desc: "Balanced Quality", tier: "PLUS" },
+  { id: "aurora", name: "Aurora", desc: "Artistic Style", tier: "PRO" },
+  { id: "zenith", name: "Zenith", desc: "Ultimate Quality", tier: "ULTIMATE" },
 ];
 
 // Inspiration Gallery Data - Using real character images (different from HeroBanner)
@@ -98,7 +104,7 @@ const PLACEHOLDERS = [
 export default function GeneratePage() {
   const [prompt, setPrompt] = useState("");
   const [selectedStyle, setSelectedStyle] = useState("anime");
-  const [selectedModel, setSelectedModel] = useState("flux-kontext-pro");
+  const [selectedModel, setSelectedModel] = useState<ImageModel>("spark");
   // const [aspectRatio, setAspectRatio] = useState("9:16"); // Removed, defaulting to 3:4
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
@@ -154,12 +160,12 @@ export default function GeneratePage() {
   // Pass convexUserId to query for history
   const history = useQuery(api.images.listMine, convexUserId ? { userId: convexUserId } : "skip");
   const [isEnhancing, setIsEnhancing] = useState(false);
-  
-  // Get user data for credits and tier
-  const convexUser = useQuery(api.users.current);
+
+  // Get user data for credits and tier - use getByEmail since we use NextAuth not Convex auth
+  const convexUser = useQuery(api.users.getByEmail, user?.email ? { email: user.email } : "skip");
   const userCredits = convexUser?.credits_balance ?? 0;
   const userTier = (convexUser?.subscription_tier || 'free') as SubscriptionTier;
-  const imageCreditsCost = IMAGE_CREDITS[userTier] || 10;
+  const imageCreditsCost = IMAGE_MODEL_CREDITS[selectedModel] || 10;
 
   // Typewriter Effect
   useEffect(() => {
@@ -361,69 +367,102 @@ export default function GeneratePage() {
             </Label>
             <div className="grid grid-cols-2 gap-2">
               {MODELS.map((model, index) => {
+                const isLocked = !canUseImageModel(userTier, model.id);
+                const isSelected = selectedModel === model.id;
+                const credits = IMAGE_MODEL_CREDITS[model.id];
                 const icons = [
-                  // Flux - Creative/Artistic
-                  <svg key="flux" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
-                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" stroke="currentColor" strokeWidth="1.5"/>
-                    <path d="M12 8v8M8 12h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>,
-                  // GPT Image - Star
-                  <svg key="gpt" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
-                    <path d="M12 2l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1 3-6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>,
-                  // Gemini 3 - Dual circles
-                  <svg key="gemini3" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
-                    <circle cx="8" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <circle cx="16" cy="12" r="4" stroke="currentColor" strokeWidth="1.5"/>
-                  </svg>,
-                  // Doubao - Mountain/Seedream
-                  <svg key="doubao" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
-                    <path d="M3 20L9 10L13 16L17 11L21 20H3Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="17" cy="6" r="2" stroke="currentColor" strokeWidth="1.5"/>
-                  </svg>,
-                  // GPT-4o - Lightning
-                  <svg key="gpt4o" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                  // Spark - Lightning bolt (fast)
+                  <svg key="spark" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
                     <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>,
-                  // Gemini 2.5 Flash - Diamond
-                  <svg key="gemini25" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                  // Prism - Diamond/crystal
+                  <svg key="prism" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
                     <path d="M12 2L2 12L12 22L22 12L12 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M12 6L12 18M6 12L18 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
-                  </svg>
+                    <path d="M12 2L12 22M2 12L22 12" stroke="currentColor" strokeWidth="1" strokeLinecap="round" opacity="0.5"/>
+                  </svg>,
+                  // Aurora - Northern lights waves
+                  <svg key="aurora" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                    <path d="M2 12c2-3 4-5 7-5s5 4 7 4 4-3 6-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M2 16c2-2 4-3 6-3s4 2 6 2 4-2 8-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.6"/>
+                    <path d="M2 8c3-2 5-4 8-4s6 3 8 3 3-1 4-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
+                  </svg>,
+                  // Zenith - Crown/peak
+                  <svg key="zenith" viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                    <path d="M12 2l3 6 6 1-4 4 1 6-6-3-6 3 1-6-4-4 6-1 3-6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>,
                 ];
                 return (
                   <button
                     key={model.id}
-                    onClick={() => setSelectedModel(model.id)}
+                    onClick={() => {
+                      if (isLocked) {
+                        toast.error(`Upgrade to ${model.tier} to use ${model.name}`);
+                        return;
+                      }
+                      setSelectedModel(model.id);
+                    }}
                     className={cn(
                       "relative p-3 rounded-xl transition-all duration-200 flex items-center gap-3 group",
-                      selectedModel === model.id 
-                        ? "bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/50 shadow-[0_0_15px_rgba(236,72,153,0.2)]" 
-                        : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
+                      isLocked
+                        ? "bg-white/[0.02] border border-white/5 opacity-50 cursor-not-allowed"
+                        : isSelected
+                          ? "bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/50 shadow-[0_0_15px_rgba(236,72,153,0.2)]"
+                          : "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
                     )}
                   >
-                    {selectedModel === model.id && (
+                    {isSelected && !isLocked && (
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite] rounded-xl pointer-events-none" />
                     )}
+
+                    {/* Lock icon for locked models */}
+                    {isLocked && (
+                      <div className="absolute top-1.5 right-1.5 z-10">
+                        <svg viewBox="0 0 24 24" className="w-3 h-3 text-white/40" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                          <path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                      </div>
+                    )}
+
                     <div className={cn(
                       "transition-colors flex-shrink-0",
-                      selectedModel === model.id ? "text-primary" : "text-white/50 group-hover:text-white/70"
+                      isLocked ? "text-white/30" : isSelected ? "text-primary" : "text-white/50 group-hover:text-white/70"
                     )}>
                       {icons[index]}
                     </div>
-                    <div className="flex flex-col items-start min-w-0">
-                      <span className={cn(
-                        "text-xs font-medium transition-colors truncate",
-                        selectedModel === model.id ? "text-white" : "text-white/70"
-                      )}>
-                        {model.name}
-                      </span>
-                      <span className={cn(
-                        "text-[10px] transition-colors truncate",
-                        selectedModel === model.id ? "text-white/60" : "text-white/40"
-                      )}>
-                        {model.desc}
-                      </span>
+                    <div className="flex flex-col items-start min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 w-full">
+                        <span className={cn(
+                          "text-xs font-medium transition-colors truncate",
+                          isLocked ? "text-white/40" : isSelected ? "text-white" : "text-white/70"
+                        )}>
+                          {model.name}
+                        </span>
+                        {model.tier !== "FREE" && (
+                          <span className={cn(
+                            "text-[8px] px-1 py-0.5 rounded font-medium shrink-0",
+                            model.tier === "PLUS" ? "bg-blue-500/20 text-blue-400" :
+                            model.tier === "PRO" ? "bg-purple-500/20 text-purple-400" :
+                            "bg-amber-500/20 text-amber-400"
+                          )}>
+                            {model.tier}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between w-full">
+                        <span className={cn(
+                          "text-[10px] transition-colors truncate",
+                          isLocked ? "text-white/30" : isSelected ? "text-white/60" : "text-white/40"
+                        )}>
+                          {model.desc}
+                        </span>
+                        <span className={cn(
+                          "text-[9px] shrink-0 ml-1",
+                          isLocked ? "text-white/30" : "text-primary/70"
+                        )}>
+                          {credits}cr
+                        </span>
+                      </div>
                     </div>
                   </button>
                 );

@@ -8,6 +8,9 @@ export type SubscriptionTier = 'free' | 'plus' | 'pro' | 'ultimate';
 // AI Chat Models
 export type ChatModel = 'nova' | 'pulsar' | 'nebula' | 'quasar';
 
+// AI Image Models
+export type ImageModel = 'spark' | 'prism' | 'aurora' | 'zenith';
+
 // Character Access Levels
 export type CharacterAccessLevel = 'free' | 'plus' | 'pro' | 'ultimate';
 
@@ -69,11 +72,48 @@ export const MODEL_CREDITS: Record<ChatModel, number> = {
 };
 
 // Image generation credits per tier
+// DEPRECATED: Use IMAGE_MODEL_CREDITS instead for per-model pricing
 export const IMAGE_CREDITS: Record<SubscriptionTier, number> = {
   free: 10,
   plus: 10,
   pro: 15,
   ultimate: 20,
+};
+
+// ========================================
+// Image Model Configuration
+// ========================================
+
+// Image model name mapping (UI -> actual API model)
+export const IMAGE_MODEL_MAPPING: Record<ImageModel, string> = {
+  spark: 'gemini-2.5-flash-image',
+  prism: 'gpt-4o-image-vip',
+  aurora: 'flux-kontext-pro',
+  zenith: 'gemini-3-pro-image-preview',
+};
+
+// Image model credits per generation
+export const IMAGE_MODEL_CREDITS: Record<ImageModel, number> = {
+  spark: 10,   // $0.04 - 基础款
+  prism: 15,   // $0.10 - 中端
+  aurora: 25,  // $0.20 - 高端艺术
+  zenith: 40,  // $0.30 - 顶级
+};
+
+// Image models available per subscription tier
+export const IMAGE_MODEL_TIERS: Record<SubscriptionTier, ImageModel[]> = {
+  free: ['spark'],
+  plus: ['spark', 'prism'],
+  pro: ['spark', 'prism', 'aurora'],
+  ultimate: ['spark', 'prism', 'aurora', 'zenith'],
+};
+
+// Image model display info
+export const IMAGE_MODEL_INFO: Record<ImageModel, { name: string; desc: string; tier: string }> = {
+  spark: { name: 'Spark', desc: 'Fast & Efficient', tier: 'FREE' },
+  prism: { name: 'Prism', desc: 'Balanced Quality', tier: 'PLUS' },
+  aurora: { name: 'Aurora', desc: 'Artistic Style', tier: 'PRO' },
+  zenith: { name: 'Zenith', desc: 'Ultimate Quality', tier: 'ULTIMATE' },
 };
 
 // Prompt enhancement cost
@@ -120,8 +160,16 @@ export function getChatCredits(model: ChatModel): number {
 /**
  * Get the credits cost for image generation
  */
-export function getImageCredits(tier: SubscriptionTier): number {
-  return IMAGE_CREDITS[tier];
+export function getImageCredits(model: ImageModel): number {
+  return IMAGE_MODEL_CREDITS[model] || 10;
+}
+
+/**
+ * Check if a user can use a specific image model
+ */
+export function canUseImageModel(tier: SubscriptionTier, model: ImageModel): boolean {
+  const allowedModels = IMAGE_MODEL_TIERS[tier] || IMAGE_MODEL_TIERS['free'];
+  return allowedModels.includes(model);
 }
 
 /**

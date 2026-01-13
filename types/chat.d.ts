@@ -1,7 +1,7 @@
 // AI聊天平台相关类型定义
 
-export type SubscriptionTier = 'free' | 'basic' | 'pro' | 'ultra';
-export type AccessLevel = 'free' | 'basic' | 'pro' | 'ultra';
+export type SubscriptionTier = 'free' | 'plus' | 'pro' | 'ultimate';
+export type AccessLevel = 'free' | 'plus' | 'pro' | 'ultimate';
 export type SenderType = 'user' | 'character';
 export type ResponseLength = 'short' | 'default' | 'long';
 export type NarratorVoice = 'male' | 'female';

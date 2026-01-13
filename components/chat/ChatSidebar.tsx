@@ -52,7 +52,7 @@ interface Character {
   personality: string;           // 性格描述
   age?: number;                  // 年龄 (可选)
   location?: string;             // 位置 (可选)
-  access_level: string;          // 访问级别 (free/basic/pro/ultra)
+  access_level: string;          // 访问级别 (free/plus/pro/ultimate)
   credits_per_message: number;   // 每条消息消耗的积分
 }
 

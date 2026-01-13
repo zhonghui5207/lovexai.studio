@@ -450,3 +450,33 @@ export const seedChatCounts = mutation({
     return { success: true, updated: results.length, results };
   },
 });
+
+// ========================================
+// Migration: Update legacy access_level names
+// ========================================
+// Run this once to migrate 'basic' -> 'plus' and 'ultra' -> 'ultimate'
+export const migrateAccessLevels = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const characters = await ctx.db.query("characters").collect();
+    let updated = 0;
+
+    for (const char of characters) {
+      const level = char.access_level;
+      let newLevel: string | null = null;
+
+      if (level === 'basic') {
+        newLevel = 'plus';
+      } else if (level === 'ultra') {
+        newLevel = 'ultimate';
+      }
+
+      if (newLevel) {
+        await ctx.db.patch(char._id, { access_level: newLevel });
+        updated++;
+      }
+    }
+
+    return { success: true, updated };
+  },
+});

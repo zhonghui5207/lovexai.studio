@@ -3,7 +3,13 @@ import { action, internalMutation, mutation, query } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import { callImageGeneration } from "./utils/image_gen";
 import { uploadImageToR2 } from "./utils/r2";
-import { IMAGE_CREDITS, SubscriptionTier } from "./utils/permissions";
+import {
+  IMAGE_MODEL_MAPPING,
+  IMAGE_MODEL_CREDITS,
+  IMAGE_MODEL_TIERS,
+  SubscriptionTier,
+  ImageModel
+} from "./utils/permissions";
 
 export const generate = action({
   args: {
@@ -28,19 +34,29 @@ export const generate = action({
     // 2. Get user and check credits
     let user = null;
     let creditsCost = 10; // Default cost
-    
+
     try {
       user = await ctx.runQuery(api.users.get, { id: userId as any });
     } catch (e) {
       // Try finding by tokenIdentifier
       user = await ctx.runQuery(api.users.current);
     }
-    
+
+    // Validate model and get actual API model name
+    const imageModel = (args.model || 'spark') as ImageModel;
+    const actualModelName = IMAGE_MODEL_MAPPING[imageModel] || 'gemini-2.5-flash-image';
+    creditsCost = IMAGE_MODEL_CREDITS[imageModel] || 10;
+
     if (user) {
-      // Get credit cost based on subscription tier
+      // Get user tier and check model access
       const tier = (user.subscription_tier || 'free') as SubscriptionTier;
-      creditsCost = IMAGE_CREDITS[tier] || 10;
-      
+      const allowedModels = IMAGE_MODEL_TIERS[tier] || ['spark'];
+
+      // Check if user can use this model
+      if (!allowedModels.includes(imageModel)) {
+        throw new Error(`Your subscription tier (${tier}) does not have access to the ${imageModel} model. Please upgrade or select a different model.`);
+      }
+
       // Check if user has enough credits
       if (user.credits_balance < creditsCost) {
         throw new Error(`Insufficient credits. You need ${creditsCost} credits but have ${user.credits_balance}. Please purchase more credits.`);
@@ -55,16 +71,15 @@ export const generate = action({
 
     // Append style to prompt for better results
     const fullPrompt = `${args.prompt}, ${args.style} style`;
-    const modelName = args.model || "flux-kontext-pro";
-    
-    console.log(`Generating image with prompt: ${fullPrompt} using model: ${modelName}`);
+
+    console.log(`Generating image with prompt: ${fullPrompt} using model: ${actualModelName} (${imageModel})`);
 
     let imageUrl = "";
 
     try {
       // Unified call for all models (Flux, GPT, Gemini)
       // The utility function handles model-specific parameters (aspect_ratio vs size)
-      imageUrl = await callImageGeneration(apiKey, fullPrompt, modelName);
+      imageUrl = await callImageGeneration(apiKey, fullPrompt, actualModelName);
     } catch (error: any) {
       console.error("Image generation error:", error);
       // Re-throw with the original error message (already user-friendly from image_gen.ts)
@@ -94,7 +109,7 @@ export const generate = action({
       image_url: finalImageUrl, // Use the R2 URL (or fallback)
       creditsCost,
       status: "completed",
-      model: modelName,
+      model: actualModelName,
     });
 
     return finalImageUrl;

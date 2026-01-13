@@ -391,16 +391,46 @@ export const canAccessCharacter = query({
 
 // Check if user can use a specific model
 export const canUseModel = query({
-  args: { 
+  args: {
     userId: v.id("users"),
     model: v.string(),
   },
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.userId);
     if (!user) return false;
-    
+
     const userTier = (user.subscription_tier || 'free') as SubscriptionTier;
     const allowedModels = TIER_LIMITS[userTier]?.models || ['nova'];
     return allowedModels.includes(args.model as any);
+  },
+});
+
+// ========================================
+// Migration: Update legacy tier names
+// ========================================
+// Run this once to migrate 'basic' -> 'plus' and 'ultra' -> 'ultimate'
+export const migrateTierNames = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const users = await ctx.db.query("users").collect();
+    let updated = 0;
+
+    for (const user of users) {
+      const tier = user.subscription_tier;
+      let newTier: string | null = null;
+
+      if (tier === 'basic') {
+        newTier = 'plus';
+      } else if (tier === 'ultra') {
+        newTier = 'ultimate';
+      }
+
+      if (newTier) {
+        await ctx.db.patch(user._id, { subscription_tier: newTier });
+        updated++;
+      }
+    }
+
+    return { success: true, updated };
   },
 });
