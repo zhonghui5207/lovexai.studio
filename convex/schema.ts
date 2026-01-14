@@ -134,7 +134,8 @@ export default defineSchema({
     payment_method: v.optional(v.string()),
   })
     .index("by_order_no", ["order_no"])
-    .index("by_user", ["user_id"]),
+    .index("by_user", ["user_id"])
+    .index("by_stripe_session", ["stripe_session_id"]),
 
   // Feedbacks table
   feedbacks: defineTable({

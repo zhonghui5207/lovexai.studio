@@ -1,9 +1,13 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
-// List messages for a conversation
+// List messages for a conversation (with pagination)
 export const list = query({
-  args: { conversationId: v.id("conversations"), userId: v.optional(v.id("users")) },
+  args: {
+    conversationId: v.id("conversations"),
+    userId: v.optional(v.id("users")),
+    limit: v.optional(v.number()), // Default to 50 if not specified
+  },
   handler: async (ctx, args) => {
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation) return [];
@@ -22,10 +26,57 @@ export const list = query({
 
     if (!userId || conversation.user_id !== userId) return [];
 
+    // Apply limit for performance (default 100, max 200)
+    const limit = Math.min(args.limit || 100, 200);
+
     return await ctx.db
       .query("messages")
       .withIndex("by_conversation", (q) => q.eq("conversation_id", args.conversationId))
+      .take(limit);
+  },
+});
+
+// List older messages for pagination (load more)
+export const listOlder = query({
+  args: {
+    conversationId: v.id("conversations"),
+    userId: v.optional(v.id("users")),
+    beforeId: v.id("messages"), // Load messages before this ID
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    const conversation = await ctx.db.get(args.conversationId);
+    if (!conversation) return [];
+
+    let userId = args.userId;
+    if (!userId) {
+      const identity = await ctx.auth.getUserIdentity();
+      if (identity) {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+          .unique();
+        userId = user?._id;
+      }
+    }
+
+    if (!userId || conversation.user_id !== userId) return [];
+
+    const limit = Math.min(args.limit || 50, 100);
+
+    // Get all messages and filter to those before the given ID
+    const allMessages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation", (q) => q.eq("conversation_id", args.conversationId))
       .collect();
+
+    // Find the index of the beforeId message
+    const beforeIndex = allMessages.findIndex(m => m._id === args.beforeId);
+    if (beforeIndex <= 0) return []; // No older messages
+
+    // Return messages before the beforeId, limited
+    const startIndex = Math.max(0, beforeIndex - limit);
+    return allMessages.slice(startIndex, beforeIndex);
   },
 });
 

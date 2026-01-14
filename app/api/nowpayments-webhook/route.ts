@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import crypto from "crypto";
+import { logger } from "@/lib/logger";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -10,7 +11,7 @@ const NOWPAYMENTS_IPN_SECRET = process.env.NOWPAYMENTS_IPN_SECRET;
 // Verify NOWPayments IPN signature
 function verifySignature(payload: any, signature: string): boolean {
   if (!NOWPAYMENTS_IPN_SECRET) {
-    console.error("Missing NOWPAYMENTS_IPN_SECRET");
+    logger.error("Missing NOWPAYMENTS_IPN_SECRET");
     return false;
   }
 
@@ -39,22 +40,20 @@ function verifySignature(payload: any, signature: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  console.log("NOWPayments Webhook received");
+  logger.info("NOWPayments Webhook received");
 
   try {
     const signature = req.headers.get("x-nowpayments-sig");
     const payload = await req.json();
 
-    console.log("Webhook payload:", JSON.stringify(payload, null, 2));
-
     // Always verify signature - this is critical for payment security
     if (!signature) {
-      console.error("Missing NOWPayments signature header");
+      logger.error("Missing NOWPayments signature header");
       return NextResponse.json({ error: "Missing signature" }, { status: 401 });
     }
 
     if (!verifySignature(payload, signature)) {
-      console.error("Invalid NOWPayments signature");
+      logger.error("Invalid NOWPayments signature");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
@@ -70,7 +69,7 @@ export async function POST(req: NextRequest) {
       actually_paid,
     } = payload;
 
-    console.log(`Payment ${payment_id} for order ${order_id}: status = ${payment_status}`);
+    logger.info("NOWPayments event", { payment_id, order_id, payment_status });
 
     // Only process finished payments
     if (order_id && payment_status === "finished") {
@@ -91,9 +90,9 @@ export async function POST(req: NextRequest) {
           }),
         });
 
-        console.log(`Order ${order_id} processed successfully`);
+        logger.info("Order processed successfully", { order_id });
       } catch (updateError) {
-        console.error("Failed to process order:", updateError);
+        logger.error("Failed to process order", updateError, { order_id });
         // Still return 200 to acknowledge receipt
       }
     } else if (order_id) {
@@ -125,15 +124,15 @@ export async function POST(req: NextRequest) {
           orderNo: order_id.toString(),
           status: orderStatus,
         });
-        console.log(`Order ${order_id} updated to status: ${orderStatus}`);
+        logger.info("Order status updated", { order_id, status: orderStatus });
       } catch (e) {
-        console.error("Failed to update order status:", e);
+        logger.error("Failed to update order status", e, { order_id });
       }
     }
 
     return NextResponse.json({ success: true });
   } catch (e: any) {
-    console.error("NOWPayments webhook error:", e);
+    logger.error("NOWPayments webhook error", e);
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

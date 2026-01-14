@@ -226,11 +226,10 @@ Remember: You ARE ${char.name}. This scenario is real. React authentically as th
       }
     } catch (e: any) {
       console.error("AI Generation failed:", e.message);
-      // Update message to show error instead of leaving it empty
-      await ctx.runMutation(api.messages.updateAIResponse, {
-        messageId: messageId,
-        content: "*Sorry, I spaced out for a moment... mind repeating that?*",
-      });
+      // Delete the placeholder message on failure - don't leave error messages in conversation
+      await ctx.runMutation(api.messages.deleteMessage, { messageId });
+      // Throw error so frontend can show appropriate UI feedback
+      throw new Error("AI generation failed. Please try again.");
     }
   },
 });

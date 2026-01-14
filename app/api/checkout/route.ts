@@ -5,11 +5,25 @@ import { api } from "@/convex/_generated/api";
 import Stripe from "stripe";
 import { getSnowId } from "@/lib/hash";
 import { checkRateLimit, RateLimitPresets } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
+import { z } from "zod";
+
+// Zod schema for checkout request validation
+const checkoutSchema = z.object({
+  credits: z.number().int().min(0).max(1000000).optional(),
+  currency: z.string().min(3).max(3).toLowerCase(),
+  amount: z.number().int().min(100).max(100000000), // min $1, max $1M in cents
+  interval: z.enum(["year", "month", "one-time"]),
+  product_id: z.string().min(1).max(100),
+  product_name: z.string().min(1).max(200),
+  valid_months: z.number().int().min(1).max(12),
+  cancel_url: z.string().url().optional(),
+});
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(req: Request) {
-  console.log("Checkout API called");
+  logger.info("Checkout API called");
   try {
     // Check authentication first
     const user_uuid = await getUserUuid();
@@ -23,6 +37,17 @@ export async function POST(req: Request) {
       return respErr("Too many checkout requests. Please try again later.");
     }
 
+    // Parse and validate request body with Zod
+    const rawBody = await req.json();
+    const parseResult = checkoutSchema.safeParse(rawBody);
+
+    if (!parseResult.success) {
+      logger.warn("Checkout validation failed", {
+        errors: parseResult.error.flatten().fieldErrors,
+      });
+      return respErr("Invalid request parameters");
+    }
+
     let {
       credits,
       currency,
@@ -32,23 +57,15 @@ export async function POST(req: Request) {
       product_name,
       valid_months,
       cancel_url,
-    } = await req.json();
+    } = parseResult.data;
 
-    console.log("Checkout params:", { product_id, amount, currency, interval });
+    logger.debug("Checkout params", { product_id, amount, currency, interval });
 
     if (!cancel_url) {
       cancel_url = `${
         process.env.NEXT_PUBLIC_PAY_CANCEL_URL ||
         process.env.NEXT_PUBLIC_WEB_URL
       }`;
-    }
-
-    if (!amount || !interval || !currency || !product_id) {
-      return respErr("invalid params");
-    }
-
-    if (!["year", "month", "one-time"].includes(interval)) {
-      return respErr("invalid interval");
     }
 
     const is_subscription = interval === "month" || interval === "year";
@@ -97,25 +114,25 @@ export async function POST(req: Request) {
     expired_at = newDate.toISOString();
 
     // Create Order in Convex
-    console.log("Creating order in Convex...");
+    logger.debug("Creating order in Convex");
     await convex.mutation(api.orders.createOrder, {
       order_no: order_no,
       user_id: convex_user_id,
       user_email: user_email,
       amount: amount,
       currency: currency,
-      credits: credits,
+      credits: credits ?? 0,
       status: "created",
       product_id: product_id,
       product_name: product_name,
       expired_at: expired_at,
       sub_interval: is_subscription ? interval : undefined,
     });
-    console.log("Order created in Convex");
+    logger.debug("Order created", { order_no });
 
     const stripeKey = process.env.STRIPE_PRIVATE_KEY;
     if (!stripeKey) {
-      console.error("Missing STRIPE_PRIVATE_KEY");
+      logger.error("Missing STRIPE_PRIVATE_KEY");
       return respErr("Server configuration error: Missing Stripe API Key");
     }
 
@@ -147,7 +164,7 @@ export async function POST(req: Request) {
         product_name: product_name,
         order_no: order_no.toString(),
         user_email: user_email,
-        credits: credits,
+        credits: String(credits ?? 0),
         user_uuid: user_uuid,
       },
       mode: is_subscription ? "subscription" : "payment",
@@ -177,9 +194,9 @@ export async function POST(req: Request) {
 
     const order_detail = JSON.stringify(options);
 
-    console.log("Creating Stripe session...");
+    logger.debug("Creating Stripe session");
     const session = await stripe.checkout.sessions.create(options);
-    console.log("Stripe session created:", session.id);
+    logger.debug("Stripe session created", { sessionId: session.id });
 
     const stripe_session_id = session.id;
 
@@ -195,7 +212,7 @@ export async function POST(req: Request) {
       session_id: stripe_session_id,
     });
   } catch (e: any) {
-    console.log("checkout failed: ", e);
+    logger.error("Checkout failed", e);
     return respErr("checkout failed: " + e.message);
   }
 }

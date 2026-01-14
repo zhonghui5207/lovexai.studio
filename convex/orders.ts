@@ -15,23 +15,14 @@ export const getByOrderNo = query({
 export const getBySessionId = query({
   args: { sessionId: v.string() },
   handler: async (ctx, args) => {
-    // Since stripe_session_id is not indexed in schema (implied), we scan or iterate
-    // Ideally we should index it, but for now we can scan or filter
-    // However, schema.ts doesn't show index for stripe_session_id.
-    // Let's assume we can filter. If not efficient, we should add index.
-    
-    // Check if session ID is empty to avoid full scan for nothing
     if (!args.sessionId) return null;
 
-    // Scan all orders (inefficient for large DB but okay for dev)
-    // OR if we can't key by it easily.
-    
-    // Better: let's use filter if possible or just find first match
+    // Use index for efficient lookup
     const order = await ctx.db
       .query("orders")
-      .filter((q) => q.eq(q.field("stripe_session_id"), args.sessionId))
+      .withIndex("by_stripe_session", (q) => q.eq("stripe_session_id", args.sessionId))
       .first();
-      
+
     return order;
   },
 });
