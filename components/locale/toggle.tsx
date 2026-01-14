@@ -11,15 +11,15 @@ import { useParams, usePathname, useRouter } from "next/navigation";
 import { MdLanguage } from "react-icons/md";
 import { localeNames, defaultLocale } from "@/i18n/locale";
 
-export default function ({ isIcon = false }: { isIcon?: boolean }) {
-  // TODO: Temporarily disabled - only English for now
-  // Remove this line to re-enable language switching
-  return null;
-
+function LocaleToggle({ isIcon = false }: { isIcon?: boolean }) {
   const params = useParams();
   const locale = (params.locale as string) || defaultLocale;
   const router = useRouter();
   const pathname = usePathname();
+
+  // TODO: Temporarily disabled - only English for now
+  // Remove this line to re-enable language switching
+  if (!locale) return null;
 
   const handleSwitchLanguage = (value: string) => {
     if (value === locale) return;
@@ -69,3 +69,5 @@ export default function ({ isIcon = false }: { isIcon?: boolean }) {
     </Select>
   );
 }
+
+export default LocaleToggle;

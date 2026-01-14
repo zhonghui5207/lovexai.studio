@@ -5,6 +5,7 @@ import LovexaiLogo from "@/components/ui/logo";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 export default function Footer({ footer }: { footer: FooterType }) {
   const t = useTranslations();
@@ -49,10 +50,10 @@ export default function Footer({ footer }: { footer: FooterType }) {
               <div className="flex flex-col gap-4">
                 <h4 className="text-lg font-bold text-white">{t('footer.column_features')}</h4>
                 <ul className="flex flex-col gap-2">
-                  <li><a href="/discover" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_characters')}</a></li>
-                  <li><a href="/chat" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_chat')}</a></li>
-                  <li><a href="/generate" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.image_generator')}</a></li>
-                  <li><a href="/create" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.create_character')}</a></li>
+                  <li><Link href="/discover" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_characters')}</Link></li>
+                  <li><Link href="/chat" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_chat')}</Link></li>
+                  <li><Link href="/generate" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.image_generator')}</Link></li>
+                  <li><Link href="/create" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.create_character')}</Link></li>
                 </ul>
               </div>
 
@@ -60,10 +61,10 @@ export default function Footer({ footer }: { footer: FooterType }) {
               <div className="flex flex-col gap-4">
                 <h4 className="text-lg font-bold text-white">{t('footer.column_trending')}</h4>
                 <ul className="flex flex-col gap-2">
-                  <li><a href="/discover?filter=female" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_girlfriend')}</a></li>
-                  <li><a href="/discover?filter=male" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_boyfriend')}</a></li>
-                  <li><a href="/discover?filter=anime" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.anime_characters')}</a></li>
-                  <li><a href="/pricing" className="text-sm text-white/60 transition-colors hover:text-primary">{t('nav.pricing')}</a></li>
+                  <li><Link href="/discover?filter=female" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_girlfriend')}</Link></li>
+                  <li><Link href="/discover?filter=male" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.ai_boyfriend')}</Link></li>
+                  <li><Link href="/discover?filter=anime" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.anime_characters')}</Link></li>
+                  <li><Link href="/pricing" className="text-sm text-white/60 transition-colors hover:text-primary">{t('nav.pricing')}</Link></li>
                 </ul>
               </div>
 
@@ -71,8 +72,8 @@ export default function Footer({ footer }: { footer: FooterType }) {
               <div className="flex flex-col gap-4">
                 <h4 className="text-lg font-bold text-white">{t('footer.column_legal')}</h4>
                 <ul className="flex flex-col gap-2">
-                  <li><a href="/terms-of-service" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.terms_of_use')}</a></li>
-                  <li><a href="/privacy-policy" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.privacy_policy')}</a></li>
+                  <li><Link href="/terms-of-service" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.terms_of_use')}</Link></li>
+                  <li><Link href="/privacy-policy" className="text-sm text-white/60 transition-colors hover:text-primary">{t('footer.privacy_policy')}</Link></li>
                 </ul>
               </div>
 

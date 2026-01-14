@@ -26,6 +26,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useTranslations } from "next-intl";
 import LovexaiLogo from "@/components/ui/logo";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import Link from "next/link";
 
 // Colorful Google Logo
 const GoogleColorLogo = ({ className }: { className?: string }) => (
@@ -40,7 +41,6 @@ const GoogleColorLogo = ({ className }: { className?: string }) => (
 type AuthStep = "email" | "otp";
 
 export default function AuthModal() {
-  const t = useTranslations();
   const { showSignModal, setShowSignModal } = useAppContext();
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -51,7 +51,7 @@ export default function AuthModal() {
           <VisuallyHidden>
             <DialogTitle>Sign In</DialogTitle>
           </VisuallyHidden>
-          <AuthForm onClose={() => setShowSignModal(false)} />
+          <AuthForm />
         </DialogContent>
       </Dialog>
     );
@@ -60,7 +60,7 @@ export default function AuthModal() {
   return (
     <Drawer open={showSignModal} onOpenChange={setShowSignModal}>
       <DrawerContent className="bg-[#0d0d12] border-t border-white/[0.08]">
-        <AuthForm onClose={() => setShowSignModal(false)} />
+        <AuthForm />
         <DrawerFooter className="pt-2 pb-6">
           <DrawerClose asChild>
             <Button variant="ghost" className="text-white/40 hover:text-white/60 hover:bg-white/5">
@@ -73,7 +73,7 @@ export default function AuthModal() {
   );
 }
 
-function AuthForm({ onClose }: { onClose?: () => void }) {
+function AuthForm() {
   const t = useTranslations();
   const [step, setStep] = useState<AuthStep>("email");
   const [email, setEmail] = useState("");
@@ -126,7 +126,7 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
       setStep("otp");
       setCountdown(60);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
-    } catch (err) {
+    } catch {
       setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
@@ -192,7 +192,7 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
       } else {
         setError("Login failed. Please try again.");
       }
-    } catch (err) {
+    } catch {
       setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
@@ -210,7 +210,7 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
-    } catch (err) {
+    } catch {
       setError("Failed to resend code");
     }
   };
@@ -368,13 +368,13 @@ function AuthForm({ onClose }: { onClose?: () => void }) {
             {/* Terms */}
             <p className="mt-5 text-center text-xs text-white/30">
               By continuing, you agree to our{" "}
-              <a href="/terms-of-service" className="text-white/50 hover:text-white/70 underline underline-offset-2">
+              <Link href="/terms-of-service" className="text-white/50 hover:text-white/70 underline underline-offset-2">
                 Terms
-              </a>
+              </Link>
               {" "}and{" "}
-              <a href="/privacy-policy" className="text-white/50 hover:text-white/70 underline underline-offset-2">
+              <Link href="/privacy-policy" className="text-white/50 hover:text-white/70 underline underline-offset-2">
                 Privacy Policy
-              </a>
+              </Link>
             </p>
           </motion.div>
         ) : (

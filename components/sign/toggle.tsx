@@ -3,8 +3,6 @@
 import SignIn from "./sign_in";
 import User from "./user";
 import { useAppContext } from "@/contexts/app";
-import { useTranslations } from "next-intl";
-
 import { ReactNode } from "react";
 
 interface SignToggleProps {
@@ -14,7 +12,6 @@ interface SignToggleProps {
 }
 
 export default function SignToggle({ children, dropdownOpen, onDropdownOpenChange }: SignToggleProps) {
-  const t = useTranslations();
   const { user } = useAppContext();
 
   return (

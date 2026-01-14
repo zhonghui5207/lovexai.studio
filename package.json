@@ -8,7 +8,7 @@
     "dev": "concurrently --names \"next,convex\" --prefix-colors \"cyan,magenta\" \"cross-env NODE_NO_WARNINGS=1 next dev --turbopack\" \"npx convex dev\"",
     "dev:next": "cross-env NODE_NO_WARNINGS=1 next dev --turbopack",
     "dev:convex": "npx convex dev",
-    "build": "npx convex deploy --cmd 'next build'",
+    "build": "npx convex deploy --cmd 'next build' --yes",
     "start": "NODE_NO_WARNINGS=1 next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",

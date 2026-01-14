@@ -1,7 +1,7 @@
 "use client"; // 标记为客户端组件，因为使用了 useState, useEffect 等React Hooks
 
 // React相关导入
-import { useState, useEffect } from "react"; // useState: 管理组件状态, useEffect: 处理副作用
+import { useState } from "react"; // useState: 管理组件状态
 import { useSession } from "next-auth/react"; // 获取用户认证状态
 import { useTranslations } from "next-intl"; // 国际化
 
@@ -9,10 +9,8 @@ import { useTranslations } from "next-intl"; // 国际化
 import { MessageCircle, Search, Plus } from "lucide-react";
 
 // UI组件导入 - 来自项目自定义的UI组件库
-import { Input } from "@/components/ui/input"; // 输入框组件
 import { Badge } from "@/components/ui/badge"; // 徽章/标签组件
 import { Button } from "@/components/ui/button"; // 按钮组件
-import FormattedMessage from "./FormattedMessage"; // 消息格式化组件
 import {
   DropdownMenu,           // 下拉菜单容器
   DropdownMenuContent,    // 下拉菜单内容区域

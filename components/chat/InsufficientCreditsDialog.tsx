@@ -30,7 +30,7 @@ export default function InsufficientCreditsDialog({
           </div>
           <DialogTitle className="text-center text-xl">Out of Credits</DialogTitle>
           <DialogDescription className="text-center text-white/60 pt-2">
-            You've run out of credits to continue this conversation. Top up now to keep chatting with your favorite characters!
+            You&apos;ve run out of credits to continue this conversation. Top up now to keep chatting with your favorite characters!
           </DialogDescription>
         </DialogHeader>
         <div className="py-6">

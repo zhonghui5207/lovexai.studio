@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User } from "@/types/user";
-import { Settings, CreditCard, Sparkles, Crown, Zap, Loader2 } from "lucide-react";
+import { Settings, CreditCard, Sparkles, Crown, Zap, Loader2, LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery, useMutation } from "convex/react";
@@ -21,7 +21,7 @@ import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 import { toast } from "sonner";
 
-const TIER_CONFIG: Record<string, { name: string; icon: any; color: string; bgColor: string }> = {
+const TIER_CONFIG: Record<string, { name: string; icon: LucideIcon; color: string; bgColor: string }> = {
   free: { name: "Free Plan", icon: CreditCard, color: "text-white/60", bgColor: "bg-white/10" },
   plus: { name: "Plus Plan", icon: Zap, color: "text-blue-400", bgColor: "bg-blue-500/20" },
   pro: { name: "Pro Plan", icon: Sparkles, color: "text-purple-400", bgColor: "bg-purple-500/20" },

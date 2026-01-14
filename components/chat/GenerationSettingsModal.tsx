@@ -2,14 +2,10 @@
 
 import { useState } from "react";
 import {
-  X,
-  User,
-  Users,
   Sparkles,
   Zap,
   Brain,
   AlignLeft,
-  AlignJustify,
   FileText,
   MessageSquare,
   MessageSquarePlus,
@@ -23,7 +19,6 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAppContext } from "@/contexts/app";
 import Link from "next/link";
-import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
 // Subscription tier for model access

@@ -38,7 +38,7 @@ import { ReactNode } from "react";
 // import * as Wi from "react-icons/wi"; // Weather icons
 
 // Map of prefixes to icon packages
-const iconPackages: { [key: string]: any } = {
+const iconPackages: Record<string, Record<string, React.ElementType>> = {
   // Ai,
   // Bs,
   // Bi,
@@ -81,7 +81,7 @@ export default function Icon({
   className?: string;
   onClick?: () => void;
 }) {
-  function getIcon(name: string): ReactNode {
+  function getIcon(name: string): React.ElementType | null {
     // Extract prefix (first two characters)
     const prefix = name.slice(0, 2);
 

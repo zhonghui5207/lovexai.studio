@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 interface CdnImageProps {
   src: string;
   alt: string;
@@ -23,10 +21,7 @@ export function CdnImage({
   className,
   onLoad,
 }: CdnImageProps) {
-  const [loaded, setLoaded] = useState(false);
-
   const handleLoad = () => {
-    setLoaded(true);
     onLoad?.();
   };
 

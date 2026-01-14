@@ -1,7 +1,5 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";

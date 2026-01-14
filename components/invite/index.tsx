@@ -1,18 +1,17 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import Icon from "@/components/icon";
 import InviteModal from "./modal";
-import { User } from "@/types/user";
 import { toast } from "sonner";
 import { useAppContext } from "@/contexts/app";
 import { useTranslations } from "next-intl";
 
-export default function Invite({ summary }: { summary: any }) {
+export default function Invite({ summary }: { summary: Record<string, number> }) {
   const t = useTranslations();
 
   const [open, setOpen] = useState(false);

@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo, useCallback } from "react";
-import { Send, Smile, MoreVertical, ArrowLeft, Settings, AlertTriangle, RotateCcw, Flag, Trash2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Send, MoreVertical, Settings, RotateCcw, Flag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import GenerationSettingsModal from "./GenerationSettingsModal";
 import FormattedMessage from "./FormattedMessage";
@@ -63,7 +61,6 @@ interface ChatWindowProps {
 }
 
 export default function ChatWindow({ character, messages, onSendMessage, isTyping = false, isLoading = false, creditsPerMessage = 1, convexUserId, conversationId, onConversationDeleted }: ChatWindowProps) {
-  const { data: session } = useSession();
   const { credits } = useCredits();
   const t = useTranslations();
   const [newMessage, setNewMessage] = useState("");
@@ -71,11 +68,10 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   const [isCreditsDialogOpen, setIsCreditsDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorType, setErrorType] = useState<'network' | 'server' | 'credits' | 'permission' | 'general' | 'timeout' | 'empty_message'>('general');
-  
+
   // Conversation mutations
   const deleteConversationMutation = useMutation(api.conversations.deleteConversation);
   const resetConversationMutation = useMutation(api.conversations.resetConversation);
-  const router = useRouter();
   
   // Default settings
   const defaultSettings: GenerationSettings = {

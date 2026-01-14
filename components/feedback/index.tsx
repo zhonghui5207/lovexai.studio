@@ -4,12 +4,11 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Github, Mail, MessageCircle, Twitter } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import Icon from "@/components/icon";
@@ -73,7 +72,7 @@ export default function Feedback({
       setFeedback("");
       setRating(null);
       setShowFeedback(false);
-    } catch (error) {
+    } catch {
       toast.error("Failed to submit, please try again later");
     } finally {
       setLoading(false);

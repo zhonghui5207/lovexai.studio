@@ -6,7 +6,7 @@ import { CacheKey } from "@/services/constant";
 import { cacheSet } from "@/lib/cache";
 import { useAppContext } from "@/contexts/app";
 
-export default function () {
+export default function ThemeToggle() {
   const { theme, setTheme } = useAppContext();
 
   const handleThemeChange = function (_theme: string) {
