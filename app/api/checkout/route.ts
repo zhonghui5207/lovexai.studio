@@ -4,12 +4,25 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import Stripe from "stripe";
 import { getSnowId } from "@/lib/hash";
+import { checkRateLimit, RateLimitPresets } from "@/lib/rate-limit";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(req: Request) {
   console.log("Checkout API called");
   try {
+    // Check authentication first
+    const user_uuid = await getUserUuid();
+    if (!user_uuid) {
+      return respErr("no auth, please sign-in");
+    }
+
+    // Rate limit by user
+    const rateLimit = checkRateLimit(`checkout:${user_uuid}`, RateLimitPresets.CHECKOUT);
+    if (!rateLimit.success) {
+      return respErr("Too many checkout requests. Please try again later.");
+    }
+
     let {
       credits,
       currency,
@@ -46,11 +59,6 @@ export async function POST(req: Request) {
 
     if (interval === "month" && valid_months !== 1) {
       return respErr("invalid valid_months");
-    }
-
-    const user_uuid = await getUserUuid();
-    if (!user_uuid) {
-      return respErr("no auth, please sign-in");
     }
 
     let user_email = await getUserEmail();

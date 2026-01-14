@@ -109,12 +109,13 @@ export const AppContextProvider = ({ children }: { children: ReactNode }) => {
       console.log("检测到新的session，直接使用会话数据");
 
       // 将session用户数据转换为User类型
+      const tier = session.user.subscription_tier || 'free';
       const sessionUser: User = {
         id: session.user.id,
         email: session.user.email || '',
         name: session.user.name || '',
         avatar_url: session.user.avatar_url || '',
-        subscription_tier: session.user.subscription_tier || 'free',
+        subscription_tier: (tier === 'plus' || tier === 'pro' || tier === 'ultimate') ? tier : 'free',
         credits_balance: session.user.credits_balance || 0,
         total_credits_purchased: 0, // 默认值
         created_at: session.user.created_at || new Date().toISOString(),

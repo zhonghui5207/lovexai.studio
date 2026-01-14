@@ -173,4 +173,14 @@ export default defineSchema({
     .index("by_user", ["user_id"])
     .index("by_character", ["character_id"])
     .index("by_user_character", ["user_id", "character_id"]),
+
+  // OTP verification codes (for email login)
+  otp_codes: defineTable({
+    email: v.string(),
+    code: v.string(),
+    expires_at: v.number(), // Unix timestamp in milliseconds
+    used: v.boolean(),
+  })
+    .index("by_email", ["email"])
+    .index("by_email_code", ["email", "code"]),
 });

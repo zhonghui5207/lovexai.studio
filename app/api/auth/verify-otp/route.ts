@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { otpStore } from "../send-otp/route";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { checkRateLimit, getClientIP } from "@/lib/rate-limit";
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -16,38 +16,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Rate limit verification attempts to prevent brute force
+    const clientIP = getClientIP(req.headers);
+    const rateLimit = checkRateLimit(
+      `verify:ip:${clientIP}`,
+      { limit: 10, windowSeconds: 60 } // 10 attempts per minute per IP
+    );
+
+    if (!rateLimit.success) {
+      const retryAfter = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+      return NextResponse.json(
+        { error: "Too many verification attempts. Please try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": retryAfter.toString() },
+        }
+      );
+    }
+
     const normalizedEmail = email.toLowerCase();
-    const storedOtp = otpStore.get(normalizedEmail);
 
-    // Check if OTP exists
-    if (!storedOtp) {
+    // Verify OTP using Convex
+    const result = await convex.mutation(api.otp.verifyOTP, {
+      email: normalizedEmail,
+      code: code.toString(),
+    });
+
+    if (!result.valid) {
       return NextResponse.json(
-        { error: "No verification code found. Please request a new one." },
+        { error: result.reason || "Invalid verification code" },
         { status: 400 }
       );
     }
 
-    // Check if OTP is expired
-    if (Date.now() > storedOtp.expiresAt) {
-      otpStore.delete(normalizedEmail);
-      return NextResponse.json(
-        { error: "Verification code has expired. Please request a new one." },
-        { status: 400 }
-      );
-    }
-
-    // Check if OTP matches
-    if (storedOtp.code !== code) {
-      return NextResponse.json(
-        { error: "Invalid verification code" },
-        { status: 400 }
-      );
-    }
-
-    // OTP is valid - delete it
-    otpStore.delete(normalizedEmail);
-
-    // Create or get user from Convex
+    // OTP is valid - create or get user from Convex
     try {
       const user = await convex.mutation(api.users.syncUser, {
         email: normalizedEmail,

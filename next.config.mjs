@@ -32,12 +32,12 @@ const nextConfig = {
   },
   // 增加静态资源生成超时时间
   staticPageGenerationTimeout: 120,
-  // Ignore ESLint and TypeScript errors during build for Vercel deployment
+  // Enable ESLint and TypeScript checks during build for production safety
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   async redirects() {
     return [];

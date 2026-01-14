@@ -47,12 +47,15 @@ export async function POST(req: NextRequest) {
 
     console.log("Webhook payload:", JSON.stringify(payload, null, 2));
 
-    // Verify signature in production
-    if (process.env.NODE_ENV === "production" && signature) {
-      if (!verifySignature(payload, signature)) {
-        console.error("Invalid NOWPayments signature");
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
+    // Always verify signature - this is critical for payment security
+    if (!signature) {
+      console.error("Missing NOWPayments signature header");
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+
+    if (!verifySignature(payload, signature)) {
+      console.error("Invalid NOWPayments signature");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const {

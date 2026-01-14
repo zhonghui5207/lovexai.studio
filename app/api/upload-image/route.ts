@@ -3,14 +3,21 @@ import { getUserUuid } from "@/services/user";
 import { respData, respErr } from "@/lib/resp";
 import { newStorage } from "@/lib/storage";
 import { getSnowId } from "@/lib/hash";
+import { checkRateLimit, RateLimitPresets } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
     // Check user authentication
     const user_uuid = await getUserUuid();
-    
+
     if (!user_uuid) {
       return respErr("no auth");
+    }
+
+    // Rate limit uploads by user
+    const rateLimit = checkRateLimit(`upload:${user_uuid}`, RateLimitPresets.UPLOAD);
+    if (!rateLimit.success) {
+      return respErr("Too many upload requests. Please try again later.");
     }
 
     // Get uploaded file

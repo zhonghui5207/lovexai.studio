@@ -11,6 +11,7 @@
     "build": "npx convex deploy --cmd 'next build'",
     "start": "NODE_NO_WARNINGS=1 next start",
     "lint": "next lint",
+    "type-check": "tsc --noEmit",
     "analyze": "ANALYZE=true pnpm build",
     "cf:build": "npx @cloudflare/next-on-pages",
     "cf:preview": "pnpm cf:build && wrangler pages dev",

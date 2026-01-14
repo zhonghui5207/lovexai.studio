@@ -234,7 +234,7 @@ export default function DiscoverPage() {
                     {t('discover.match_title')}
                 </DialogTitle>
                 <DialogDescription className="text-neutral-400 text-lg">
-                    {t('discover.match_desc', { name: match?.name })}
+                    {t('discover.match_desc', { name: match?.name || '' })}
                 </DialogDescription>
             </DialogHeader>
             
@@ -263,7 +263,7 @@ export default function DiscoverPage() {
                     disabled={isCreatingChat}
                 >
                     {isCreatingChat ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <MessageCircle className="w-5 h-5 mr-2" />}
-                    {t('discover.chat_with', { name: match?.name })}
+                    {t('discover.chat_with', { name: match?.name || '' })}
                 </Button>
                 <Button
                     variant="outline"

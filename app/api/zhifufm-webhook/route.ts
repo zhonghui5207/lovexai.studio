@@ -50,15 +50,17 @@ export async function GET(req: NextRequest) {
     
     console.log(`ZhuFuFm callback: orderNo=${orderNo}, state=${state}, amount=${amount}`);
     
-    // Validate signature
-    const merchantKey = process.env.ZHIFUFM_MERCHANT_KEY || "";
+    // Validate signature - this is critical for payment security
+    const merchantKey = process.env.ZHIFUFM_MERCHANT_KEY;
+    if (!merchantKey) {
+      console.error("Missing ZHIFUFM_MERCHANT_KEY");
+      return new NextResponse("fail", { status: 200, headers: { "Content-Type": "text/plain" } });
+    }
+
     const isValid = validateSign(params, merchantKey);
-    console.log("Signature validation result:", isValid);
-    
     if (!isValid) {
-      console.error("Invalid signature!");
-      // For debugging, we'll proceed anyway
-      // return new NextResponse("fail", { status: 200, headers: { "Content-Type": "text/plain" } });
+      console.error("Invalid ZhiFuFm signature!");
+      return new NextResponse("fail", { status: 200, headers: { "Content-Type": "text/plain" } });
     }
     
     // state=1 means payment success
@@ -140,14 +142,22 @@ export async function POST(req: NextRequest) {
     }
     
     console.log("POST Callback params:", JSON.stringify(params));
-    
+
     const { orderNo, state, amount, platformOrderNo, type, payTime, attch, payee, actualPayAmount } = params;
-    
-    // Validate signature
-    const merchantKey = process.env.ZHIFUFM_MERCHANT_KEY || "";
+
+    // Validate signature - this is critical for payment security
+    const merchantKey = process.env.ZHIFUFM_MERCHANT_KEY;
+    if (!merchantKey) {
+      console.error("Missing ZHIFUFM_MERCHANT_KEY");
+      return new NextResponse("fail", { status: 200, headers: { "Content-Type": "text/plain" } });
+    }
+
     const isValid = validateSign(params, merchantKey);
-    console.log("Signature validation result:", isValid);
-    
+    if (!isValid) {
+      console.error("Invalid ZhiFuFm signature!");
+      return new NextResponse("fail", { status: 200, headers: { "Content-Type": "text/plain" } });
+    }
+
     if (state === "1" && orderNo) {
       try {
         await convex.mutation(api.orders.processPaidOrder, {

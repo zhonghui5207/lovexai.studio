@@ -188,8 +188,9 @@ export const authOptions: NextAuthConfig = {
       return baseUrl;
     },
     async session({ session, token, user }) {
-      if (token && token.user && token.user) {
-        session.user = token.user;
+      if (token && token.user) {
+        // Type assertion to satisfy TypeScript - token.user contains our extended user data
+        session.user = token.user as typeof session.user;
       }
       return session;
     },

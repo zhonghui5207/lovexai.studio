@@ -45,12 +45,15 @@ export async function POST(req: NextRequest) {
 
     console.log("Webhook payload:", payload);
 
-    // Verify signature in production
-    if (process.env.NODE_ENV === "production" && signature) {
-      if (!verifySignature(rawPayload, signature)) {
-        console.error("Invalid Payblis signature");
-        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-      }
+    // Always verify signature - this is critical for payment security
+    if (!signature) {
+      console.error("Missing Payblis signature header");
+      return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+    }
+
+    if (!verifySignature(rawPayload, signature)) {
+      console.error("Invalid Payblis signature");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
     const {

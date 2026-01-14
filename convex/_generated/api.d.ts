@@ -17,6 +17,7 @@ import type * as interactions from "../interactions.js";
 import type * as messages from "../messages.js";
 import type * as migrations_cleanupOldSettings from "../migrations/cleanupOldSettings.js";
 import type * as orders from "../orders.js";
+import type * as otp from "../otp.js";
 import type * as seed from "../seed.js";
 import type * as subscriptions from "../subscriptions.js";
 import type * as users from "../users.js";
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   messages: typeof messages;
   "migrations/cleanupOldSettings": typeof migrations_cleanupOldSettings;
   orders: typeof orders;
+  otp: typeof otp;
   seed: typeof seed;
   subscriptions: typeof subscriptions;
   users: typeof users;

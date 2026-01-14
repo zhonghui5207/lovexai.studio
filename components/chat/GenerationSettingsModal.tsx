@@ -461,12 +461,12 @@ export default function GenerationSettingsModal({
             </div>
             <DialogTitle className="text-xl font-bold text-white mb-2">
               {t('generation_settings.upgrade_title', {
-                feature: lockedModel?.name,
+                feature: lockedModel?.name || '',
                 tier: t(`tiers.${lockedModel?.requiredTier || 'plus'}`)
               })}
             </DialogTitle>
             <p className="text-sm text-white/60 mb-6">
-              {t('generation_settings.upgrade_desc', { feature: lockedModel?.name })}
+              {t('generation_settings.upgrade_desc', { feature: lockedModel?.name || '' })}
             </p>
 
             <div className="flex flex-col gap-3">
