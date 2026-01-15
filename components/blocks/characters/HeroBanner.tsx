@@ -155,9 +155,9 @@ export default function HeroBanner() {
             </h1>
           </div>
 
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 font-sans leading-relaxed">
+          <h2 className="text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 font-sans leading-relaxed font-normal">
             {t('description')}
-          </p>
+          </h2>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Button

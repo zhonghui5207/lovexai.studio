@@ -33,7 +33,7 @@ export default function Blog({ blog }: { blog: BlogType }) {
                   <div>
                     <img
                       src={item.cover_url}
-                      alt={item.title || ""}
+                      alt={item.title || "Blog post cover"}
                       className="aspect-[16/9] h-full w-full object-cover object-center"
                     />
                   </div>

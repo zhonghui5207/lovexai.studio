@@ -35,13 +35,63 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations();
 
+  const title = t("metadata.title") || "LoveX - AI Companion & Character Chat";
+  const description = t("metadata.description") || "Create your perfect AI companion. Chat with AI characters, generate images, and explore endless possibilities.";
+  const siteUrl = "https://lovexai.studio";
+
   return {
     title: {
-      template: `%s`,
-      default: t("metadata.title") || "",
+      template: `%s | LoveX`,
+      default: title,
     },
-    description: t("metadata.description") || "",
+    description: description,
     keywords: t("metadata.keywords") || "",
+
+    // Canonical URL
+    metadataBase: new URL(siteUrl),
+    alternates: {
+      canonical: "/",
+      languages: {
+        "en": "/en",
+        "zh": "/zh",
+      },
+    },
+
+    // Open Graph
+    openGraph: {
+      title: title,
+      description: description,
+      url: siteUrl,
+      siteName: "LoveX",
+      images: [
+        {
+          url: "/og-image.png",
+          width: 1200,
+          height: 630,
+          alt: "LoveX - AI Companion & Character Chat",
+        },
+      ],
+      locale: locale === "zh" ? "zh_CN" : "en_US",
+      type: "website",
+    },
+
+    // Twitter Card
+    twitter: {
+      card: "summary_large_image",
+      title: title,
+      description: description,
+      images: ["/og-image.png"],
+    },
+
+    // Additional SEO
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+      },
+    },
   };
 }
 
