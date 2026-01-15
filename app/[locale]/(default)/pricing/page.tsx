@@ -11,8 +11,33 @@ import PricingContent from "@/components/blocks/pricing/PricingContent";
  * - 使用 Suspense 提供加载状态
  */
 export default function PricingPage() {
+  // BreadcrumbList JSON-LD for Pricing page
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://lovexai.studio"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Pricing",
+        "item": "https://lovexai.studio/pricing"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-background pt-8 pb-20 px-4">
+      {/* BreadcrumbList JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <div className="container max-w-screen-xl mx-auto">
         <Suspense fallback={<PricingSkeleton />}>
           <PricingContent />

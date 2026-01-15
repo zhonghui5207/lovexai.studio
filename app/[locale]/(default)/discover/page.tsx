@@ -163,8 +163,33 @@ export default function DiscoverPage() {
     setIsFlipped(false);
   };
 
+  // BreadcrumbList JSON-LD for Discover page
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://lovexai.studio"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Discover",
+        "item": "https://lovexai.studio/discover"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen text-white p-4 md:p-8 max-w-[1600px] mx-auto space-y-12">
+      {/* BreadcrumbList JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Hide scrollbar for this page */}
       <style jsx global>{`
         ::-webkit-scrollbar {

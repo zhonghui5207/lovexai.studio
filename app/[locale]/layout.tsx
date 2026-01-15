@@ -105,14 +105,44 @@ export default async function RootLayout({
   const { locale } = await params;
   const messages = await getMessages();
 
+  // JSON-LD structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": "LoveX",
+        "url": "https://lovexai.studio",
+        "logo": "https://lovexai.studio/logo.png",
+        "description": "AI-driven character chat platform creating immersive interactive experiences",
+        "sameAs": []
+      },
+      {
+        "@type": "WebSite",
+        "url": "https://lovexai.studio",
+        "name": "LoveX",
+        "description": "Create your perfect AI companion. Chat with AI characters, generate images, and explore endless possibilities.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://lovexai.studio/discover?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    ]
+  };
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        {process.env.NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED === "true" && 
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        {process.env.NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED === "true" &&
          process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID && (
-          <script 
-            src="https://accounts.google.com/gsi/client" 
-            async 
+          <script
+            src="https://accounts.google.com/gsi/client"
+            async
             defer
           ></script>
         )}

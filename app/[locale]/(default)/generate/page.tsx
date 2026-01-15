@@ -340,8 +340,33 @@ export default function GeneratePage() {
     }
   };
 
+  // BreadcrumbList JSON-LD for Generate page
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://lovexai.studio"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Generate",
+        "item": "https://lovexai.studio/generate"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-8 font-sans selection:bg-primary/30">
+      {/* BreadcrumbList JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Dynamic Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />

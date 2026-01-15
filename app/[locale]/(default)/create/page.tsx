@@ -486,8 +486,33 @@ export default function CreateCharacterPage() {
     }
   };
 
+  // BreadcrumbList JSON-LD for Create page
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://lovexai.studio"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Create",
+        "item": "https://lovexai.studio/create"
+      }
+    ]
+  };
+
   return (
     <div className="min-h-screen text-white p-4 md:p-8 max-w-4xl mx-auto">
+      {/* BreadcrumbList JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Header */}
       <div className="flex items-start gap-3 sm:gap-4 mb-6">
         <Link href="/discover" className="p-2 rounded-full hover:bg-white/10 transition-colors">
