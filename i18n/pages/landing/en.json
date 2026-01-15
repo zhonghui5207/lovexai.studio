@@ -1,5 +1,5 @@
 {
-  "template": "shipany-template-one",
+  "template": "lovexai-studio",
   "theme": "light",
   "header": {
     "brand": {
@@ -48,7 +48,7 @@
     "buttons": [
       {
         "title": "Start Creating",
-        "url": "https://shipany.ai",
+        "url": "https://lovexai.studio",
         "target": "_blank",
         "variant": "link",
         "icon": "RiArrowRightUpLine"
@@ -620,17 +620,17 @@
           "children": [
             {
               "title": "Documents",
-              "url": "https://docs.shipany.ai",
+              "url": "https://lovexai.studio/docs",
               "target": "_blank"
             },
             {
               "title": "Components",
-              "url": "https://shipany.ai/components",
+              "url": "",
               "target": "_blank"
             },
             {
               "title": "Templates",
-              "url": "https://shipany.ai/templates",
+              "url": "",
               "target": "_blank"
             }
           ]
@@ -662,13 +662,13 @@
         {
           "title": "X",
           "icon": "RiTwitterXFill",
-          "url": "https://x.com/shipanyai",
+          "url": "",
           "target": "_blank"
         },
         {
           "title": "Github",
           "icon": "RiGithubFill",
-          "url": "https://github.com/shipanyai",
+          "url": "",
           "target": "_blank"
         },
         {
@@ -680,7 +680,7 @@
         {
           "title": "Email",
           "icon": "RiMailLine",
-          "url": "mailto:support@shipany.ai",
+          "url": "mailto:support@lovexai.studio",
           "target": "_self"
         }
       ]
