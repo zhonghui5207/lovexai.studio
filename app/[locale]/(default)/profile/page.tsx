@@ -129,7 +129,7 @@ export default function ProfilePage() {
       {/* 1. 顶部用户信息区域 */}
       <div className="flex flex-col gap-6">
         {/* Banner 区域 */}
-        <div className="h-56 sm:h-72 md:h-80 w-full rounded-2xl relative overflow-hidden border border-white/5 group"
+        <div className="h-56 sm:h-72 md:h-80 w-full rounded-2xl relative overflow-hidden border border-white/5 group">
            {/* Background Image */}
            <div className="absolute inset-0 bg-[url('/imgs/default_banner.png')] bg-cover bg-center transition-transform duration-700 group-hover:scale-105"></div>
            
