@@ -15,15 +15,12 @@ export default function TopFilterBar() {
   const pathname = usePathname();
   
   const currentGender = searchParams.get("gender") || "girls";
-  const currentNsfw = searchParams.get("nsfw") === "true";
 
   const [gender, setGender] = useState(currentGender);
-  const [nsfw, setNsfw] = useState(currentNsfw);
 
   useEffect(() => {
     setGender(currentGender);
-    setNsfw(currentNsfw);
-  }, [currentGender, currentNsfw]);
+  }, [currentGender]);
 
   // Only show on home page (strip locale prefix for check)
   const pathnameWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '') || '/';
@@ -81,24 +78,8 @@ export default function TopFilterBar() {
         </div>
       </div>
 
-      {/* Right: NSFW & Search */}
+      {/* Right: Search */}
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
-          <span className="text-xs font-bold text-white/80 uppercase tracking-wider">{t('top_filter.nsfw')}</span>
-          <button
-            onClick={() => updateFilter('nsfw', (!nsfw).toString())}
-            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-              nsfw ? 'bg-primary' : 'bg-white/20'
-            }`}
-          >
-            <span
-              className={`${
-                nsfw ? 'translate-x-4' : 'translate-x-1'
-              } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
-            />
-          </button>
-        </div>
-
         <div className="relative hidden sm:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
           <input
