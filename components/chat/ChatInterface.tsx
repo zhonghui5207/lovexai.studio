@@ -8,6 +8,9 @@ import { CreditsProvider, useCredits } from "../../contexts/CreditsContext";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { MessageSquareText } from "lucide-react";
 
 interface Message {
   id: string;
@@ -134,14 +137,16 @@ function ChatInterface({
 
   return (
     <div className="flex h-screen bg-background">
-      <ChatSidebar
-        currentCharacterId={character.id}
-        currentConversationId={conversationId || null}
-        conversations={conversations}
-        onConversationSwitch={onConversationSwitch}
-        onNewChatWithCharacter={onNewChatWithCharacter}
-        availableCharacters={availableCharacters}
-      />
+      <div className="hidden md:flex">
+        <ChatSidebar
+          currentCharacterId={character.id}
+          currentConversationId={conversationId || null}
+          conversations={conversations}
+          onConversationSwitch={onConversationSwitch}
+          onNewChatWithCharacter={onNewChatWithCharacter}
+          availableCharacters={availableCharacters}
+        />
+      </div>
       <div className="flex-1 flex relative">
         {/* Background */}
         <div
@@ -172,11 +177,11 @@ function ChatInterface({
               onConversationDeleted={() => {
                 console.log("[Delete Callback] Current conversationId:", conversationId);
                 console.log("[Delete Callback] All conversations:", conversations);
-                
+
                 // Find another conversation to switch to
                 const otherConversation = conversations.find(c => c.id !== conversationId);
                 console.log("[Delete Callback] Found other conversation:", otherConversation);
-                
+
                 if (otherConversation) {
                   console.log("[Delete Callback] Switching to:", otherConversation.id);
                   onConversationSwitch(otherConversation);
@@ -196,6 +201,27 @@ function ChatInterface({
               onSuggestionClick={handleSendMessage}
               userId={convexUserId || undefined}
             />
+          </div>
+
+          {/* Mobile Conversations Drawer */}
+          <div className="md:hidden absolute top-4 left-4 z-30">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-white/5 hover:bg-white/10">
+                  <MessageSquareText className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-full max-w-none p-0 bg-background/95 border-white/10">
+                <ChatSidebar
+                  currentCharacterId={character.id}
+                  currentConversationId={conversationId || null}
+                  conversations={conversations}
+                  onConversationSwitch={onConversationSwitch}
+                  onNewChatWithCharacter={onNewChatWithCharacter}
+                  availableCharacters={availableCharacters}
+                />
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>

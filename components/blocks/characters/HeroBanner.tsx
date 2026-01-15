@@ -87,12 +87,24 @@ export default function HeroBanner() {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   
   // Ensure client-side only to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
+
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(min-width: 640px)");
+    const handleChange = () => setIsCompact(!media.matches);
+    handleChange();
+    if (media.addEventListener) {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
   }, []);
   
   // Read gender from URL and map to category
@@ -135,7 +147,7 @@ export default function HeroBanner() {
   };
 
   return (
-    <section className="relative min-h-[70vh] flex items-center overflow-hidden bg-transparent pt-10 lg:pt-0">
+    <section className="relative min-h-[52vh] sm:min-h-[70vh] flex items-center overflow-hidden bg-transparent pt-6 sm:pt-10 lg:pt-0">
       {/* Seamless Gradient Bottom */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 
@@ -145,9 +157,9 @@ export default function HeroBanner() {
       
       <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-8 items-center relative z-10">
         {/* Left Content: Text - Static, no animation to avoid flash */}
-        <div className="lg:col-span-6 text-center lg:text-left space-y-8 pt-12 lg:pt-0 relative z-20">
+        <div className="lg:col-span-6 text-center lg:text-left space-y-6 sm:space-y-8 pt-10 sm:pt-12 lg:pt-0 relative z-20">
           <div>
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-6 leading-tight">
               {t('title_line1')} <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-gradient-x">
                 {t('title_line2')}
@@ -155,14 +167,14 @@ export default function HeroBanner() {
             </h1>
           </div>
 
-          <h2 className="text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 font-sans leading-relaxed font-normal">
+          <h2 className="text-sm sm:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 font-sans leading-relaxed font-normal">
             {t('description')}
           </h2>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
             <Button
               size="lg"
-              className="relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-bold px-10 py-6 text-lg rounded-2xl shadow-[0_0_20px_rgba(255,0,110,0.4)] transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,0,110,0.6)]"
+              className="relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-bold px-6 sm:px-10 py-4 sm:py-6 text-base sm:text-lg rounded-2xl shadow-[0_0_20px_rgba(255,0,110,0.4)] transition-all sm:hover:scale-105 sm:hover:shadow-[0_0_40px_rgba(255,0,110,0.6)]"
               onClick={() => handleStartChat(heroCharacters[currentIndex])}
             >
               <span className="relative z-10">{t('button_primary')}</span>
@@ -171,20 +183,19 @@ export default function HeroBanner() {
             <Button
               size="lg"
               variant="outline"
-              className="border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 font-semibold px-8 py-6 text-lg rounded-2xl backdrop-blur-sm transition-all"
+              className="border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 font-semibold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-2xl backdrop-blur-sm transition-all"
               onClick={() => router.push('/discover')}
             >
               {t('button_secondary')}
             </Button>
           </div>
 
-          <div className="flex items-center gap-6 justify-center lg:justify-start pt-4"
-          >
-            <div className="flex -space-x-3">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 justify-center lg:justify-start pt-3 sm:pt-4">
+            <div className="flex -space-x-2 sm:-space-x-3">
               {["A", "M", "S", "K"].map((letter, i) => (
                 <div
                   key={i}
-                  className="w-9 h-9 rounded-full border-2 border-background flex items-center justify-center text-xs font-bold text-white"
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-background flex items-center justify-center text-[10px] sm:text-xs font-bold text-white"
                   style={{
                     background: [
                       "linear-gradient(135deg, #FF006E 0%, #8338EC 100%)",
@@ -198,14 +209,14 @@ export default function HeroBanner() {
                 </div>
               ))}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs sm:text-sm text-muted-foreground">
               <span className="text-foreground font-bold">{t('stats_count')}</span> {t('stats_label')}
             </div>
           </div>
         </div>
         
         {/* Right Content: 3D Card Stack */}
-        <div className="lg:col-span-6 relative h-[500px] lg:h-[600px] flex items-center justify-center perspective-1000 z-10">
+        <div className="lg:col-span-6 relative h-[260px] sm:h-[400px] lg:h-[600px] flex items-center justify-center perspective-1000 z-10">
           <AnimatePresence mode="popLayout">
             {heroCharacters.map((character, index) => {
               // Calculate relative position for stack effect
@@ -230,14 +241,18 @@ export default function HeroBanner() {
                 zIndex = 20;
                 scale = 0.85;
                 opacity = 0.6;
-                x = 180; // px
+                x = 120; // px
                 rotateY = -15; // deg
               } else { // Previous/Last card (Left)
                 zIndex = 10;
                 scale = 0.85;
                 opacity = 0.6;
-                x = -180; // px
+                x = -120; // px
                 rotateY = 15; // deg
+              }
+
+              if (isCompact && offset !== 0) {
+                x = x * 0.55;
               }
 
               return (
@@ -253,7 +268,7 @@ export default function HeroBanner() {
                   }}
                   exit={{ scale: 0.5, opacity: 0 }}
                   transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="absolute w-[280px] sm:w-[320px] aspect-[3/4] cursor-pointer"
+                  className="absolute w-[180px] sm:w-[280px] md:w-[320px] aspect-[3/4] cursor-pointer"
                   onClick={() => {
                     if (offset === 0) handleCharacterClick(character);
                     else setCurrentIndex(index);

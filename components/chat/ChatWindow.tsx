@@ -131,7 +131,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
     const fallbackUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
 
     return (
-      <div className="relative flex-shrink-0">
+      <div className="relative flex-shrink-0 hidden sm:flex">
         <img
           src={character.avatar_url}
           alt={character.name}
@@ -244,48 +244,47 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   return (
     <div className="flex flex-col h-full">
       {/* Chat Header - Transparent blend with background */}
-      <div className="flex items-center justify-between px-4 py-3 z-20">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 z-20 gap-3">
         {/* Left side - Character info */}
-        <div className="flex items-center gap-3">
-
+        <div className="flex items-center gap-3 min-w-0">
           <div className="relative">
             <img
               src={character.avatar_url}
               alt={character.name}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
               }}
             />
           </div>
-          <div>
-            <h3 className="font-semibold">{character.name}</h3>
-            <p className="text-sm text-muted-foreground">
+          <div className="min-w-0">
+            <h3 className="font-semibold truncate">{character.name}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
               {character.traits?.slice(0, 2).join(' • ') || t('chat.ai_companion')}
             </p>
           </div>
         </div>
 
         {/* Right side - Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
           <Link href="/pricing?tab=credits">
-            <div className="bg-primary px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-primary/90 transition-all cursor-pointer shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95">
+            <div className="bg-primary px-2.5 sm:px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-primary/90 transition-all cursor-pointer shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95">
               <CreditDisplay creditsPerMessage={creditsPerMessage} simpleMode={true} />
             </div>
           </Link>
-          
+
           <Badge
             variant="outline"
-            className="text-xs flex items-center gap-1 cursor-pointer hover:bg-muted px-3 py-1.5 h-9 rounded-xl border-white/10 bg-white/5 transition-all"
+            className="text-xs flex items-center gap-1 cursor-pointer hover:bg-muted px-2.5 sm:px-3 py-1.5 h-8 sm:h-9 rounded-xl border-white/10 bg-white/5 transition-all"
             onClick={() => setIsSettingsOpen(true)}
           >
             <Settings className="h-3.5 w-3.5" />
-            {t('chat.settings')}
+            <span className="hidden sm:inline">{t('chat.settings')}</span>
           </Badge>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-9 w-9 hover:bg-white/10 hover:text-white rounded-xl transition-colors">
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-white/10 hover:text-white rounded-xl transition-colors">
                 <MoreVertical className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
@@ -302,9 +301,9 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                   <span className="text-xs text-gray-500">{t('chat.reset_chat_desc')}</span>
                 </div>
               </DropdownMenuItem>
-              
+
               <DropdownMenuSeparator className="bg-white/5 my-1" />
-              
+
               <DropdownMenuItem
                 onClick={handleReportCharacter}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 cursor-pointer focus:bg-white/5 focus:text-white transition-colors"
@@ -317,9 +316,9 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
                   <span className="text-xs text-gray-500">{t('chat.report_character_desc')}</span>
                 </div>
               </DropdownMenuItem>
-              
+
               <DropdownMenuSeparator className="bg-white/5 my-1" />
-              
+
               <DropdownMenuItem
                 onClick={handleDeleteConversation}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-500/10 cursor-pointer focus:bg-red-500/10 transition-colors group"
@@ -359,7 +358,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
             {/* Avatar - only show for character messages */}
             {message.sender === "character" && renderAvatar()}
 
-            <div className="flex flex-col w-full max-w-[60%]">
+            <div className="flex flex-col w-full max-w-[85%] sm:max-w-[70%] md:max-w-[60%]">
               <div
                 className={`rounded-2xl px-5 py-3 shadow-sm ${
                   message.sender === "user"
@@ -404,7 +403,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
 
       {/* Input Area */}
       <div className="p-4 border-t border-white/10 bg-background/20 backdrop-blur-md z-20">
-        <div className="flex items-end gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="flex-1">
             <Input
               value={newMessage}
@@ -419,7 +418,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
             onClick={handleSend}
             disabled={!newMessage.trim()}
             size="icon"
-            className="mb-2"
+            className="h-12 w-full sm:w-12"
           >
             <Send className="h-4 w-4" />
           </Button>

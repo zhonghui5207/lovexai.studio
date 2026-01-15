@@ -489,9 +489,9 @@ export default function CreateCharacterPage() {
   return (
     <div className="min-h-screen text-white p-4 md:p-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex items-start gap-3 sm:gap-4 mb-6">
         <Link href="/discover" className="p-2 rounded-full hover:bg-white/10 transition-colors">
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
         </Link>
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t('create.title')}</h1>
@@ -503,7 +503,7 @@ export default function CreateCharacterPage() {
       <StepIndicator currentStep={currentStep} totalSteps={4} t={t} />
 
       {/* Step Content */}
-      <div className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 min-h-[500px] flex flex-col">
+      <div className="bg-white/5 border border-white/10 rounded-3xl p-4 sm:p-6 md:p-8 min-h-[420px] sm:min-h-[500px] flex flex-col">
         
         {/* Step 1: Basic Info */}
         {currentStep === 1 && (
@@ -520,7 +520,7 @@ export default function CreateCharacterPage() {
                   placeholder={t('create.name_placeholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="bg-black/40 border-white/20 h-14 text-xl text-center focus:border-primary/50 pr-12"
+                  className="bg-black/40 border-white/20 h-12 sm:h-14 text-lg sm:text-xl text-center focus:border-primary/50 pr-12"
                 />
                 <Button
                   variant="ghost"
@@ -557,9 +557,9 @@ export default function CreateCharacterPage() {
                 <ImagePlus className="w-4 h-4" />
                 <span>{t('create.image_title')}</span>
               </div>
-              <div className="grid grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
                 {/* Upload */}
-                <div className="col-span-2 aspect-[3/4] relative group">
+                <div className="col-span-1 sm:col-span-2 aspect-[3/4] relative group">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -603,14 +603,14 @@ export default function CreateCharacterPage() {
                 </div>
 
                 {/* AI Generate */}
-                <div className="col-span-3 space-y-3 flex flex-col">
+                <div className="col-span-1 sm:col-span-3 space-y-3 flex flex-col">
                   <Textarea
                     placeholder={t('create.appearance_placeholder')}
                     value={avatarPrompt}
                     onChange={(e) => setAvatarPrompt(e.target.value)}
                     className="bg-black/40 border-white/10 flex-1 min-h-[100px] text-sm resize-none placeholder:text-white/30"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Button
                       className="flex-1 gap-2 bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
                       disabled={!avatarPrompt || isGeneratingAvatar}
@@ -619,10 +619,10 @@ export default function CreateCharacterPage() {
                       <Sparkles className="w-4 h-4" />
                       {isGeneratingAvatar ? t('create.generating') : t('create.quick_generate')}
                     </Button>
-                    <Link href="/generate">
+                    <Link href="/generate" className="sm:w-auto">
                       <Button
                         variant="outline"
-                        className="gap-1.5 border-white/20 text-white/70 hover:text-white hover:bg-white/10"
+                        className="w-full sm:w-auto gap-1.5 border-white/20 text-white/70 hover:text-white hover:bg-white/10"
                       >
                         <Wand2 className="w-4 h-4" />
                         {t('create.studio_link')}
@@ -643,13 +643,13 @@ export default function CreateCharacterPage() {
               <p className="text-white/60">{t('create.personality_subtitle')}</p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-w-2xl mx-auto">
               {TRAIT_OPTIONS.map(trait => (
                 <button
                   key={trait.id}
                   onClick={() => handleTraitToggle(trait.id)}
                   className={cn(
-                    "p-4 rounded-2xl border transition-all duration-200 flex flex-col items-center gap-2 group",
+                    "p-3 sm:p-4 rounded-2xl border transition-all duration-200 flex flex-col items-center gap-2 group",
                     selectedTraits.includes(trait.id)
                       ? "bg-gradient-to-br from-primary/20 to-purple-600/20 border-primary/50 shadow-lg shadow-primary/10"
                       : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
@@ -663,7 +663,7 @@ export default function CreateCharacterPage() {
                     "transition-transform"
                   )} />
                   <span className="text-sm font-medium">{trait.label}</span>
-                  <span className="text-xs text-white/50 text-center leading-tight">{trait.desc}</span>
+                  <span className="text-[11px] sm:text-xs text-white/50 text-center leading-tight">{trait.desc}</span>
                 </button>
               ))}
             </div>
@@ -695,13 +695,13 @@ export default function CreateCharacterPage() {
               <p className="text-white/60">{t('create.scenario_subtitle')}</p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-w-2xl mx-auto">
               {SCENARIO_TEMPLATES.map(scenario => (
                 <button
                   key={scenario.id}
                   onClick={() => setSelectedScenario(scenario.id)}
                   className={cn(
-                    "p-4 rounded-2xl border transition-all duration-200 flex flex-col items-center gap-2 group",
+                    "p-3 sm:p-4 rounded-2xl border transition-all duration-200 flex flex-col items-center gap-2 group",
                     selectedScenario === scenario.id
                       ? "bg-gradient-to-br from-primary/20 to-purple-600/20 border-primary/50"
                       : "bg-white/5 border-white/10 hover:bg-white/10"
@@ -944,7 +944,7 @@ export default function CreateCharacterPage() {
             <Button
               onClick={handleCreateCharacter}
               disabled={isCreating}
-              className="gap-2 bg-gradient-to-r from-primary to-purple-600 px-8"
+              className="gap-2 bg-gradient-to-r from-primary to-purple-600 px-6 sm:px-8"
             >
               {isCreating ? (
                 <>

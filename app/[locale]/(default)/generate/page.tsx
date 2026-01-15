@@ -118,7 +118,8 @@ export default function GeneratePage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [loadingLog, setLoadingLog] = useState("Initializing...");
-  
+  const [isGalleryCompact, setIsGalleryCompact] = useState(false);
+
   // Scroll state for showing scrollbar only when scrolling
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -200,6 +201,20 @@ export default function GeneratePage() {
     }, 5000);
     return () => clearInterval(timer);
   }, [generatedImage, isGenerating]);
+
+  // Compact gallery layout for ultra-narrow screens
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 419px)");
+    const handleChange = () => setIsGalleryCompact(media.matches);
+    handleChange();
+    if (media.addEventListener) {
+      media.addEventListener("change", handleChange);
+      return () => media.removeEventListener("change", handleChange);
+    }
+    media.addListener(handleChange);
+    return () => media.removeListener(handleChange);
+  }, []);
 
   // Loading Logs Simulation
   useEffect(() => {
@@ -326,7 +341,7 @@ export default function GeneratePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 md:p-8 font-sans selection:bg-primary/30 overflow-hidden">
+    <div className="min-h-screen bg-black text-white p-4 md:p-8 font-sans selection:bg-primary/30">
       {/* Dynamic Background */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
@@ -334,14 +349,14 @@ export default function GeneratePage() {
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
       </div>
       
-      <div className="max-w-[1600px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-100px)]">
+      <div className="max-w-[1600px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:h-[calc(100vh-100px)]">
         
         {/* LEFT PANEL: CONTROLS */}
         <div 
           ref={scrollContainerRef}
           onScroll={handleScroll}
           className={cn(
-            "lg:col-span-4 flex flex-col gap-8 h-full overflow-y-auto pr-2 custom-scrollbar relative",
+            "lg:col-span-4 flex flex-col gap-6 sm:gap-8 pr-2 custom-scrollbar relative lg:h-full lg:overflow-y-auto",
             isScrolling && "is-scrolling"
           )}
         >
@@ -351,7 +366,7 @@ export default function GeneratePage() {
           
           {/* Header */}
           <div className="space-y-2 relative">
-            <h1 className="text-4xl font-bold tracking-tighter bg-gradient-to-r from-white via-white to-white/50 bg-clip-text text-transparent animate-in fade-in slide-in-from-left duration-700">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tighter bg-gradient-to-r from-white via-white to-white/50 bg-clip-text text-transparent animate-in fade-in slide-in-from-left duration-700">
               {t('generate.title')}
             </h1>
             <p className="text-muted-foreground text-sm">
@@ -367,7 +382,7 @@ export default function GeneratePage() {
               </svg>
               AI Model
             </Label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2">
               {MODELS.map((model, index) => {
                 const isLocked = !canUseImageModel(userTier, model.id);
                 const isSelected = selectedModel === model.id;
@@ -473,8 +488,8 @@ export default function GeneratePage() {
           </div>
 
           {/* Prompt Input - Enhanced Card */}
-          <div className="space-y-4 bg-gradient-to-br from-white/[0.07] to-white/[0.03] p-5 rounded-2xl border border-white/10 backdrop-blur-md group hover:border-primary/30 transition-all duration-300 shadow-lg hover:shadow-primary/5">
-            <div className="flex justify-between items-center">
+          <div className="space-y-4 bg-gradient-to-br from-white/[0.07] to-white/[0.03] p-4 sm:p-5 rounded-2xl border border-white/10 backdrop-blur-md group hover:border-primary/30 transition-all duration-300 shadow-lg hover:shadow-primary/5">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <Label className="text-sm font-medium flex items-center gap-2 text-white/80">
                 {/* Custom Prompt Icon - Thought Bubble */}
                 <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
@@ -491,7 +506,7 @@ export default function GeneratePage() {
                 </svg>
                 Your Vision
               </Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                     variant="ghost"
                     size="sm"
@@ -572,7 +587,7 @@ export default function GeneratePage() {
               {t('generate.art_style')}
               <span className="text-[10px] text-white/30 font-normal normal-case ml-1">{t('generate.choose_one')}</span>
             </Label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 min-[420px]:grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {[
                 { id: "anime", name: "Anime", icon: "M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zM9 9h.01M15 9h.01M9 15c1 1 2.5 1.5 3 1.5s2-.5 3-1.5" },
                 { id: "realistic", name: "Realistic", icon: "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2zM12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z" },
@@ -653,7 +668,7 @@ export default function GeneratePage() {
       </div>
 
       {/* RIGHT PANEL: PREVIEW */}
-      <div className="lg:col-span-8 h-full bg-neutral-950 rounded-3xl border border-white/10 relative overflow-hidden flex flex-col shadow-2xl">
+      <div className="lg:col-span-8 lg:h-full bg-neutral-950 rounded-3xl border border-white/10 relative overflow-hidden flex flex-col shadow-2xl min-h-[520px] sm:min-h-[640px]">
             
             {/* Premium Background Effects */}
             {/* 1. Subtle noise texture */}
@@ -668,12 +683,12 @@ export default function GeneratePage() {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-white/[0.02] rounded-full blur-[60px] pointer-events-none" />
 
             {/* Main Canvas Area */}
-            <div className="flex-1 relative flex items-center justify-center p-8 overflow-hidden">
+            <div className="flex-1 relative flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden">
                 {generatedImage ? (
                     // RESULT VIEW
                     <div className="relative w-full h-full flex flex-col items-center justify-center animate-in zoom-in-95 duration-500 gap-3">
                         {/* Image Container */}
-                        <div className="relative max-h-[75%] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+                        <div className="relative w-full max-w-[280px] min-[420px]:max-w-[320px] sm:max-w-[360px] max-h-[70%] sm:max-h-[75%] aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                             <img src={generatedImage} alt="Generated" className="w-full h-full object-cover" />
                         </div>
                         
@@ -681,7 +696,7 @@ export default function GeneratePage() {
                         <div className="w-full max-w-sm bg-white/5 backdrop-blur-md rounded-xl border border-white/10 p-3">
                             {/* Prompt Text */}
                             {currentPrompt && (
-                                <p className="text-xs text-white/60 line-clamp-2 mb-3 leading-relaxed">
+                                <p className="text-[11px] sm:text-xs text-white/60 line-clamp-2 mb-3 leading-relaxed">
                                     {currentPrompt}
                                 </p>
                             )}
@@ -714,8 +729,8 @@ export default function GeneratePage() {
                                 </div>
                                 
                                 {/* Create Character */}
-                                <Link href={`/create?image=${encodeURIComponent(generatedImage)}`}>
-                                    <Button size="sm" className="h-8 bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-lg shadow-primary/20 rounded-lg px-3 text-xs font-medium">
+                                <Link href={`/create?image=${encodeURIComponent(generatedImage)}`} className="shrink-0">
+                                    <Button size="sm" className="h-8 bg-primary hover:bg-primary/90 text-white gap-1.5 shadow-lg shadow-primary/20 rounded-lg px-3 text-[11px] sm:text-xs font-medium">
                                         <UserPlus className="w-3.5 h-3.5" />
                                         {t('generate.create_character')}
                                     </Button>
@@ -734,8 +749,8 @@ export default function GeneratePage() {
                             <div className="absolute -inset-8 bg-gradient-to-r from-purple-600/30 via-pink-500/20 to-blue-600/30 rounded-[3rem] blur-3xl animate-pulse" />
                             
                             {/* Floating Card */}
-                            <div 
-                                className="relative w-72 h-96 rounded-3xl overflow-hidden shadow-2xl animate-float"
+                            <div
+                                className="relative w-full max-w-[280px] min-[420px]:max-w-[320px] h-[240px] sm:h-[360px] lg:h-[420px] rounded-3xl overflow-hidden shadow-2xl animate-float"
                                 style={{
                                     transform: 'translateZ(50px) rotateX(5deg)',
                                     transformStyle: 'preserve-3d',
@@ -844,8 +859,8 @@ export default function GeneratePage() {
                         </div>
 
                         {/* Text Section */}
-                        <div className="text-center space-y-4 mt-4">
-                            <h3 className="text-3xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent animate-gradient-x">
+                        <div className="text-center space-y-3 sm:space-y-4 mt-3 sm:mt-4">
+                            <h3 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400 bg-clip-text text-transparent animate-gradient-x">
                                 {t('generate.dreaming')}
                             </h3>
                             <div className="flex items-center justify-center gap-3">
@@ -872,7 +887,7 @@ export default function GeneratePage() {
                     // INSPIRATION GALLERY (STANDBY MODE) - 3D Card Stack
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center">
                         {/* 3D Card Stack Container */}
-                        <div className="relative h-[420px] w-full flex items-center justify-center" style={{ perspective: '1000px' }}>
+                        <div className="relative h-[220px] min-[420px]:h-[260px] sm:h-[360px] lg:h-[420px] w-full flex items-center justify-center" style={{ perspective: '1000px' }}>
                             {INSPIRATION_GALLERY.map((item, index) => {
                                 // Calculate relative position for stack effect
                                 const offset = (index - galleryIndex + INSPIRATION_GALLERY.length) % INSPIRATION_GALLERY.length;
@@ -906,10 +921,14 @@ export default function GeneratePage() {
                                     opacity = 0;
                                 }
 
+                                if (isGalleryCompact && offset !== 0) {
+                                    x = x * 0.6;
+                                }
+
                                 return (
                                     <div
                                         key={index}
-                                        className="absolute w-[240px] md:w-[280px] aspect-[3/4] cursor-pointer transition-all duration-500 ease-out"
+                                        className="absolute w-[180px] min-[420px]:w-[200px] sm:w-[240px] md:w-[280px] aspect-[3/4] cursor-pointer transition-all duration-500 ease-out"
                                         style={{
                                             transform: `translateX(${x}px) scale(${scale}) rotateY(${rotateY}deg)`,
                                             opacity,
@@ -1003,7 +1022,7 @@ export default function GeneratePage() {
             </div>
 
             {/* HISTORY BAR (Bottom of Right Panel) */}
-            <div className="h-auto min-h-[160px] border-t border-white/5 bg-black/20 backdrop-blur-md z-20 flex flex-col justify-center p-6">
+            <div className="h-auto min-h-[120px] sm:min-h-[160px] border-t border-white/5 bg-black/20 backdrop-blur-md z-20 flex flex-col justify-center p-4 sm:p-6">
                 <Label className="text-xs font-medium text-white/50 mb-2 uppercase tracking-wider px-1">{t('generate.recent_creations')}</Label>
                 <div className="flex gap-4 overflow-x-auto p-4 custom-scrollbar snap-x items-center">
                     {history === undefined ? (

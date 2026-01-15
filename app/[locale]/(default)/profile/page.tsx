@@ -125,11 +125,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col w-full min-h-screen text-white p-6 md:p-12 space-y-10 max-w-[1920px] mx-auto">
+    <div className="flex flex-col w-full min-h-screen text-white p-4 sm:p-6 md:p-12 space-y-8 sm:space-y-10 max-w-[1920px] mx-auto">
       {/* 1. 顶部用户信息区域 */}
       <div className="flex flex-col gap-6">
         {/* Banner 区域 */}
-        <div className="h-80 w-full rounded-2xl relative overflow-hidden border border-white/5 group">
+        <div className="h-56 sm:h-72 md:h-80 w-full rounded-2xl relative overflow-hidden border border-white/5 group"
            {/* Background Image */}
            <div className="absolute inset-0 bg-[url('/imgs/default_banner.png')] bg-cover bg-center transition-transform duration-700 group-hover:scale-105"></div>
            
@@ -137,10 +137,10 @@ export default function ProfilePage() {
            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
 
            {/* Content Positioned at Bottom */}
-           <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col md:flex-row items-end gap-6 z-10">
+           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 flex flex-col md:flex-row items-end gap-4 sm:gap-6 z-10">
                 {/* Avatar */}
                 <div className="relative shrink-0">
-                    <Avatar className="w-32 h-32 md:w-40 md:h-40 border-4 border-[#0a0a0a] shadow-2xl ring-1 ring-white/10">
+                    <Avatar className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 border-4 border-[#0a0a0a] shadow-2xl ring-1 ring-white/10">
                         <AvatarImage src={user.avatar_url} alt={user.nickname || "User"} className="object-cover" />
                         <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
                             {user.nickname?.charAt(0)?.toUpperCase() || "U"}
@@ -149,10 +149,10 @@ export default function ProfilePage() {
                 </div>
 
                 {/* User Info & Actions */}
-                <div className="flex-1 flex flex-col md:flex-row items-end justify-between gap-4 w-full pb-2">
+                <div className="flex-1 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 w-full pb-2">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight drop-shadow-lg">{convexUser?.name || user.nickname || "User"}</h1>
+                            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white tracking-tight drop-shadow-lg">{convexUser?.name || user.nickname || "User"}</h1>
                             <Badge 
                               variant={subscriptionTier !== 'free' ? "default" : "secondary"} 
                               className={`h-6 px-3 shadow-lg ${subscriptionTier === 'ultimate' ? 'bg-yellow-500' : subscriptionTier === 'pro' ? 'bg-purple-500' : subscriptionTier === 'plus' ? 'bg-blue-500' : ''}`}
@@ -160,7 +160,7 @@ export default function ProfilePage() {
                                 {subscriptionTier.toUpperCase()}
                             </Badge>
                         </div>
-                        <p className="text-white/80 text-base font-medium drop-shadow-md">{user.email || "user@example.com"}</p>
+                        <p className="text-white/80 text-sm sm:text-base font-medium drop-shadow-md">{user.email || "user@example.com"}</p>
                     </div>
                     
                     <div className="flex items-center gap-3">
@@ -190,20 +190,20 @@ export default function ProfilePage() {
         {/* Companions 内容区域 */}
         <TabsContent value="companions" className="space-y-8 animate-in fade-in-50 duration-500">
             {/* 工具栏 */}
-            <div className="flex flex-col xl:flex-row gap-6 items-start xl:items-center justify-between">
+            <div className="flex flex-col xl:flex-row gap-3 sm:gap-6 items-stretch xl:items-center justify-between">
                 <div className="relative w-full xl:w-[500px]">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search Companions..." 
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                    <Input
+                        placeholder="Search Companions..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-12 h-12 text-base bg-black/20 border-white/10 focus:bg-black/40 focus:border-primary/50 transition-all rounded-full"
+                        className="pl-11 sm:pl-12 h-11 sm:h-12 text-sm sm:text-base bg-black/20 border-white/10 focus:bg-black/40 focus:border-primary/50 transition-all rounded-full"
                     />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto justify-end">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full xl:w-auto justify-start sm:justify-end">
                     <Select defaultValue="newest">
-                        <SelectTrigger className="w-[140px] h-12 bg-black/20 border-white/10 rounded-full">
+                        <SelectTrigger className="w-full sm:w-[140px] h-10 sm:h-12 bg-black/20 border-white/10 rounded-full">
                             <SelectValue placeholder="Sort by" />
                         </SelectTrigger>
                         <SelectContent>
@@ -213,23 +213,24 @@ export default function ProfilePage() {
                         </SelectContent>
                     </Select>
 
-                    <Button variant="outline" size="icon" className="h-12 w-12 bg-black/20 border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/50 rounded-full transition-all">
-                        <Filter className="w-5 h-5" />
+                    <Button variant="outline" size="icon" className="h-10 w-10 sm:h-12 sm:w-12 bg-black/20 border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/50 rounded-full transition-all">
+                        <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
                     </Button>
 
-                    <div className="flex items-center gap-3 px-4 h-12 bg-black/20 rounded-full border border-white/10">
-                        <span className="text-sm font-medium text-muted-foreground">NSFW</span>
-                        <Switch 
-                            checked={isNsfw} 
+                    <div className="flex items-center gap-2 px-3 h-10 sm:h-12 bg-black/20 rounded-full border border-white/10">
+                        <span className="text-xs sm:text-sm font-medium text-muted-foreground">NSFW</span>
+                        <Switch
+                            checked={isNsfw}
                             onCheckedChange={setIsNsfw}
                             className="data-[state=checked]:bg-primary"
                         />
                     </div>
 
-                    <Link href="/create">
-                        <Button className="h-12 px-6 bg-primary hover:bg-primary/90 text-white gap-2 rounded-full text-base font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105">
-                            <Plus className="w-5 h-5" />
+                    <Link href="/create" className="w-full sm:w-auto">
+                        <Button className="h-10 sm:h-12 w-full sm:w-auto px-4 sm:px-6 bg-primary hover:bg-primary/90 text-white gap-2 rounded-full text-sm sm:text-base font-medium shadow-lg shadow-primary/20 transition-all sm:hover:scale-105">
+                            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                             <span className="hidden sm:inline">Create Companion</span>
+                            <span className="sm:hidden">Create</span>
                         </Button>
                     </Link>
                 </div>

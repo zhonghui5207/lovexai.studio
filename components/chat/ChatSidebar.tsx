@@ -136,7 +136,7 @@ export default function ChatSidebar({
   // 如果用户未登录，显示登录提示界面
   if (!session) {
     return (
-      <div className="w-80 bg-muted/30 border-r border-border flex items-center justify-center p-6">
+      <div className="w-full sm:w-80 bg-muted/30 border-r border-border flex items-center justify-center p-6">
         {/* 未登录提示内容 */}
         <div className="text-center text-muted-foreground">
           {/* 聊天图标，降低透明度表示不可用状态 */}
@@ -151,7 +151,7 @@ export default function ChatSidebar({
   // 🎯 已登录用户的主界面渲染
   return (
     // 主容器：固定宽度320px，背景色，右边框，垂直flex布局
-    <div className="w-80 bg-background/20 border-r-2 border-border shadow-md flex flex-col">
+    <div className="w-full sm:w-80 bg-background/20 border-r-2 border-border shadow-md flex flex-col">
 
       {/* 📋 顶部Header区域 */}
       <div className="p-5 pt-6 border-b border-white/5 bg-transparent">

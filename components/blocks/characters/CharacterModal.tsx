@@ -125,13 +125,13 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] p-0 bg-background border-border overflow-hidden">
+      <DialogContent className="w-[95vw] sm:w-full max-w-4xl h-[85vh] sm:h-[80vh] p-0 bg-background border-border overflow-hidden">
         <DialogTitle className="sr-only">
           {character.name} - Character Details
         </DialogTitle>
-        <div className="flex h-full">
+        <div className="flex h-full flex-col sm:flex-row">
           {/* Left side - Character Image */}
-          <div className="relative w-1/2 bg-gradient-to-br from-muted/50 to-muted/80">
+          <div className="relative w-full sm:w-1/2 h-[42vh] sm:h-auto bg-gradient-to-br from-muted/50 to-muted/80">
             <img
               src={character.avatar}
               alt={character.name}
@@ -149,28 +149,28 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
           </div>
 
           {/* Right side - Character Details */}
-          <div className="w-1/2 bg-[#0f1117] text-white flex flex-col h-full relative">
+          <div className="w-full sm:w-1/2 bg-[#0f1117] text-white flex flex-col h-full relative">
 
 
-            <div className="p-6 flex-1 flex flex-col pb-2 overflow-hidden">
+            <div className="p-4 sm:p-6 flex-1 flex flex-col pb-2 overflow-hidden">
               {/* Header */}
-              <div className="mb-6 flex-shrink-0">
+              <div className="mb-4 sm:mb-6 flex-shrink-0">
                 <div className="flex items-center justify-between mb-2 pr-12">
-                  <h2 className="text-2xl font-bold text-white">{character.name}</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">{character.name}</h2>
                 </div>
 
-                <div className="flex items-center gap-3 text-white/60">
+                <div className="flex flex-wrap items-center gap-2 text-white/60 text-xs sm:text-sm">
                   <span>@{character.username || character.name.toLowerCase()}</span>
                   <span className="flex items-center gap-1">
-                    <MessageCircle className="h-4 w-4" />
+                    <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     {character.chatCount}
                   </span>
                 </div>
               </div>
 
               {/* Character Description */}
-              <div className="mb-6 flex-shrink-0">
-                <p className="text-white/80 leading-relaxed">
+              <div className="mb-4 sm:mb-6 flex-shrink-0">
+                <p className="text-white/80 leading-relaxed text-sm sm:text-base">
                   {renderActionText(character.greeting)}
                 </p>
               </div>
@@ -208,7 +208,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
             </div>
 
             {/* Action Buttons - Fixed at bottom */}
-            <div className="p-6 pt-0 bg-[#0f1117]">
+            <div className="p-4 sm:p-6 pt-0 bg-[#0f1117]">
               {/* Error Message */}
               {createError && (
                 <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
@@ -216,9 +216,9 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
                 </div>
               )}
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <Button
-                  className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-4 sm:py-6 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handleStartChat}
                   disabled={isCreatingChat}
                 >
@@ -235,7 +235,7 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
                 <div className="relative">
                   <Button
                     variant="outline"
-                    className="border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white px-6 py-6 rounded-xl flex items-center gap-2 font-medium transition-all"
+                    className="border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white px-4 sm:px-6 py-4 sm:py-6 rounded-xl flex items-center justify-center gap-2 font-medium transition-all w-full"
                     onClick={() => setShowCreateOptions(!showCreateOptions)}
                   >
                     Create

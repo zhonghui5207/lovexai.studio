@@ -87,6 +87,8 @@ function CharacterCard({ character, onClick, chatsSuffix, liveLabel, chatNowLabe
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setIsHovered(false)}
     >
       {/* Image Layer */}
       <div className={`absolute inset-0 overflow-hidden transition-all duration-700 ${isLoading ? 'scale-110 blur-xl grayscale' : 'scale-100 blur-0 grayscale-0'}`}>
@@ -167,7 +169,7 @@ function CharacterCard({ character, onClick, chatsSuffix, liveLabel, chatNowLabe
         </p>
         
         {/* Tags - Visible on Hover */}
-        <div className="flex flex-wrap gap-1 opacity-0 h-0 group-hover:opacity-100 group-hover:h-auto transition-all duration-300 delay-100">
+        <div className="flex flex-wrap gap-1 opacity-100 h-auto md:opacity-0 md:h-0 md:group-hover:opacity-100 md:group-hover:h-auto transition-all duration-300 delay-100">
           {character.traits?.slice(0, 2).map((trait, i) => (
             <span key={i} className="text-[10px] px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
               {getTraitLabel(trait)}
@@ -176,7 +178,7 @@ function CharacterCard({ character, onClick, chatsSuffix, liveLabel, chatNowLabe
         </div>
 
         {/* Chat Button - Visible on Hover */}
-        <div className="mt-4 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 delay-75">
+        <div className="mt-4 opacity-100 translate-y-0 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 delay-75">
           <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold shadow-lg shadow-primary/20">
             {chatNowLabel}
           </Button>
@@ -354,9 +356,9 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
         </div>
         
         {/* Character Grid */}
-        <motion.div 
+        <motion.div
           layout
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 w-full"
+          className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 w-full"
         >
           <AnimatePresence mode="popLayout">
             {loading ? (
