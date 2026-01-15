@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { Send, MoreVertical, Settings, RotateCcw, Flag, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import GenerationSettingsModal from "./GenerationSettingsModal";
+import dynamic from "next/dynamic";
 import FormattedMessage from "./FormattedMessage";
 import CreditDisplay from "./CreditDisplay";
 import ErrorDisplay from "./ErrorDisplay";
@@ -18,11 +18,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import InsufficientCreditsDialog from "./InsufficientCreditsDialog";
 import { useCredits } from "@/contexts/CreditsContext";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+
+// 动态导入弹窗组件，减少首屏加载体积
+const GenerationSettingsModal = dynamic(() => import("./GenerationSettingsModal"), {
+  loading: () => <div className="p-4">Loading...</div>,
+  ssr: false,
+});
+
+const InsufficientCreditsDialog = dynamic(() => import("./InsufficientCreditsDialog"), {
+  loading: () => <div className="p-4">Loading...</div>,
+  ssr: false,
+});
 
 interface Message {
   id: string;

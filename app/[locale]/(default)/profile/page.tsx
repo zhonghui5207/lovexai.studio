@@ -11,11 +11,20 @@ import { Search, Filter, Plus, User as UserIcon, Heart, Bookmark, MessageCircle,
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
-import { ProfileSettingsDialog } from "@/components/profile/ProfileSettingsDialog";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
+
+// 动态导入设置弹窗
+const ProfileSettingsDialog = dynamic(
+  () => import("@/components/profile/ProfileSettingsDialog").then(mod => ({ default: mod.ProfileSettingsDialog })),
+  {
+    loading: () => <div className="p-4">Loading...</div>,
+    ssr: false,
+  }
+);
 
 export default function ProfilePage() {
   const { user } = useAppContext();
