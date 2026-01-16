@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { User } from "@/types/user";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
@@ -26,6 +26,12 @@ interface SignUserProps {
 
 export default function SignUser({ user, children, open, onOpenChange }: SignUserProps) {
   const t = useTranslations();
+  const router = useRouter();
+
+  const handleProfileClick = () => {
+    onOpenChange?.(false);
+    router.push("/profile");
+  };
 
   return (
     <DropdownMenu open={open} onOpenChange={onOpenChange} modal={false}>
@@ -45,8 +51,11 @@ export default function SignUser({ user, children, open, onOpenChange }: SignUse
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem className="flex justify-center cursor-pointer text-muted-foreground focus:text-foreground focus:bg-white/10 transition-colors">
-          <Link href="/profile" className="w-full text-center py-1">Profile</Link>
+        <DropdownMenuItem
+          className="flex justify-center cursor-pointer text-muted-foreground focus:text-foreground focus:bg-white/10 transition-colors"
+          onClick={handleProfileClick}
+        >
+          <span className="w-full text-center py-1">Profile</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

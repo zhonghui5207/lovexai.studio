@@ -6,11 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Search, Filter, Plus, User as UserIcon, Heart, Bookmark, MessageCircle, Lock, Globe, X, ImageIcon } from "lucide-react";
+import { Search, Plus, User as UserIcon, Heart, Bookmark, MessageCircle, Lock, Globe, X, ImageIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
@@ -28,8 +26,6 @@ const ProfileSettingsDialog = dynamic(
 
 export default function ProfilePage() {
   const { user } = useAppContext();
-  const router = useRouter();
-  const [isNsfw, setIsNsfw] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Convex hooks
@@ -125,22 +121,54 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col w-full min-h-screen text-white p-4 sm:p-6 md:p-12 space-y-8 sm:space-y-10 max-w-[1920px] mx-auto">
-      {/* 1. 顶部用户信息区域 */}
-      <div className="flex flex-col gap-6">
-        {/* Banner 区域 */}
-        <div className="h-56 sm:h-72 md:h-80 w-full rounded-2xl relative overflow-hidden border border-white/5 group">
+    <div className="flex flex-col w-full min-h-screen text-white p-4 sm:p-6 md:p-12 space-y-4 sm:space-y-6 md:space-y-10 max-w-[1920px] mx-auto">
+      {/* 1. 顶部用户信息区域 - 移动端紧凑布局 */}
+      <div className="flex flex-col gap-4 sm:gap-6">
+        {/* 移动端: 紧凑头部 */}
+        <div className="md:hidden">
+          <div className="flex items-start gap-4">
+            {/* Avatar - 左侧 */}
+            <Avatar className="w-20 h-20 border-2 border-white/10 shadow-xl flex-shrink-0">
+              <AvatarImage src={user.avatar_url} alt={user.nickname || "User"} className="object-cover" />
+              <AvatarFallback className="bg-primary text-primary-foreground text-2xl">
+                {user.nickname?.charAt(0)?.toUpperCase() || "U"}
+              </AvatarFallback>
+            </Avatar>
+
+            {/* 右侧: 信息 */}
+            <div className="flex-1 min-w-0">
+              {/* 名字 */}
+              <h1 className="text-lg font-bold text-white truncate mb-0.5">
+                {convexUser?.name || user.nickname || "User"}
+              </h1>
+              {/* @用户名 + 等级 + 设置按钮 */}
+              <div className="flex items-center gap-2">
+                <span className="text-white/50 text-sm truncate">@{user.email?.split('@')[0] || "user"}</span>
+                <Badge
+                  variant={subscriptionTier !== 'free' ? "default" : "secondary"}
+                  className={`h-5 px-2 text-[10px] ${subscriptionTier === 'ultimate' ? 'bg-yellow-500' : subscriptionTier === 'pro' ? 'bg-purple-500' : subscriptionTier === 'plus' ? 'bg-blue-500' : ''}`}
+                >
+                  {subscriptionTier.toUpperCase()}
+                </Badge>
+                <ProfileSettingsDialog user={user} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 桌面端: Banner 区域 */}
+        <div className="hidden md:block h-72 lg:h-80 w-full rounded-2xl relative overflow-hidden border border-white/5 group">
            {/* Background Image */}
            <div className="absolute inset-0 bg-[url('/imgs/default_banner.png')] bg-cover bg-center transition-transform duration-700 group-hover:scale-105"></div>
-           
-           {/* Gradient Overlay - Stronger at bottom for text readability */}
+
+           {/* Gradient Overlay */}
            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
 
            {/* Content Positioned at Bottom */}
-           <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 flex flex-col md:flex-row items-end gap-4 sm:gap-6 z-10">
+           <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8 flex flex-row items-end gap-6 z-10">
                 {/* Avatar */}
                 <div className="relative shrink-0">
-                    <Avatar className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 border-4 border-[#0a0a0a] shadow-2xl ring-1 ring-white/10">
+                    <Avatar className="w-32 lg:w-40 h-32 lg:h-40 border-4 border-[#0a0a0a] shadow-2xl ring-1 ring-white/10">
                         <AvatarImage src={user.avatar_url} alt={user.nickname || "User"} className="object-cover" />
                         <AvatarFallback className="bg-primary text-primary-foreground text-5xl">
                             {user.nickname?.charAt(0)?.toUpperCase() || "U"}
@@ -149,20 +177,20 @@ export default function ProfilePage() {
                 </div>
 
                 {/* User Info & Actions */}
-                <div className="flex-1 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 w-full pb-2">
+                <div className="flex-1 flex flex-row items-end justify-between gap-4 w-full pb-2">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white tracking-tight drop-shadow-lg">{convexUser?.name || user.nickname || "User"}</h1>
-                            <Badge 
-                              variant={subscriptionTier !== 'free' ? "default" : "secondary"} 
+                            <h1 className="text-3xl lg:text-5xl font-bold text-white tracking-tight drop-shadow-lg">{convexUser?.name || user.nickname || "User"}</h1>
+                            <Badge
+                              variant={subscriptionTier !== 'free' ? "default" : "secondary"}
                               className={`h-6 px-3 shadow-lg ${subscriptionTier === 'ultimate' ? 'bg-yellow-500' : subscriptionTier === 'pro' ? 'bg-purple-500' : subscriptionTier === 'plus' ? 'bg-blue-500' : ''}`}
                             >
                                 {subscriptionTier.toUpperCase()}
                             </Badge>
                         </div>
-                        <p className="text-white/80 text-sm sm:text-base font-medium drop-shadow-md">{user.email || "user@example.com"}</p>
+                        <p className="text-white/80 text-base font-medium drop-shadow-md">{user.email || "user@example.com"}</p>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
                         <ProfileSettingsDialog user={user} />
                     </div>
@@ -173,13 +201,13 @@ export default function ProfilePage() {
 
       {/* 2. 标签页导航与内容 */}
       <Tabs defaultValue="companions" className="w-full">
-        <div className="border-b border-white/10 mb-8">
-            <TabsList className="bg-transparent h-auto p-0 space-x-8">
+        <div className="border-b border-white/10 mb-4 sm:mb-6 md:mb-8 overflow-x-auto">
+            <TabsList className="bg-transparent h-auto p-0 space-x-4 sm:space-x-6 md:space-x-8 min-w-max">
                 {["Companions", "Favorites", "Images", "Personas"].map((tab) => (
-                    <TabsTrigger 
+                    <TabsTrigger
                         key={tab}
-                        value={tab.toLowerCase()} 
-                        className="bg-transparent px-0 py-4 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-white text-lg font-medium transition-all hover:text-white/80"
+                        value={tab.toLowerCase()}
+                        className="bg-transparent px-0 py-2.5 sm:py-3 md:py-4 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none text-muted-foreground data-[state=active]:text-white text-sm sm:text-base md:text-lg font-medium transition-all hover:text-white/80"
                     >
                         {tab}
                     </TabsTrigger>
@@ -188,22 +216,22 @@ export default function ProfilePage() {
         </div>
 
         {/* Companions 内容区域 */}
-        <TabsContent value="companions" className="space-y-8 animate-in fade-in-50 duration-500">
-            {/* 工具栏 */}
-            <div className="flex flex-col xl:flex-row gap-3 sm:gap-6 items-stretch xl:items-center justify-between">
-                <div className="relative w-full xl:w-[500px]">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+        <TabsContent value="companions" className="space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in-50 duration-500">
+            {/* 工具栏 - 简化版 */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                <div className="relative flex-1 sm:max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                         placeholder="Search Companions..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-11 sm:pl-12 h-11 sm:h-12 text-sm sm:text-base bg-black/20 border-white/10 focus:bg-black/40 focus:border-primary/50 transition-all rounded-full"
+                        className="pl-9 h-10 text-sm bg-black/20 border-white/10 focus:bg-black/40 focus:border-primary/50 transition-all rounded-full"
                     />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full xl:w-auto justify-start sm:justify-end">
+                <div className="flex items-center gap-2">
                     <Select defaultValue="newest">
-                        <SelectTrigger className="w-full sm:w-[140px] h-10 sm:h-12 bg-black/20 border-white/10 rounded-full">
+                        <SelectTrigger className="w-[120px] h-10 bg-black/20 border-white/10 rounded-full text-sm">
                             <SelectValue placeholder="Sort by" />
                         </SelectTrigger>
                         <SelectContent>
@@ -212,32 +240,11 @@ export default function ProfilePage() {
                             <SelectItem value="oldest" className="focus:bg-primary focus:text-white cursor-pointer">Oldest</SelectItem>
                         </SelectContent>
                     </Select>
-
-                    <Button variant="outline" size="icon" className="h-10 w-10 sm:h-12 sm:w-12 bg-black/20 border-white/10 hover:bg-primary/10 hover:text-primary hover:border-primary/50 rounded-full transition-all">
-                        <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </Button>
-
-                    <div className="flex items-center gap-2 px-3 h-10 sm:h-12 bg-black/20 rounded-full border border-white/10">
-                        <span className="text-xs sm:text-sm font-medium text-muted-foreground">NSFW</span>
-                        <Switch
-                            checked={isNsfw}
-                            onCheckedChange={setIsNsfw}
-                            className="data-[state=checked]:bg-primary"
-                        />
-                    </div>
-
-                    <Link href="/create" className="w-full sm:w-auto">
-                        <Button className="h-10 sm:h-12 w-full sm:w-auto px-4 sm:px-6 bg-primary hover:bg-primary/90 text-white gap-2 rounded-full text-sm sm:text-base font-medium shadow-lg shadow-primary/20 transition-all sm:hover:scale-105">
-                            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                            <span className="hidden sm:inline">Create Companion</span>
-                            <span className="sm:hidden">Create</span>
-                        </Button>
-                    </Link>
                 </div>
             </div>
 
             {/* 内容网格 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
                 {myCharacters === undefined ? (
                     // Loading state
                     Array.from({ length: 4 }).map((_, i) => (
@@ -322,8 +329,8 @@ export default function ProfilePage() {
             </div>
         </TabsContent>
 
-        <TabsContent value="favorites" className="space-y-8 animate-in fade-in-50 duration-500">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+        <TabsContent value="favorites" className="space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in-50 duration-500">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 md:gap-6">
                 {myFavorites === undefined ? (
                     // Loading state
                     Array.from({ length: 4 }).map((_, i) => (
@@ -387,8 +394,8 @@ export default function ProfilePage() {
             </div>
         </TabsContent>
 
-        <TabsContent value="images" className="space-y-8 animate-in fade-in-50 duration-500">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+        <TabsContent value="images" className="space-y-4 sm:space-y-6 md:space-y-8 animate-in fade-in-50 duration-500">
+            <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
                 {myImages === undefined ? (
                     // Loading state
                     Array.from({ length: 6 }).map((_, i) => (
@@ -447,11 +454,11 @@ export default function ProfilePage() {
         </TabsContent>
 
         <TabsContent value="personas">
-             <div className="flex flex-col items-center justify-center py-32 text-muted-foreground bg-white/5 rounded-2xl border border-white/5 border-dashed">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                     <UserIcon className="w-8 h-8 opacity-50" />
+             <div className="flex flex-col items-center justify-center py-16 sm:py-24 md:py-32 text-muted-foreground bg-white/5 rounded-2xl border border-white/5 border-dashed">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/5 flex items-center justify-center mb-3 sm:mb-4">
+                     <UserIcon className="w-6 h-6 sm:w-8 sm:h-8 opacity-50" />
                 </div>
-                <p className="text-lg">No personas created yet.</p>
+                <p className="text-sm sm:text-lg">No personas created yet.</p>
             </div>
         </TabsContent>
       </Tabs>
