@@ -11,6 +11,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { ThemeProvider } from "@/providers/theme";
 import { cn } from "@/lib/utils";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
+import Script from "next/script";
 
 // Configure local font
 // You need to place the font file in /app/fonts/ABCFavorit-Variable.ttf
@@ -134,17 +135,12 @@ export default async function RootLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
         {process.env.NEXT_PUBLIC_AUTH_GOOGLE_ONE_TAP_ENABLED === "true" &&
          process.env.NEXT_PUBLIC_AUTH_GOOGLE_ID && (
-          <script
+          <Script
             src="https://accounts.google.com/gsi/client"
-            async
-            defer
-          ></script>
+            strategy="afterInteractive"
+          />
         )}
       </head>
       <body
@@ -155,6 +151,11 @@ export default async function RootLayout({
         )}
         suppressHydrationWarning
       >
+        <Script
+          id="json-ld"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <NextIntlClientProvider messages={messages}>
           <NextAuthSessionProvider>
             <ConvexClientProvider>

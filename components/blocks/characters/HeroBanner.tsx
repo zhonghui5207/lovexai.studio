@@ -155,9 +155,10 @@ export default function HeroBanner() {
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full pointer-events-none" />
       
-      <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-8 items-center relative z-10">
+      <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
         {/* Left Content: Text - Static, no animation to avoid flash */}
-        <div className="lg:col-span-6 text-center lg:text-left space-y-6 sm:space-y-8 pt-10 sm:pt-12 lg:pt-0 relative z-20">
+        <div className="lg:col-span-6 text-center lg:text-left space-y-4 sm:space-y-8 pt-6 sm:pt-12 lg:pt-0 relative z-20">
+          {/* Title & Description */}
           <div>
             <h1 className="text-3xl sm:text-5xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-6 leading-tight">
               {t('title_line1')} <br />
@@ -171,6 +172,55 @@ export default function HeroBanner() {
             {t('description')}
           </h2>
 
+          {/* Mobile: Card Stack between text and buttons */}
+          <div className="lg:hidden relative h-[280px] flex items-center justify-center perspective-1000">
+            <AnimatePresence mode="popLayout">
+              {heroCharacters.map((character, index) => {
+                const offset = (index - currentIndex + heroCharacters.length) % heroCharacters.length;
+                if (offset > 2 && offset !== heroCharacters.length - 1) return null;
+
+                let zIndex = 0, scale = 0.8, opacity = 0, x = 0, rotateY = 0;
+                if (offset === 0) { zIndex = 30; scale = 1; opacity = 1; x = 0; rotateY = 0; }
+                else if (offset === 1) { zIndex = 20; scale = 0.85; opacity = 0.6; x = 66; rotateY = -15; }
+                else { zIndex = 10; scale = 0.85; opacity = 0.6; x = -66; rotateY = 15; }
+
+                return (
+                  <motion.div
+                    key={`mobile-${character.id}`}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale, opacity, x, rotateY, zIndex }}
+                    exit={{ scale: 0.5, opacity: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="absolute w-[160px] aspect-[3/4] cursor-pointer"
+                    onClick={() => { if (offset === 0) handleCharacterClick(character); else setCurrentIndex(index); }}
+                    style={{ transformStyle: 'preserve-3d' }}
+                  >
+                    <div className={`relative h-full w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl ${offset === 0 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/20' : ''}`}>
+                      <CdnImage src={character.avatar} alt={character.name} fill className="object-cover" />
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[9px] font-bold uppercase tracking-wider text-white/90">
+                          {character.traits[0]}
+                        </span>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-20">
+                        <h3 className="font-heading text-xl font-bold mb-1">{character.name}</h3>
+                        <p className="text-xs text-white/80 line-clamp-2 mb-2">"{renderActionText(character.greeting)}"</p>
+                        {offset === 0 && (
+                          <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                            <span className="text-[10px] text-white/70"><span className="text-primary">🔥</span> {character.chatCount}</span>
+                            <span className="text-[10px] font-bold text-white bg-white/10 px-2 py-1 rounded-full">{t('chat_button')} 💬</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+
+          {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
             <Button
               size="lg"
@@ -190,7 +240,8 @@ export default function HeroBanner() {
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 sm:gap-6 justify-center lg:justify-start pt-3 sm:pt-4">
+          {/* Stats */}
+          <div className="flex flex-wrap items-center gap-3 sm:gap-6 justify-center lg:justify-start pt-2 sm:pt-4">
             <div className="flex -space-x-2 sm:-space-x-3">
               {["A", "M", "S", "K"].map((letter, i) => (
                 <div
@@ -214,9 +265,9 @@ export default function HeroBanner() {
             </div>
           </div>
         </div>
-        
-        {/* Right Content: 3D Card Stack */}
-        <div className="lg:col-span-6 relative h-[260px] sm:h-[400px] lg:h-[600px] flex items-center justify-center perspective-1000 z-10">
+
+        {/* Desktop: Right Content - 3D Card Stack */}
+        <div className="hidden lg:flex lg:col-span-6 relative h-[600px] items-center justify-center perspective-1000 z-10">
           <AnimatePresence mode="popLayout">
             {heroCharacters.map((character, index) => {
               // Calculate relative position for stack effect

@@ -6,17 +6,10 @@ import { useSession } from "next-auth/react"; // 获取用户认证状态
 import { useTranslations } from "next-intl"; // 国际化
 
 // 图标库导入 - lucide-react 是现代化的图标库
-import { MessageCircle, Search, Plus } from "lucide-react";
+import { MessageCircle, Search } from "lucide-react";
 
 // UI组件导入 - 来自项目自定义的UI组件库
 import { Badge } from "@/components/ui/badge"; // 徽章/标签组件
-import { Button } from "@/components/ui/button"; // 按钮组件
-import {
-  DropdownMenu,           // 下拉菜单容器
-  DropdownMenuContent,    // 下拉菜单内容区域
-  DropdownMenuItem,       // 下拉菜单单个选项
-  DropdownMenuTrigger,    // 触发下拉菜单的按钮/元素
-} from "@/components/ui/dropdown-menu";
 import Image from "next/image";
 
 // TypeScript 接口定义 - 类型安全
@@ -155,61 +148,7 @@ export default function ChatSidebar({
 
       {/* 📋 顶部Header区域 */}
       <div className="p-5 pt-6 border-b border-white/5 bg-transparent">
-        {/* 标题和新建按钮的横向布局 */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white tracking-tight">{t('chat.title')}</h2>
-
-          <div className="flex items-center gap-1">
-            {/* 🆕 新建聊天下拉菜单 */}
-            <DropdownMenu>
-              {/* 触发下拉菜单的按钮 */}
-              <DropdownMenuTrigger asChild>
-                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors">
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              {/* 下拉菜单内容区域 */}
-              <DropdownMenuContent align="end" className="w-64 bg-[#1a1d26] border-white/10 text-white">
-                {/* 遍历所有可用角色，为每个角色创建菜单项 */}
-                {availableCharacters.map((character) => (
-                  <DropdownMenuItem
-                    key={character.id} // React需要的唯一key
-                    onClick={() => handleNewChatClick(character)} // 点击时调用处理函数
-                    className="flex items-center gap-3 p-3 hover:bg-white/5 focus:bg-white/5 cursor-pointer"
-                  >
-                    {/* 角色头像 */}
-                    <div className="relative w-8 h-8 flex-shrink-0">
-                      <Image
-                        src={character.avatar_url}
-                        alt={character.name}
-                        fill
-                        className="rounded-lg object-cover"
-                        sizes="32px"
-                      />
-                    </div>
-
-                    {/* 角色信息区域 */}
-                    <div className="flex-1 min-w-0">
-                      {/* 角色名和徽章 */}
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-sm truncate text-white/90">{character.name}</p>
-                        {/* 如果角色是高级订阅，显示Pro徽章 */}
-                        {character.access_level === 'premium' && (
-                          <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-primary/20 text-primary border-primary/20">Pro</Badge>
-                        )}
-                      </div>
-                      {/* 角色描述 */}
-                      <p className="text-xs text-white/50 truncate">
-                        {character.description}
-                      </p>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+        <h2 className="text-2xl font-bold text-white tracking-tight">{t('chat.title')}</h2>
       </div>
 
       {/* 💬 对话列表区域 */}

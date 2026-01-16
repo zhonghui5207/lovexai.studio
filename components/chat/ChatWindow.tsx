@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, Suspense } from "react";
-import { Send, MoreVertical, Settings, RotateCcw, Flag, Trash2 } from "lucide-react";
+import { Send, MoreVertical, Settings, RotateCcw, Flag, Trash2, ChevronLeft, PanelRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -68,9 +68,11 @@ interface ChatWindowProps {
   convexUserId?: Id<"users"> | null;
   conversationId?: Id<"conversations"> | null;
   onConversationDeleted?: () => void;
+  onOpenConversations?: () => void;
+  onOpenCharacterPanel?: () => void;
 }
 
-export default function ChatWindow({ character, messages, onSendMessage, isTyping = false, isLoading = false, creditsPerMessage = 1, convexUserId, conversationId, onConversationDeleted }: ChatWindowProps) {
+export default function ChatWindow({ character, messages, onSendMessage, isTyping = false, isLoading = false, creditsPerMessage = 1, convexUserId, conversationId, onConversationDeleted, onOpenConversations, onOpenCharacterPanel }: ChatWindowProps) {
   const { credits } = useCredits();
   const t = useTranslations();
   const [newMessage, setNewMessage] = useState("");
@@ -243,49 +245,73 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
 
   return (
     <div className="flex flex-col h-full">
-      {/* Chat Header - Transparent blend with background */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 py-3 z-20 gap-3">
-        {/* Left side - Character info */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="relative">
+      {/* Chat Header - Clean single row layout */}
+      <div className="flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 z-20 border-b border-white/5 bg-background/80 backdrop-blur-md">
+        {/* Left side - Conversations button + Character info */}
+        <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
+          {/* Conversations list button (mobile: opens drawer, desktop: hidden) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 hover:bg-white/10 rounded-xl flex-shrink-0 md:hidden"
+            onClick={onOpenConversations}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+
+          {/* Avatar + Name */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img
               src={character.avatar_url}
               alt={character.name}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face';
               }}
             />
-          </div>
-          <div className="min-w-0">
-            <h3 className="font-semibold truncate">{character.name}</h3>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">
-              {character.traits?.slice(0, 2).join(' • ') || t('chat.ai_companion')}
-            </p>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base truncate">{character.name}</h3>
+              <p className="text-xs text-muted-foreground truncate hidden sm:block">
+                {character.traits?.slice(0, 2).join(' • ') || t('chat.ai_companion')}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Right side - Actions */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
+        {/* Right side - Credits + Settings + Character Panel + Menu */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {/* Credits display */}
           <Link href="/pricing?tab=credits">
-            <div className="bg-primary px-2.5 sm:px-3 py-1.5 rounded-xl flex items-center gap-1.5 hover:bg-primary/90 transition-all cursor-pointer shadow-lg shadow-primary/20 hover:shadow-primary/40 active:scale-95">
+            <div className="bg-primary/90 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full flex items-center gap-1 hover:bg-primary transition-all cursor-pointer text-xs sm:text-sm">
               <CreditDisplay creditsPerMessage={creditsPerMessage} simpleMode={true} />
             </div>
           </Link>
 
-          <Badge
-            variant="outline"
-            className="text-xs flex items-center gap-1 cursor-pointer hover:bg-muted px-2.5 sm:px-3 py-1.5 h-8 sm:h-9 rounded-xl border-white/10 bg-white/5 transition-all"
+          {/* Settings button - icon only on mobile */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-white/10 rounded-xl"
             onClick={() => setIsSettingsOpen(true)}
           >
-            <Settings className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{t('chat.settings')}</span>
-          </Badge>
+            <Settings className="h-4 w-4" />
+          </Button>
 
+          {/* Character Panel button (mobile only) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-white/10 rounded-xl lg:hidden"
+            onClick={onOpenCharacterPanel}
+          >
+            <PanelRight className="h-4 w-4" />
+          </Button>
+
+          {/* More menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-white/10 hover:text-white rounded-xl transition-colors">
-                <MoreVertical className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-white/10 rounded-xl">
+                <MoreVertical className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52 bg-[#0B0E14]/95 backdrop-blur-xl border-white/10 text-gray-200 rounded-xl shadow-2xl p-1">

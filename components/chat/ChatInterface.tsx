@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ChatSidebar from "./ChatSidebar";
 import ChatWindow from "./ChatWindow";
@@ -8,9 +9,8 @@ import { CreditsProvider, useCredits } from "../../contexts/CreditsContext";
 import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { MessageSquareText } from "lucide-react";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import Header from "@/components/blocks/header";
 
 interface Message {
   id: string;
@@ -83,7 +83,10 @@ function ChatInterface({
 }: ChatInterfaceProps) {
   const router = useRouter();
   const { updateCredits } = useCredits();
-  // const [isTyping, setIsTyping] = useState(false); // Removed
+
+  // Mobile drawer states
+  const [isConversationsOpen, setIsConversationsOpen] = useState(false);
+  const [isCharacterPanelOpen, setIsCharacterPanelOpen] = useState(false);
 
   // Convex Hooks
   const rawMessages = useQuery(
@@ -136,18 +139,29 @@ function ChatInterface({
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <div className="hidden md:flex">
-        <ChatSidebar
-          currentCharacterId={character.id}
-          currentConversationId={conversationId || null}
-          conversations={conversations}
-          onConversationSwitch={onConversationSwitch}
-          onNewChatWithCharacter={onNewChatWithCharacter}
-          availableCharacters={availableCharacters}
-        />
+    <div className="flex flex-col h-screen bg-background">
+      {/* Mobile Header - Same as homepage */}
+      <div className="md:hidden">
+        <Header header={{
+          brand: { title: "LOVEXAI", url: "/" },
+          show_sign: true,
+          show_locale: false,
+          disabled: false
+        }} />
       </div>
-      <div className="flex-1 flex relative">
+
+      <div className="flex flex-1 min-h-0">
+        <div className="hidden md:flex">
+          <ChatSidebar
+            currentCharacterId={character.id}
+            currentConversationId={conversationId || null}
+            conversations={conversations}
+            onConversationSwitch={onConversationSwitch}
+            onNewChatWithCharacter={onNewChatWithCharacter}
+            availableCharacters={availableCharacters}
+          />
+        </div>
+        <div className="flex-1 flex relative">
         {/* Background */}
         <div
           className="absolute inset-0 pointer-events-none transition-opacity duration-500"
@@ -169,7 +183,6 @@ function ChatInterface({
               messages={messages}
               onSendMessage={handleSendMessage}
               character={character}
-              // isTyping={isTyping} // Removed
               isLoading={rawMessages === undefined && !!conversationId}
               creditsPerMessage={character.credits_per_message}
               convexUserId={convexUserId}
@@ -191,10 +204,12 @@ function ChatInterface({
                   router.push('/discover');
                 }
               }}
+              onOpenConversations={() => setIsConversationsOpen(true)}
+              onOpenCharacterPanel={() => setIsCharacterPanelOpen(true)}
             />
           </div>
 
-          {/* Character Panel */}
+          {/* Character Panel - Desktop */}
           <div className="hidden lg:block lg:w-80 xl:w-96 z-20">
             <CharacterPanel
               character={character}
@@ -202,27 +217,43 @@ function ChatInterface({
               userId={convexUserId || undefined}
             />
           </div>
+        </div>
 
-          {/* Mobile Conversations Drawer */}
-          <div className="md:hidden absolute top-4 left-4 z-30">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl bg-white/5 hover:bg-white/10">
-                  <MessageSquareText className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-full max-w-none p-0 bg-background/95 border-white/10">
-                <ChatSidebar
-                  currentCharacterId={character.id}
-                  currentConversationId={conversationId || null}
-                  conversations={conversations}
-                  onConversationSwitch={onConversationSwitch}
-                  onNewChatWithCharacter={onNewChatWithCharacter}
-                  availableCharacters={availableCharacters}
-                />
-              </SheetContent>
-            </Sheet>
-          </div>
+        {/* Mobile Conversations Drawer */}
+        <Sheet open={isConversationsOpen} onOpenChange={setIsConversationsOpen}>
+          <SheetContent side="left" className="w-full max-w-none p-0 bg-background/98 backdrop-blur-xl border-r border-white/10">
+            <SheetTitle className="sr-only">Conversations</SheetTitle>
+            <ChatSidebar
+              currentCharacterId={character.id}
+              currentConversationId={conversationId || null}
+              conversations={conversations}
+              onConversationSwitch={(conv) => {
+                setIsConversationsOpen(false);
+                onConversationSwitch(conv);
+              }}
+              onNewChatWithCharacter={(char) => {
+                setIsConversationsOpen(false);
+                onNewChatWithCharacter(char);
+              }}
+              availableCharacters={availableCharacters}
+            />
+          </SheetContent>
+        </Sheet>
+
+        {/* Mobile Character Panel Drawer */}
+        <Sheet open={isCharacterPanelOpen} onOpenChange={setIsCharacterPanelOpen}>
+          <SheetContent side="right" className="w-full max-w-[320px] p-0 bg-background/98 backdrop-blur-xl border-l border-white/10">
+            <SheetTitle className="sr-only">Character Info</SheetTitle>
+            <CharacterPanel
+              character={character}
+              onSuggestionClick={(content) => {
+                setIsCharacterPanelOpen(false);
+                handleSendMessage(content);
+              }}
+              userId={convexUserId || undefined}
+            />
+          </SheetContent>
+        </Sheet>
         </div>
       </div>
     </div>

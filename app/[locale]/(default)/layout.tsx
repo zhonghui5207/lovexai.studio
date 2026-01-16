@@ -21,14 +21,14 @@ export default async function DefaultLayout({
       {/* Desktop Sidebar */}
       <Sidebar />
 
-      {/* Mobile Header */}
-      <div className="md:hidden">
-        {page.header && <Header header={page.header} />}
-      </div>
-
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:ml-20 transition-all duration-300 w-full relative">
-        {/* Top Filter Bar (Sticky) */}
+        {/* Mobile Header */}
+        <div className="md:hidden">
+          {page.header && <Header header={page.header} />}
+        </div>
+
+        {/* Desktop Top Filter Bar (Sticky) */}
         <div className="hidden md:block sticky top-0 z-40">
           <TopFilterBar />
         </div>
@@ -38,7 +38,7 @@ export default async function DefaultLayout({
         </main>
         {page.footer && <Footer footer={page.footer} />}
       </div>
-      
+
       {/* <Feedback socialLinks={page.footer?.social?.items} /> */}
     </div>
   );

@@ -125,13 +125,13 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] sm:w-full max-w-4xl h-[85vh] sm:h-[80vh] p-0 bg-background border-border overflow-hidden">
+      <DialogContent className="w-[95vw] sm:w-full max-w-4xl h-[85vh] sm:h-[80vh] p-0 bg-background border-border overflow-hidden touch-pan-y">
         <DialogTitle className="sr-only">
           {character.name} - Character Details
         </DialogTitle>
-        <div className="flex h-full flex-col sm:flex-row">
+        <div className="flex h-full flex-col sm:flex-row overflow-hidden">
           {/* Left side - Character Image */}
-          <div className="relative w-full sm:w-1/2 h-[42vh] sm:h-auto bg-gradient-to-br from-muted/50 to-muted/80">
+          <div className="relative w-full sm:w-1/2 h-[35vh] sm:h-auto flex-shrink-0 bg-gradient-to-br from-muted/50 to-muted/80">
             <img
               src={character.avatar}
               alt={character.name}
@@ -149,10 +149,8 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
           </div>
 
           {/* Right side - Character Details */}
-          <div className="w-full sm:w-1/2 bg-[#0f1117] text-white flex flex-col h-full relative">
-
-
-            <div className="p-4 sm:p-6 flex-1 flex flex-col pb-2 overflow-hidden">
+          <div className="w-full sm:w-1/2 bg-[#0f1117] text-white flex flex-col flex-1 min-h-0 relative overflow-hidden">
+            <div className="p-4 sm:p-6 flex-1 flex flex-col pb-2 overflow-y-auto overscroll-contain touch-pan-y [-webkit-overflow-scrolling:touch]">
               {/* Header */}
               <div className="mb-4 sm:mb-6 flex-shrink-0">
                 <div className="flex items-center justify-between mb-2 pr-12">
@@ -175,8 +173,8 @@ export default function CharacterModal({ character, isOpen, onClose }: Character
                 </p>
               </div>
 
-              {/* Character Details - Scrollable */}
-              <div className="flex-1 overflow-y-auto mb-4 pr-2 custom-scrollbar">
+              {/* Character Details */}
+              <div className="flex-1 mb-4 pr-2">
                 <div className="space-y-6">
                   {character.personality && (
                     <div>
