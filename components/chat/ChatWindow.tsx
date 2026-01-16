@@ -371,7 +371,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       />
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto relative custom-scrollbar">
+      <div className="flex-1 overflow-y-auto relative custom-scrollbar overscroll-contain">
         {/* Messages content */}
         <div className="relative z-10 p-4 space-y-4 min-h-full">
         {messages.map((message) => (
