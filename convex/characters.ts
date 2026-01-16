@@ -451,6 +451,37 @@ export const seedChatCounts = mutation({
   },
 });
 
+// Seed favorite counts for cold start
+// Funnel: chat_count > like_count > favorite_count
+export const seedFavoriteCounts = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const characters = await ctx.db.query("characters").collect();
+    const results = [];
+
+    for (const char of characters) {
+      const likeCount = char.like_count || 0;
+
+      // Favorite count should be 20-40% of like count (more selective action)
+      const favoriteMin = Math.floor(likeCount * 0.2);
+      const favoriteMax = Math.floor(likeCount * 0.4);
+      const favoriteCount = Math.floor(Math.random() * (favoriteMax - favoriteMin + 1)) + favoriteMin;
+
+      await ctx.db.patch(char._id, {
+        favorite_count: favoriteCount,
+      });
+
+      results.push({
+        name: char.name,
+        like_count: likeCount,
+        favorite_count: favoriteCount,
+      });
+    }
+
+    return { success: true, updated: results.length, results };
+  },
+});
+
 // ========================================
 // Migration: Update legacy access_level names
 // ========================================
