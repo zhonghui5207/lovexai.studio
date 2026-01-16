@@ -245,8 +245,8 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Chat Header - Clean single row layout */}
-      <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 z-20 border-b border-white/5 bg-background/80 backdrop-blur-md">
+      {/* Chat Header - Fixed at top */}
+      <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 border-b border-white/5 bg-background/80 backdrop-blur-md">
         {/* Left side - Conversations button + Character info */}
         <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
           {/* Conversations list button (mobile: opens drawer, desktop: hidden) */}
@@ -427,16 +427,16 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
         </div> {/* 闭合 Messages content div */}
       </div>
 
-      {/* Input Area */}
-      <div className="flex-shrink-0 p-4 border-t border-white/10 bg-background/20 backdrop-blur-md z-20">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      {/* Input Area - Fixed at bottom */}
+      <div className="flex-shrink-0 p-3 sm:p-4 border-t border-white/10 bg-background/80 backdrop-blur-md">
+        <div className="flex items-center gap-2">
           <div className="flex-1">
             <Input
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={t('chat.write_message')}
-              className="resize-none border-0 bg-white/5 focus-visible:ring-1 focus-visible:ring-white/20 rounded-xl shadow-inner text-white placeholder:text-white/40 h-12"
+              className="resize-none border-0 bg-white/5 focus-visible:ring-1 focus-visible:ring-white/20 rounded-xl shadow-inner text-white placeholder:text-white/40 h-11"
             />
           </div>
 
@@ -444,14 +444,10 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
             onClick={handleSend}
             disabled={!newMessage.trim()}
             size="icon"
-            className="h-12 w-full sm:w-12"
+            className="h-11 w-11 flex-shrink-0"
           >
             <Send className="h-4 w-4" />
           </Button>
-        </div>
-
-        <div className="mt-2 text-xs text-muted-foreground text-center">
-          {t('chat.press_enter_hint')}
         </div>
       </div>
 

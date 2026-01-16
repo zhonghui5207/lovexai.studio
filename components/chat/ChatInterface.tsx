@@ -245,7 +245,6 @@ function ChatInterface({
             />
           </SheetContent>
         </Sheet>
-        </div>
       </div>
     </div>
   );

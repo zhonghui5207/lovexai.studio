@@ -11,6 +11,7 @@ import { MessageCircle, Search } from "lucide-react";
 // UI组件导入 - 来自项目自定义的UI组件库
 import { Badge } from "@/components/ui/badge"; // 徽章/标签组件
 import Image from "next/image";
+import Header from "@/components/blocks/header"; // 通用 Header 组件
 
 // TypeScript 接口定义 - 类型安全
 
@@ -146,7 +147,17 @@ export default function ChatSidebar({
     // 主容器：固定宽度320px，背景色，右边框，垂直flex布局
     <div className="w-full sm:w-80 bg-background/20 border-r-2 border-border shadow-md flex flex-col">
 
-      {/* 📋 顶部Header区域 */}
+      {/* 📱 移动端全局 Header */}
+      <div className="md:hidden flex-shrink-0">
+        <Header header={{
+          brand: { title: "LOVEXAI", url: "/" },
+          show_sign: true,
+          show_locale: false,
+          disabled: false
+        }} />
+      </div>
+
+      {/* 📋 顶部Header区域 - Chats 标题 */}
       <div className="p-5 pt-6 border-b border-white/5 bg-transparent">
         <h2 className="text-2xl font-bold text-white tracking-tight">{t('chat.title')}</h2>
       </div>
