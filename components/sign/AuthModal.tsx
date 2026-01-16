@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
@@ -225,15 +224,11 @@ function AuthForm() {
 
   return (
     <div className="p-6">
-      <AnimatePresence mode="wait">
-        {step === "email" ? (
-          <motion.div
-            key="email-step"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-          >
+      {step === "email" ? (
+        <div
+          key="email-step"
+          className="animate-fade-in"
+        >
             {/* Logo */}
             <div className="flex justify-center mb-6">
               <LovexaiLogo className="w-12 h-12" />
@@ -376,14 +371,11 @@ function AuthForm() {
                 Privacy Policy
               </Link>
             </p>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
+          <div
             key="otp-step"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.2 }}
+            className="animate-fade-in"
           >
             {/* Back Button */}
             <button
@@ -471,9 +463,8 @@ function AuthForm() {
                 </button>
               )}
             </p>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }

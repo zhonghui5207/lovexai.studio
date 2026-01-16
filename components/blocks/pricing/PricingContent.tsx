@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Loader } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAppContext } from "@/contexts/app";
 import { useSearchParams } from "next/navigation";
@@ -295,7 +294,7 @@ export default function PricingContent() {
           >
             Subscriptions
             {activeTab === 'subscriptions' && (
-              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-all duration-300" />
             )}
           </button>
           <button
@@ -306,21 +305,17 @@ export default function PricingContent() {
           >
             Credits
             {activeTab === 'credits' && (
-              <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary transition-all duration-300" />
             )}
           </button>
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
-        {activeTab === 'subscriptions' ? (
-          <motion.div
-            key="subscriptions"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
+      {activeTab === 'subscriptions' ? (
+        <div
+          key="subscriptions"
+          className="animate-fade-in"
+        >
             <div className="mb-8 sm:mb-10">
               <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">Unlock Unlimited Creativity</h1>
               <p className="text-muted-foreground max-w-2xl">
@@ -445,14 +440,11 @@ export default function PricingContent() {
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
+          <div
             key="credits"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            className="animate-fade-in"
           >
             <div className="mb-8 sm:mb-10">
               <h1 className="text-3xl sm:text-4xl font-bold mb-3 sm:mb-4">
@@ -533,9 +525,8 @@ export default function PricingContent() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* Payment Methods Modal */}
       <PaymentMethodsModal

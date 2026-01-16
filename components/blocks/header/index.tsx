@@ -18,7 +18,6 @@ import LovexaiLogo from "@/components/ui/logo";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useAppContext } from "@/contexts/app";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useQuery } from "convex/react";
@@ -31,6 +30,7 @@ export default function Header({ header }: { header: HeaderType }) {
   const pathname = usePathname();
   const { user } = useAppContext();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const currentGender = searchParams.get("gender") || "girls";
   const [gender, setGender] = useState(currentGender);
@@ -57,6 +57,11 @@ export default function Header({ header }: { header: HeaderType }) {
   useEffect(() => {
     setGender(currentGender);
   }, [currentGender]);
+
+  // Close sheet when pathname changes (navigation occurred)
+  useEffect(() => {
+    setSheetOpen(false);
+  }, [pathname]);
 
   if (header.disabled) {
     return null;
@@ -108,7 +113,7 @@ export default function Header({ header }: { header: HeaderType }) {
       <div className="flex h-14 items-center justify-between px-4">
         {/* Left: Menu Button + Logo */}
         <div className="flex items-center gap-3">
-          <Sheet>
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-white/80 hover:text-white hover:bg-white/10 -ml-2">
                 <Menu className="h-5 w-5" />
@@ -265,10 +270,8 @@ export default function Header({ header }: { header: HeaderType }) {
                 <span>{option.label}</span>
 
                 {isActive && (
-                  <motion.div
-                    layoutId="activeCategoryMobile"
-                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  <div
+                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-primary transition-all duration-300"
                   />
                 )}
               </button>

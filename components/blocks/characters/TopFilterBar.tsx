@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import { Search, Heart, User, Star } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -66,10 +65,8 @@ export default function TopFilterBar() {
                 </div>
                 
                 {isActive && (
-                  <motion.div
-                    layoutId="activeGenderTop"
-                    className="absolute -bottom-[13px] left-0 right-0 h-[2px] bg-primary"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  <div
+                    className="absolute -bottom-[13px] left-0 right-0 h-[2px] bg-primary transition-all duration-300"
                   />
                 )}
               </button>

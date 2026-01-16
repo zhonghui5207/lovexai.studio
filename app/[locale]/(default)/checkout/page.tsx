@@ -12,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader, ArrowLeft, Shield, Lock, CreditCard } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
@@ -134,13 +133,11 @@ function CheckoutForm({
 
       {/* Error Message */}
       {error && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
+        <div
+          className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-fade-in"
         >
           {error}
-        </motion.div>
+        </div>
       )}
 
       {/* Submit Button */}
@@ -286,24 +283,19 @@ export default function CheckoutPage() {
         </button>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
+        <div
+          className="text-center mb-8 animate-fade-in"
         >
           <h1 className="text-3xl font-bold mb-2">Complete Your Purchase</h1>
           <p className="text-muted-foreground flex items-center justify-center gap-2">
             <Shield className="w-4 h-4 text-green-500" />
             <span>Secure & encrypted checkout</span>
           </p>
-        </motion.div>
+        </div>
 
         {/* Order Summary */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-6 border border-primary/20 mb-8"
+        <div
+          className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-6 border border-primary/20 mb-8 animate-fade-in"
         >
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -323,37 +315,30 @@ export default function CheckoutPage() {
             <span className="text-2xl">🪙</span>
             <span className="font-bold text-primary">{orderInfo.credits.toLocaleString()} Credits</span>
           </div>
-        </motion.div>
+        </div>
 
         {/* Stripe Payment Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Elements 
-            stripe={stripePromise} 
+        <div className="animate-fade-in">
+          <Elements
+            stripe={stripePromise}
             options={{
               clientSecret,
               appearance: stripeAppearance,
               locale: getStripeLocale(locale), // Follow website language
             }}
           >
-            <CheckoutForm 
+            <CheckoutForm
               orderNo={orderInfo.orderNo}
               productName={orderInfo.productName}
               price={orderInfo.price}
               credits={orderInfo.credits}
             />
           </Elements>
-        </motion.div>
+        </div>
 
         {/* Trust Badges */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 flex items-center justify-center gap-6 text-muted-foreground"
+        <div
+          className="mt-8 flex items-center justify-center gap-6 text-muted-foreground animate-fade-in"
         >
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
@@ -367,7 +352,7 @@ export default function CheckoutPage() {
             <CreditCard className="w-4 h-4" />
             <span className="text-sm">PCI Compliant</span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 import { CdnImage } from "@/components/ui/cdn-image";
 import { Heart, User, Star } from "lucide-react";
@@ -81,6 +80,64 @@ function genderToCategory(gender: string | null): Category {
   }
 }
 
+// Calculate card position styles based on offset
+function getCardStyle(offset: number, isCompact: boolean) {
+  let scale = 0.8;
+  let opacity = 0;
+  let x = 0;
+  let rotateY = 0;
+  let zIndex = 0;
+
+  if (offset === 0) { // Active card
+    zIndex = 30;
+    scale = 1;
+    opacity = 1;
+    x = 0;
+    rotateY = 0;
+  } else if (offset === 1) { // Next card (Right)
+    zIndex = 20;
+    scale = 0.85;
+    opacity = 0.6;
+    x = 120;
+    rotateY = -15;
+  } else { // Previous/Last card (Left)
+    zIndex = 10;
+    scale = 0.85;
+    opacity = 0.6;
+    x = -120;
+    rotateY = 15;
+  }
+
+  if (isCompact && offset !== 0) {
+    x = x * 0.55;
+  }
+
+  return {
+    transform: `translateX(${x}px) scale(${scale}) rotateY(${rotateY}deg)`,
+    opacity,
+    zIndex,
+  };
+}
+
+// Calculate mobile card position styles
+function getMobileCardStyle(offset: number) {
+  let scale = 0.8;
+  let opacity = 0;
+  let x = 0;
+  let rotateY = 0;
+  let zIndex = 0;
+
+  if (offset === 0) { zIndex = 30; scale = 1; opacity = 1; x = 0; rotateY = 0; }
+  else if (offset === 1) { zIndex = 20; scale = 0.85; opacity = 0.6; x = 80; rotateY = -15; }
+  else { zIndex = 10; scale = 0.85; opacity = 0.6; x = -80; rotateY = 15; }
+
+  return {
+    transform: `translateX(${x}px) scale(${scale}) rotateY(${rotateY}deg)`,
+    opacity,
+    zIndex,
+  };
+}
+
 export default function HeroBanner() {
   const t = useTranslations('hero');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -90,7 +147,7 @@ export default function HeroBanner() {
   const [isCompact, setIsCompact] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // Ensure client-side only to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
@@ -106,7 +163,7 @@ export default function HeroBanner() {
     media.addListener(handleChange);
     return () => media.removeListener(handleChange);
   }, []);
-  
+
   // Read gender from URL and map to category
   // Default to "girls" for SSR, then update on client
   const gender = mounted ? searchParams.get("gender") : null;
@@ -124,7 +181,7 @@ export default function HeroBanner() {
   // Auto-play carousel
   useEffect(() => {
     if (heroCharacters.length === 0) return;
-    
+
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % heroCharacters.length);
     }, 5000); // Slower interval for better viewing
@@ -154,7 +211,7 @@ export default function HeroBanner() {
       {/* Dynamic Background Glows */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/20 blur-[120px] rounded-full pointer-events-none" />
-      
+
       <div className="w-full px-6 md:px-8 max-w-[1400px] mx-auto grid lg:grid-cols-12 gap-6 lg:gap-8 items-center relative z-10">
         {/* Left Content: Text - Static, no animation to avoid flash */}
         <div className="lg:col-span-6 text-center lg:text-left space-y-4 sm:space-y-8 pt-6 sm:pt-12 lg:pt-0 relative z-20">
@@ -173,58 +230,52 @@ export default function HeroBanner() {
           </h2>
 
           {/* Mobile: Card Stack between text and buttons */}
-          <div className="lg:hidden relative h-[280px] flex items-center justify-center perspective-1000">
-            <AnimatePresence mode="popLayout">
-              {heroCharacters.map((character, index) => {
-                const offset = (index - currentIndex + heroCharacters.length) % heroCharacters.length;
-                if (offset > 2 && offset !== heroCharacters.length - 1) return null;
+          <div className="lg:hidden relative h-[320px] flex items-center justify-center" style={{ perspective: '1000px' }}>
+            {heroCharacters.map((character, index) => {
+              const offset = (index - currentIndex + heroCharacters.length) % heroCharacters.length;
+              if (offset > 2 && offset !== heroCharacters.length - 1) return null;
 
-                let zIndex = 0, scale = 0.8, opacity = 0, x = 0, rotateY = 0;
-                if (offset === 0) { zIndex = 30; scale = 1; opacity = 1; x = 0; rotateY = 0; }
-                else if (offset === 1) { zIndex = 20; scale = 0.85; opacity = 0.6; x = 66; rotateY = -15; }
-                else { zIndex = 10; scale = 0.85; opacity = 0.6; x = -66; rotateY = 15; }
+              const style = getMobileCardStyle(offset);
 
-                return (
-                  <motion.div
-                    key={`mobile-${character.id}`}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale, opacity, x, rotateY, zIndex }}
-                    exit={{ scale: 0.5, opacity: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    className="absolute w-[160px] aspect-[3/4] cursor-pointer"
-                    onClick={() => { if (offset === 0) handleCharacterClick(character); else setCurrentIndex(index); }}
-                    style={{ transformStyle: 'preserve-3d' }}
-                  >
-                    <div className={`relative h-full w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl ${offset === 0 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/20' : ''}`}>
-                      <CdnImage src={character.avatar} alt={character.name} fill className="object-cover" />
-                      <div className="absolute top-3 left-3 z-10">
-                        <span className="px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[9px] font-bold uppercase tracking-wider text-white/90">
-                          {character.traits[0]}
-                        </span>
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-20">
-                        <h3 className="font-heading text-xl font-bold mb-1">{character.name}</h3>
-                        <p className="text-xs text-white/80 line-clamp-2 mb-2">"{renderActionText(character.greeting)}"</p>
-                        {offset === 0 && (
-                          <div className="flex items-center justify-between pt-2 border-t border-white/10">
-                            <span className="text-[10px] text-white/70"><span className="text-primary">🔥</span> {character.chatCount}</span>
-                            <span className="text-[10px] font-bold text-white bg-white/10 px-2 py-1 rounded-full">{t('chat_button')} 💬</span>
-                          </div>
-                        )}
-                      </div>
+              return (
+                <div
+                  key={`mobile-${character.id}`}
+                  className="absolute w-[200px] aspect-[3/4] cursor-pointer transition-all duration-500 ease-out"
+                  onClick={() => { if (offset === 0) handleCharacterClick(character); else setCurrentIndex(index); }}
+                  style={{
+                    ...style,
+                    transformStyle: 'preserve-3d',
+                  }}
+                >
+                  <div className={`relative h-full w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl ${offset === 0 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/20' : ''}`}>
+                    <CdnImage src={character.avatar} alt={character.name} fill className="object-cover" />
+                    <div className="absolute top-3 left-3 z-10">
+                      <span className="px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[9px] font-bold uppercase tracking-wider text-white/90">
+                        {character.traits[0]}
+                      </span>
                     </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white z-20">
+                      <h3 className="font-heading text-xl font-bold mb-1">{character.name}</h3>
+                      <p className="text-xs text-white/80 line-clamp-2 mb-2">"{renderActionText(character.greeting)}"</p>
+                      {offset === 0 && (
+                        <div className="flex items-center justify-between pt-2 border-t border-white/10">
+                          <span className="text-[10px] text-white/70"><span className="text-primary">🔥</span> {character.chatCount}</span>
+                          <span className="text-[10px] font-bold text-white bg-white/10 px-2 py-1 rounded-full">{t('chat_button')} 💬</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start">
+          <div className="flex flex-row sm:flex-row gap-2 sm:gap-4 justify-center lg:justify-start">
             <Button
               size="lg"
-              className="relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-bold px-6 sm:px-10 py-4 sm:py-6 text-base sm:text-lg rounded-2xl shadow-[0_0_20px_rgba(255,0,110,0.4)] transition-all sm:hover:scale-105 sm:hover:shadow-[0_0_40px_rgba(255,0,110,0.6)]"
+              className="relative overflow-hidden bg-primary hover:bg-primary/90 text-white font-bold px-4 sm:px-10 py-3 sm:py-6 text-sm sm:text-lg rounded-xl sm:rounded-2xl shadow-[0_0_20px_rgba(255,0,110,0.4)] transition-all sm:hover:scale-105 sm:hover:shadow-[0_0_40px_rgba(255,0,110,0.6)] flex-1 sm:flex-none"
               onClick={() => handleStartChat(heroCharacters[currentIndex])}
             >
               <span className="relative z-10">{t('button_primary')}</span>
@@ -233,7 +284,7 @@ export default function HeroBanner() {
             <Button
               size="lg"
               variant="outline"
-              className="border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 font-semibold px-5 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-2xl backdrop-blur-sm transition-all"
+              className="border-2 border-white/10 bg-white/5 hover:bg-white/10 hover:border-white/20 font-semibold px-4 sm:px-8 py-3 sm:py-6 text-sm sm:text-lg rounded-xl sm:rounded-2xl backdrop-blur-sm transition-all flex-1 sm:flex-none"
               onClick={() => router.push('/discover')}
             >
               {t('button_secondary')}
@@ -267,112 +318,71 @@ export default function HeroBanner() {
         </div>
 
         {/* Desktop: Right Content - 3D Card Stack */}
-        <div className="hidden lg:flex lg:col-span-6 relative h-[600px] items-center justify-center perspective-1000 z-10">
-          <AnimatePresence mode="popLayout">
-            {heroCharacters.map((character, index) => {
-              // Calculate relative position for stack effect
-              const offset = (index - currentIndex + heroCharacters.length) % heroCharacters.length;
-              
-              // Only show 3 cards: current, next, and previous (as last)
-              if (offset > 2 && offset !== heroCharacters.length - 1) return null;
+        <div className="hidden lg:flex lg:col-span-6 relative h-[600px] items-center justify-center z-10" style={{ perspective: '1000px' }}>
+          {heroCharacters.map((character, index) => {
+            // Calculate relative position for stack effect
+            const offset = (index - currentIndex + heroCharacters.length) % heroCharacters.length;
 
-              let zIndex = 0;
-              let scale = 0.8;
-              let opacity = 0;
-              let x = 0;
-              let rotateY = 0;
+            // Only show 3 cards: current, next, and previous (as last)
+            if (offset > 2 && offset !== heroCharacters.length - 1) return null;
 
-              if (offset === 0) { // Active card
-                zIndex = 30;
-                scale = 1;
-                opacity = 1;
-                x = 0;
-                rotateY = 0;
-              } else if (offset === 1) { // Next card (Right)
-                zIndex = 20;
-                scale = 0.85;
-                opacity = 0.6;
-                x = 120; // px
-                rotateY = -15; // deg
-              } else { // Previous/Last card (Left)
-                zIndex = 10;
-                scale = 0.85;
-                opacity = 0.6;
-                x = -120; // px
-                rotateY = 15; // deg
-              }
+            const style = getCardStyle(offset, isCompact);
 
-              if (isCompact && offset !== 0) {
-                x = x * 0.55;
-              }
+            return (
+              <div
+                key={character.id}
+                className="absolute w-[180px] sm:w-[280px] md:w-[320px] aspect-[3/4] cursor-pointer transition-all duration-500 ease-out"
+                onClick={() => {
+                  if (offset === 0) handleCharacterClick(character);
+                  else setCurrentIndex(index);
+                }}
+                style={{
+                  ...style,
+                  transformStyle: 'preserve-3d',
+                }}
+              >
+                <div className={`relative h-full w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-300 ${offset === 0 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/20' : ''}`}>
+                  <CdnImage
+                    src={character.avatar}
+                    alt={character.name}
+                    fill
+                    className="object-cover transition-transform duration-700 hover:scale-110"
+                  />
 
-              return (
-                <motion.div
-                  key={character.id}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ 
-                    scale, 
-                    opacity, 
-                    x, 
-                    rotateY,
-                    zIndex 
-                  }}
-                  exit={{ scale: 0.5, opacity: 0 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="absolute w-[180px] sm:w-[280px] md:w-[320px] aspect-[3/4] cursor-pointer"
-                  onClick={() => {
-                    if (offset === 0) handleCharacterClick(character);
-                    else setCurrentIndex(index);
-                  }}
-                  style={{ transformStyle: 'preserve-3d' }}
-                >
-                  <div className={`relative h-full w-full rounded-3xl overflow-hidden border border-white/10 shadow-2xl transition-all duration-300 ${offset === 0 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/20' : ''}`}>
-                    <CdnImage
-                      src={character.avatar}
-                      alt={character.name}
-                      fill
-                      className="object-cover transition-transform duration-700 hover:scale-110"
-                    />
-                    
-                    {/* Top Badges */}
-                    <div className="absolute top-4 left-4 flex flex-col gap-2 items-start z-10">
-                      <span className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-wider text-white/90 shadow-lg">
-                        {character.traits[0]}
-                      </span>
-                    </div>
-
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
-                    
-                    {/* Content */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-20">
-                      <h3 className="font-heading text-3xl font-bold mb-2 drop-shadow-lg">{character.name}</h3>
-                      <p className="text-sm text-white/80 line-clamp-2 font-sans mb-4 leading-relaxed drop-shadow-md">
-                        "{renderActionText(character.greeting)}"
-                      </p>
-                      
-                      {offset === 0 && (
-                        <motion.div 
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex items-center justify-between pt-4 border-t border-white/10"
-                        >
-                          <div className="flex items-center gap-1.5 text-xs font-medium text-white/70">
-                            <span className="text-primary">🔥</span> {character.chatCount} {t('chats_suffix')}
-                          </div>
-
-                          <div className="flex items-center gap-2 text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm">
-                            <span>{t('chat_button')}</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                          </div>
-                        </motion.div>
-                      )}
-                    </div>
+                  {/* Top Badges */}
+                  <div className="absolute top-4 left-4 flex flex-col gap-2 items-start z-10">
+                    <span className="px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-wider text-white/90 shadow-lg">
+                      {character.traits[0]}
+                    </span>
                   </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
+
+                  {/* Content */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-20">
+                    <h3 className="font-heading text-3xl font-bold mb-2 drop-shadow-lg">{character.name}</h3>
+                    <p className="text-sm text-white/80 line-clamp-2 font-sans mb-4 leading-relaxed drop-shadow-md">
+                      "{renderActionText(character.greeting)}"
+                    </p>
+
+                    {offset === 0 && (
+                      <div className="flex items-center justify-between pt-4 border-t border-white/10 animate-fade-in">
+                        <div className="flex items-center gap-1.5 text-xs font-medium text-white/70">
+                          <span className="text-primary">🔥</span> {character.chatCount} {t('chats_suffix')}
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs font-bold text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors backdrop-blur-sm">
+                          <span>{t('chat_button')}</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

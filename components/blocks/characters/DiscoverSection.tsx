@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
 import CharacterModal from "./CharacterModal";
 import { useSearchParams } from "next/navigation";
 import { MessageCircle } from "lucide-react";
@@ -80,10 +79,8 @@ function CharacterCard({ character, onClick, chatsSuffix, liveLabel, chatNowLabe
   }, [isHovered, character.video_url]);
 
   return (
-    <motion.div
-      layout
-      // Removed initial animation to show cards instantly
-      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/5 cursor-pointer"
+    <div
+      className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-white/5 cursor-pointer transition-transform duration-300"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -160,16 +157,17 @@ function CharacterCard({ character, onClick, chatsSuffix, liveLabel, chatNowLabe
       )}
 
       {/* Bottom Info */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 z-30 transform transition-transform duration-300 group-hover:-translate-y-2">
-        <h3 className="font-heading text-2xl font-bold text-white mb-1 drop-shadow-lg">
+      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-5 z-30 transform transition-transform duration-300 md:group-hover:-translate-y-2">
+        {/* Name & Description - Hidden on mobile, always visible on desktop */}
+        <h3 className="font-heading text-2xl font-bold text-white mb-1 drop-shadow-lg hidden md:block">
           {character.name}
         </h3>
-        <p className="text-sm text-white/80 line-clamp-2 mb-3 font-sans">
+        <p className="text-sm text-white/80 mb-3 font-sans hidden md:[-webkit-line-clamp:2] md:[display:-webkit-box] md:[-webkit-box-orient:vertical] md:overflow-hidden">
           {renderActionText(character.greeting)}
         </p>
-        
-        {/* Tags - Visible on Hover */}
-        <div className="flex flex-wrap gap-1 opacity-100 h-auto md:opacity-0 md:h-0 md:group-hover:opacity-100 md:group-hover:h-auto transition-all duration-300 delay-100">
+
+        {/* Tags - Always visible on mobile, hover on desktop */}
+        <div className="flex flex-wrap gap-1 md:opacity-0 md:h-0 md:group-hover:opacity-100 md:group-hover:h-auto transition-all duration-300 delay-100">
           {character.traits?.slice(0, 2).map((trait, i) => (
             <span key={i} className="text-[10px] px-2 py-1 rounded-full bg-white/20 text-white backdrop-blur-sm">
               {getTraitLabel(trait)}
@@ -177,9 +175,9 @@ function CharacterCard({ character, onClick, chatsSuffix, liveLabel, chatNowLabe
           ))}
         </div>
 
-        {/* Chat Button - Visible on Hover */}
-        <div className="mt-4 opacity-100 translate-y-0 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 delay-75">
-          <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold shadow-lg shadow-primary/20">
+        {/* Chat Button - Always visible on mobile, hover on desktop */}
+        <div className="mt-2 md:mt-4 md:opacity-0 md:translate-y-4 md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300 delay-75">
+          <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-bold shadow-lg shadow-primary/20 h-9 md:h-10 text-sm">
             {chatNowLabel}
           </Button>
         </div>
@@ -187,7 +185,7 @@ function CharacterCard({ character, onClick, chatsSuffix, liveLabel, chatNowLabe
 
       {/* Border Glow */}
       <div className="absolute inset-0 z-40 border-2 border-transparent group-hover:border-primary/50 rounded-2xl transition-colors duration-300 pointer-events-none" />
-    </motion.div>
+    </div>
   );
 }
 
@@ -356,36 +354,30 @@ export default function DiscoverSection({ characters: rawCharacters }: DiscoverS
         </div>
         
         {/* Character Grid */}
-        <motion.div
-          layout
+        <div
           className="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 w-full"
         >
-          <AnimatePresence mode="popLayout">
-            {loading ? (
-              Array.from({ length: 10 }).map((_, index) => (
-                <motion.div 
-                  key={`skeleton-${index}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="aspect-[3/4] bg-white/5 rounded-2xl animate-pulse"
-                />
-              ))
-            ) : (
-              displayCharacters.map((character) => (
-                <CharacterCard
-                  key={character.id}
-                  character={character}
-                  onClick={() => handleCharacterClick(character)}
-                  chatsSuffix={t('chats_suffix')}
-                  liveLabel={t('live')}
-                  chatNowLabel={t('chat_now')}
-                  getTraitLabel={getTraitLabel}
-                />
-              ))
-            )}
-          </AnimatePresence>
-        </motion.div>
+          {loading ? (
+            Array.from({ length: 10 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className="aspect-[3/4] bg-white/5 rounded-2xl animate-pulse"
+              />
+            ))
+          ) : (
+            displayCharacters.map((character) => (
+              <CharacterCard
+                key={character.id}
+                character={character}
+                onClick={() => handleCharacterClick(character)}
+                chatsSuffix={t('chats_suffix')}
+                liveLabel={t('live')}
+                chatNowLabel={t('chat_now')}
+                getTraitLabel={getTraitLabel}
+              />
+            ))
+          )}
+        </div>
 
         {hasMore && (
           <div className="mt-16 text-center">
