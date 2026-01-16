@@ -244,9 +244,9 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Chat Header - Clean single row layout */}
-      <div className="flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 z-20 border-b border-white/5 bg-background/80 backdrop-blur-md">
+      <div className="flex-shrink-0 flex items-center justify-between px-3 sm:px-4 py-3 sm:py-4 z-20 border-b border-white/5 bg-background/80 backdrop-blur-md">
         {/* Left side - Conversations button + Character info */}
         <div className="flex items-center gap-1 sm:gap-3 min-w-0 flex-1">
           {/* Conversations list button (mobile: opens drawer, desktop: hidden) */}
@@ -371,7 +371,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       />
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto relative custom-scrollbar overscroll-contain [-webkit-overflow-scrolling:touch]">
+      <div className="flex-1 min-h-0 overflow-y-auto relative custom-scrollbar overscroll-contain [-webkit-overflow-scrolling:touch]">
         {/* Messages content */}
         <div className="relative z-10 p-4 space-y-4">
         {messages.map((message) => (
@@ -428,7 +428,7 @@ export default function ChatWindow({ character, messages, onSendMessage, isTypin
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t border-white/10 bg-background/20 backdrop-blur-md z-20">
+      <div className="flex-shrink-0 p-4 border-t border-white/10 bg-background/20 backdrop-blur-md z-20">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <div className="flex-1">
             <Input

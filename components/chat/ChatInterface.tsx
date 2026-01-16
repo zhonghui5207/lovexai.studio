@@ -10,7 +10,6 @@ import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import Header from "@/components/blocks/header";
 
 interface Message {
   id: string;
@@ -139,17 +138,7 @@ function ChatInterface({
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      {/* Mobile Header - Same as homepage */}
-      <div className="md:hidden">
-        <Header header={{
-          brand: { title: "LOVEXAI", url: "/" },
-          show_sign: true,
-          show_locale: false,
-          disabled: false
-        }} />
-      </div>
-
+    <div className="flex flex-col h-screen bg-background overflow-hidden">
       <div className="flex flex-1 min-h-0">
         <div className="hidden md:flex">
           <ChatSidebar
@@ -161,61 +150,63 @@ function ChatInterface({
             availableCharacters={availableCharacters}
           />
         </div>
-        <div className="flex-1 flex relative">
-        {/* Background */}
-        <div
-          className="absolute inset-0 pointer-events-none transition-opacity duration-500"
-          style={{
-            backgroundImage: `url(${character.avatar_url})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center 25%",
-            backgroundRepeat: "no-repeat",
-            backgroundAttachment: "fixed",
-            filter: "brightness(0.15) blur(8px)",
-            zIndex: 0,
-          }}
-        />
+        <div className="flex-1 flex flex-col min-h-0 relative">
+          {/* Background */}
+          <div
+            className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+            style={{
+              backgroundImage: `url(${character.avatar_url})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center 25%",
+              backgroundRepeat: "no-repeat",
+              backgroundAttachment: "fixed",
+              filter: "brightness(0.15) blur(8px)",
+              zIndex: 0,
+            }}
+          />
 
-        <div className="relative z-10 flex w-full">
-          {/* Chat Window */}
-          <div className="flex-1 min-w-0">
-            <ChatWindow
-              messages={messages}
-              onSendMessage={handleSendMessage}
-              character={character}
-              isLoading={rawMessages === undefined && !!conversationId}
-              creditsPerMessage={character.credits_per_message}
-              convexUserId={convexUserId}
-              conversationId={conversationId as any}
-              onConversationDeleted={() => {
-                console.log("[Delete Callback] Current conversationId:", conversationId);
-                console.log("[Delete Callback] All conversations:", conversations);
+          {/* Main Content Row */}
+          <div className="relative z-10 flex flex-1 min-h-0">
+            {/* Chat Window - 占满剩余空间 */}
+            <div className="flex-1 min-w-0 min-h-0 flex flex-col">
+              <ChatWindow
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                character={character}
+                isLoading={rawMessages === undefined && !!conversationId}
+                creditsPerMessage={character.credits_per_message}
+                convexUserId={convexUserId}
+                conversationId={conversationId as any}
+                onConversationDeleted={() => {
+                  console.log("[Delete Callback] Current conversationId:", conversationId);
+                  console.log("[Delete Callback] All conversations:", conversations);
 
-                // Find another conversation to switch to
-                const otherConversation = conversations.find(c => c.id !== conversationId);
-                console.log("[Delete Callback] Found other conversation:", otherConversation);
+                  // Find another conversation to switch to
+                  const otherConversation = conversations.find(c => c.id !== conversationId);
+                  console.log("[Delete Callback] Found other conversation:", otherConversation);
 
-                if (otherConversation) {
-                  console.log("[Delete Callback] Switching to:", otherConversation.id);
-                  onConversationSwitch(otherConversation);
-                } else {
-                  console.log("[Delete Callback] No other conversations, going to discover");
-                  // No other conversations, go to discover
-                  router.push('/discover');
-                }
-              }}
-              onOpenConversations={() => setIsConversationsOpen(true)}
-              onOpenCharacterPanel={() => setIsCharacterPanelOpen(true)}
-            />
-          </div>
+                  if (otherConversation) {
+                    console.log("[Delete Callback] Switching to:", otherConversation.id);
+                    onConversationSwitch(otherConversation);
+                  } else {
+                    console.log("[Delete Callback] No other conversations, going to discover");
+                    // No other conversations, go to discover
+                    router.push('/discover');
+                  }
+                }}
+                onOpenConversations={() => setIsConversationsOpen(true)}
+                onOpenCharacterPanel={() => setIsCharacterPanelOpen(true)}
+              />
+            </div>
 
-          {/* Character Panel - Desktop */}
-          <div className="hidden lg:block lg:w-80 xl:w-96 z-20">
-            <CharacterPanel
-              character={character}
-              onSuggestionClick={handleSendMessage}
-              userId={convexUserId || undefined}
-            />
+            {/* Character Panel - Desktop */}
+            <div className="hidden lg:block lg:w-80 xl:w-96 z-20">
+              <CharacterPanel
+                character={character}
+                onSuggestionClick={handleSendMessage}
+                userId={convexUserId || undefined}
+              />
+            </div>
           </div>
         </div>
 
